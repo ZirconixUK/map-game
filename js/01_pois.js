@@ -255,24 +255,21 @@ async function loadPois() {
 // Fetches OSM POIs from the Overpass API for a given lat/lon/radius.
 // Returns a normalised array of POIs matching the game's expected format.
 async function fetchPoisAroundPlayer(lat, lon, radiusM) {
-  const r = Math.max(500, Math.round(radiusM));
+  const r = Math.max(100, Math.round(radiusM));
+  // Use nwr (node/way/relation) and pre-filter by ["name"] to keep the query
+  // fast on the free Overpass servers.
   const q = [
     `[out:json][timeout:10];`,
     `(`,
-    `  node["railway"="station"](around:${r},${lat},${lon});`,
-    `  way["railway"="station"](around:${r},${lat},${lon});`,
-    `  node["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
-    `  way["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
-    `  node["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
-    `  way["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
-    `  node["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
-    `  way["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
-    `  node["historic"~"^(monument|memorial|castle|building)$"](around:${r},${lat},${lon});`,
-    `  node["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
-    `  way["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
-    `  node["man_made"="pier"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["railway"="station"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["historic"~"^(monument|memorial|castle|building)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["man_made"="pier"](around:${r},${lat},${lon});`,
     `);`,
-    `out center body;`,
+    `out center 100;`,
   ].join('\n');
 
   const __endpoints = [
@@ -327,7 +324,7 @@ window.__refreshLivePoisForCurrentLocation = async function() {
   if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live) return;
 
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
-  const queryRadius = Math.max(modeCapM * 2, 2000);
+  const queryRadius = modeCapM;
 
   const __toast = (typeof window.showToast === 'function') ? window.showToast : null;
   try {
