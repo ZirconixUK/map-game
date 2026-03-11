@@ -257,7 +257,7 @@ async function loadPois() {
 async function fetchPoisAroundPlayer(lat, lon, radiusM) {
   const r = Math.max(500, Math.round(radiusM));
   const q = [
-    `[out:json][timeout:25];`,
+    `[out:json][timeout:10];`,
     `(`,
     `  node["railway"="station"](around:${r},${lat},${lon});`,
     `  way["railway"="station"](around:${r},${lat},${lon});`,
@@ -275,11 +275,19 @@ async function fetchPoisAroundPlayer(lat, lon, radiusM) {
     `out center body;`,
   ].join('\n');
 
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body: 'data=' + encodeURIComponent(q),
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-  });
+  const controller = new AbortController();
+  const __timer = setTimeout(() => controller.abort(), 12000);
+  let res;
+  try {
+    res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(q),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(__timer);
+  }
   if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`);
   const data = await res.json();
 
@@ -310,11 +318,14 @@ window.__refreshLivePoisForCurrentLocation = async function() {
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
   const queryRadius = Math.max(modeCapM * 2, 2000);
 
+  const __toast = (typeof window.showToast === 'function') ? window.showToast : null;
   try {
     log(`🌍 Fetching live POIs (${Math.round(queryRadius / 1000)}km radius)…`);
+    if (__toast) __toast(`🌍 Finding nearby POIs…`, true);
     const pois = await fetchPoisAroundPlayer(player.lat, player.lon, queryRadius);
     if (!pois.length) {
       log('⚠️ No POIs found from Overpass in this area. Using existing POIs.');
+      if (__toast) __toast('⚠️ No nearby POIs found — using defaults.', false);
       return;
     }
 
@@ -331,7 +342,11 @@ window.__refreshLivePoisForCurrentLocation = async function() {
     setPoisFromList(pois, `Live (Overpass, ${pois.length} POIs)`);
     window.__POI_PACK__ = { filename: 'overpass', live: true };
     log(`✅ Live POIs loaded: ${pois.length} features near your location.`);
+    if (__toast) __toast(`✅ Loaded ${pois.length} nearby POIs.`, true);
   } catch (e) {
-    log(`⚠️ Live POI fetch failed: ${e.message}. Using existing POIs.`);
+    const timedOut = e && e.name === 'AbortError';
+    const msg = timedOut ? 'Timed out — using defaults.' : `${e.message} — using defaults.`;
+    log(`⚠️ Live POI fetch failed: ${timedOut ? 'timeout' : e.message}. Using existing POIs.`);
+    if (__toast) __toast(`⚠️ POI fetch failed: ${msg}`, false);
   }
 };
