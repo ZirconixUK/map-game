@@ -227,9 +227,15 @@
     }
   }
 
+  function isCurseActive(id) {
+    const now = nowMs();
+    return active.some(c => c.id === id && c.expiresAt > now);
+  }
+
   // Expose
   window.loadCursesConfig = loadCursesConfig;
   window.getActiveCurses = getActiveCurses;
+  window.isCurseActive = isCurseActive;
   window.setActiveCurses = setActiveCurses; // still useful for dev tooling
   window.clearCurses = clearCurses;
   window.applyCurse = applyCurse;

@@ -730,10 +730,17 @@ if (debugMode) {
 
   function applyQuestionCosts(toolId, optionId) {
     const cost = (typeof getToolCosts === "function") ? getToolCosts(toolId, optionId) : null;
-    const h = (cost && typeof cost.heat_cost === "number" && isFinite(cost.heat_cost))
+    let h = (cost && typeof cost.heat_cost === "number" && isFinite(cost.heat_cost))
       ? cost.heat_cost
       : (typeof QUESTION_HEAT_COST === "number" ? QUESTION_HEAT_COST : 0.5);
 
+    // Curse surcharges: heat1 = +0.25, heat2 = +0.5
+    try {
+      if (typeof window.isCurseActive === "function") {
+        if (window.isCurseActive("heat1")) h += 0.25;
+        if (window.isCurseActive("heat2")) h += 0.5;
+      }
+    } catch(e) {}
 
     try { if (typeof addHeat === "function") addHeat(h); else if (typeof setHeatLevel === "function") setHeatLevel((heatLevel||0)+h); } catch(e) {}
 
@@ -752,6 +759,11 @@ if (debugMode) {
       btn.addEventListener("click", () => {
         const meters = parseFloat(btn.getAttribute("data-radar") || "0");
         if (blockIfToolOptionAlreadyUsed('radar', String(meters), `${meters}m radar`)) return;
+        // Curse: heat4 caps radar at 250m
+        if (typeof window.isCurseActive === "function" && window.isCurseActive("heat4") && meters > 250) {
+          showToast("Radar is limited to 250m while cursed.", false);
+          return;
+        }
         // Apply costs
         const curseRoll = applyQuestionCosts("radar", String(meters));
         if (curseRoll && curseRoll.blocked) return;
@@ -1075,6 +1087,11 @@ if (debugMode) {
         }
 
         if (mode === 'near100' || mode === 'near200') {
+          // Curse: heat5 blocks extra photos
+          if (typeof window.isCurseActive === "function" && window.isCurseActive("heat5")) {
+            showToast("Extra photos are blocked while cursed.", false);
+            return;
+          }
           try {
             if (typeof window.showStreetViewExtraPhotoForTarget === 'function') {
               const res = await window.showStreetViewExtraPhotoForTarget({ tier: mode, coinCost: 0 });

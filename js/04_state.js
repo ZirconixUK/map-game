@@ -105,6 +105,17 @@ window.getToolUnlockInfo = (toolId, optionId) => {
 
   // N/S and E/W unlock once half the round time has passed.
   if (t === 'nsew' && (o === 'NS' || o == 'EW')) {
+    // Curse: heat3 locks N/S/E/W for its duration
+    try {
+      if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat3')) {
+        const cursed = (window.getActiveCurses ? window.getActiveCurses() : []).find(c => c.id === 'heat3');
+        const remainingMs = (typeof window.__msLeftOnCurse === 'function' && cursed)
+          ? window.__msLeftOnCurse(cursed)
+          : (5 * 60 * 1000);
+        return { locked: true, unlockAtMs: 0, remainingMs, reason: 'Locked by curse.' };
+      }
+    } catch(e) {}
+
     const unlockAtMs = Math.max(0, Math.floor(limit / 2));
     const remainingMs = Math.max(0, unlockAtMs - elapsed);
     return {
