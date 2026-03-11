@@ -110,8 +110,18 @@ async function __pickStreetViewPanoTarget(startLatLng) {
     try { log(`🧭 Mode target cap: ≤ ${Math.round(modeCapM)}m`); } catch(e) {}
   }
 
+  // Seed pool: POIs within mode cap of startRef give locally-relevant pano candidates.
+  // Falls back to random bbox points when no in-range POIs exist (e.g. static Liverpool pack + player elsewhere).
+  const __poisInRange = (hasStart && Array.isArray(POIS) && POIS.length > 0 && typeof haversineMeters === 'function')
+    ? POIS.filter(p => typeof p.lat === 'number' && typeof p.lon === 'number' &&
+        haversineMeters(startLatLng.lat, startLatLng.lon, p.lat, p.lon) <= modeCapM)
+    : [];
+  const __usePoiSeeds = __poisInRange.length > 0;
+
   for (let i = 0; i < maxAttempts; i++) {
-    const p = __randomPointInBbox();
+    const p = __usePoiSeeds
+      ? __poisInRange[Math.floor(Math.random() * __poisInRange.length)]
+      : __randomPointInBbox();
     if (!p) break;
     let meta = null;
     try {
@@ -120,7 +130,8 @@ async function __pickStreetViewPanoTarget(startLatLng) {
       continue;
     }
     if (!meta || !meta.ok || !meta.location) continue;
-    if (!__insideBbox(meta.location.lat, meta.location.lon)) continue;
+    // Skip bbox check when using POI seeds — the seed was already confirmed in-range.
+    if (!__usePoiSeeds && !__insideBbox(meta.location.lat, meta.location.lon)) continue;
 
     // Enforce mode distance cap using the final snapped pano location, not the seed point.
     let distFromStartM = null;
@@ -241,7 +252,7 @@ function pickNewTarget(verbose = true) {
         const candidates = Array.isArray(POIS) ? POIS.map((p, idx) => ({ p, idx })).filter(({ p }) => p && typeof p.lat === 'number' && typeof p.lon === 'number').filter(({ p }) => {
           if (!startRefForFallback || typeof haversineMeters !== 'function') return true;
           try {
-            return haversineMeters(startRefForFallback, { lat: p.lat, lon: p.lon }) <= modeCapM;
+            return haversineMeters(startRefForFallback.lat, startRefForFallback.lon, p.lat, p.lon) <= modeCapM;
           } catch (e) {
             return false;
           }
@@ -250,9 +261,15 @@ function pickNewTarget(verbose = true) {
           const chosen = candidates[Math.floor(Math.random() * candidates.length)];
           targetIdx = chosen.idx;
           target = chosen.p;
+        } else if (startRefForFallback) {
+          try {
+            const capKm = (modeCapM / 1000).toFixed(1);
+            log(`⚠️ No locations within ${capKm}km of your position. You may be outside the play area.`);
+            if (typeof showToast === 'function') showToast(`No locations found within ${capKm}km. Try a longer game mode or move to the play area.`, false);
+          } catch(e) {}
         }
       } catch (e) {}
-      if (!target) {
+      if (!target && Array.isArray(POIS) && POIS.length > 0) {
         targetIdx = Math.floor(Math.random() * POIS.length);
         target = POIS[targetIdx];
       }

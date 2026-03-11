@@ -250,3 +250,88 @@ async function loadPois() {
     setPoiSourceUI("built-in");
   }
 }
+
+// ---- Live Overpass POI fetch ----
+// Fetches OSM POIs from the Overpass API for a given lat/lon/radius.
+// Returns a normalised array of POIs matching the game's expected format.
+async function fetchPoisAroundPlayer(lat, lon, radiusM) {
+  const r = Math.max(500, Math.round(radiusM));
+  const q = [
+    `[out:json][timeout:25];`,
+    `(`,
+    `  node["railway"="station"](around:${r},${lat},${lon});`,
+    `  way["railway"="station"](around:${r},${lat},${lon});`,
+    `  node["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
+    `  way["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
+    `  node["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
+    `  way["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
+    `  node["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
+    `  way["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
+    `  node["historic"~"^(monument|memorial|castle|building)$"](around:${r},${lat},${lon});`,
+    `  node["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
+    `  way["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
+    `  node["man_made"="pier"](around:${r},${lat},${lon});`,
+    `);`,
+    `out center body;`,
+  ].join('\n');
+
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body: 'data=' + encodeURIComponent(q),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  });
+  if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`);
+  const data = await res.json();
+
+  return (data.elements || []).map(el => {
+    const elLat = el.type === 'node' ? el.lat : (el.center ? el.center.lat : null);
+    const elLon = el.type === 'node' ? el.lon : (el.center ? el.center.lon : null);
+    if (elLat == null || elLon == null) return null;
+    const tags = el.tags || {};
+    const name = tags.name || tags['name:en'] || null;
+    if (!name) return null;
+    return {
+      id: `osm:${el.type}/${el.id}`,
+      name,
+      lat: elLat,
+      lon: elLon,
+      osm_tags: tags,
+    };
+  }).filter(Boolean);
+}
+
+// Called at game start (after player location is set) to populate POIS and BBOX
+// from live Overpass data. Skips if a user-imported custom pack is loaded.
+window.__refreshLivePoisForCurrentLocation = async function() {
+  if (!player || typeof player.lat !== 'number' || typeof player.lon !== 'number') return;
+  // Don't overwrite a user-imported custom POI pack
+  if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live) return;
+
+  const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
+  const queryRadius = Math.max(modeCapM * 2, 2000);
+
+  try {
+    log(`🌍 Fetching live POIs (${Math.round(queryRadius / 1000)}km radius)…`);
+    const pois = await fetchPoisAroundPlayer(player.lat, player.lon, queryRadius);
+    if (!pois.length) {
+      log('⚠️ No POIs found from Overpass in this area. Using existing POIs.');
+      return;
+    }
+
+    // Expand BBOX to cover the live area so __insideBbox passes for local panos.
+    if (typeof BBOX !== 'undefined' && BBOX.nw && BBOX.se) {
+      const dLat = queryRadius / 111320;
+      const dLon = queryRadius / (111320 * Math.cos(player.lat * Math.PI / 180));
+      BBOX.nw.lat = player.lat + dLat;
+      BBOX.nw.lon = player.lon - dLon;
+      BBOX.se.lat = player.lat - dLat;
+      BBOX.se.lon = player.lon + dLon;
+    }
+
+    setPoisFromList(pois, `Live (Overpass, ${pois.length} POIs)`);
+    window.__POI_PACK__ = { filename: 'overpass', live: true };
+    log(`✅ Live POIs loaded: ${pois.length} features near your location.`);
+  } catch (e) {
+    log(`⚠️ Live POI fetch failed: ${e.message}. Using existing POIs.`);
+  }
+};

@@ -226,9 +226,14 @@ function bindUI() {
   on("btnCenter","click",(ev)=>{ try{ if(ev&&ev.preventDefault) ev.preventDefault(); }catch(e){} try{ log("🎯 Center clicked."); }catch(e){} if (typeof centerOnPlayer==="function") centerOnPlayer(); });
   on("btnClear","click",clearClues);
   async function positionPlayerForNewGame() {
+    // In debug mode with a location already set, keep it — skip GPS override.
+    if (debugMode && player && typeof player.lat === 'number' && typeof player.lon === 'number') {
+      try { log(`📍 Debug mode: keeping location (${player.lat.toFixed(6)}, ${player.lon.toFixed(6)})`); } catch(e) {}
+      return true;
+    }
     // Use the exact same working helper as the top-right “Use location” button.
     // Order required by design: get real location -> centre map on player -> then pick target.
-    try { log("📡 Requesting your current location for new game…"); } catch (e) {}
+    try { log(“📡 Requesting your current location for new game…”); } catch (e) {}
 
     try {
       if (typeof window.__setPlayerFromCurrentLocation === 'function') {
@@ -317,6 +322,8 @@ function bindUI() {
       try { if (typeof log === 'function') log(`🎮 Game setup: ${__formatGameSetupLabel()}`); } catch (e) {}
       await positionPlayerForNewGame();
       clearClues();
+      // Refresh live POIs from Overpass based on player location + mode radius.
+      try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') await window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
       // By design: player location first, map centre second, then target pick based on that player location.
       await pickNewTarget(true);
     } finally {
