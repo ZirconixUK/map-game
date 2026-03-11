@@ -178,7 +178,7 @@ async function __pickStreetViewPanoTarget(startLatLng) {
   return { ok: false, reason: 'no_pano_found' };
 }
 function ensureReady() {
-  if (!player) { log("⚠️ Tap "Enable location" first."); return false; }
+  if (!player) { log('⚠️ Tap "Enable location" first.'); return false; }
   if (__isPickingTarget) { log("⏳ Choosing a target…"); return false; }
   if (!target) pickNewTarget(false);
   return true;
