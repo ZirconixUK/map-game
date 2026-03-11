@@ -91,7 +91,18 @@ window.__setPlayerFromCurrentLocation = function __setPlayerFromCurrentLocation(
         // Timeout on high accuracy — retry with low accuracy (uses WiFi/cell, much faster).
         navigator.geolocation.getCurrentPosition(
           (pos) => applyFix({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy, ts: Date.now() }),
-          (err2) => reject(err2 || new Error('geo_error')),
+          (err2) => {
+            // Both attempts timed out — use last known fix if available (persisted across sessions).
+            const cached = lastGeoFix || hydrateLastGeoFix();
+            if (cached && typeof cached.lat === 'number') {
+              const ageMin = Math.round((Date.now() - (cached.ts || 0)) / 60000);
+              try { if (typeof log === 'function') log(`⚠️ Geolocation timed out; using last known location (${ageMin} min old).`); } catch(e) {}
+              try { if (typeof showToast === 'function') showToast(`📍 Using last known location (${ageMin} min old).`, false); } catch(e) {}
+              applyFix(cached);
+            } else {
+              reject(err2 || new Error('geo_error'));
+            }
+          },
           { enableHighAccuracy: false, maximumAge: 30000, timeout: 10000 }
         );
       },
