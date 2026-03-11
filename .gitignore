@@ -1,0 +1,16 @@
+# API keys — never commit
+js/secrets.js
+
+# Claude Code local config
+.claude/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Old zip archive
+mapGame.zip
+
+# Python cache
+__pycache__/
+*.pyc
