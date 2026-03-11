@@ -254,24 +254,7 @@ async function loadPois() {
 // ---- Live Overpass POI fetch ----
 // Fetches OSM POIs from the Overpass API for a given lat/lon/radius.
 // Returns a normalised array of POIs matching the game's expected format.
-async function fetchPoisAroundPlayer(lat, lon, radiusM) {
-  const r = Math.max(100, Math.round(radiusM));
-  // Use nwr (node/way/relation) and pre-filter by ["name"] to keep the query
-  // fast on the free Overpass servers.
-  const q = [
-    `[out:json][timeout:10];`,
-    `(`,
-    `  nwr["name"]["railway"="station"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["historic"~"^(monument|memorial|castle|building)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["man_made"="pier"](around:${r},${lat},${lon});`,
-    `);`,
-    `out center 100;`,
-  ].join('\n');
-
+async function __overpassFetch(q) {
   const __endpoints = [
     'https://overpass-api.de/api/interpreter',
     'https://overpass.kumi.systems/api/interpreter',
@@ -290,31 +273,73 @@ async function fetchPoisAroundPlayer(lat, lon, radiusM) {
       });
       clearTimeout(__timer);
       if (res.ok) break;
-      // Non-ok (e.g. 504) — try next endpoint
     } catch (e) {
       clearTimeout(__timer);
-      if (__i === __endpoints.length - 1) throw e; // last endpoint, rethrow
+      if (__i === __endpoints.length - 1) throw e;
     }
   }
   if (!res || !res.ok) throw new Error(`Overpass HTTP ${res ? res.status : 'no response'}`);
-  const data = await res.json();
+  return res.json();
+}
 
-  return (data.elements || []).map(el => {
+function __normaliseOverpassElements(elements) {
+  return (elements || []).map(el => {
     const elLat = el.type === 'node' ? el.lat : (el.center ? el.center.lat : null);
     const elLon = el.type === 'node' ? el.lon : (el.center ? el.center.lon : null);
     if (elLat == null || elLon == null) return null;
     const tags = el.tags || {};
     const name = tags.name || tags['name:en'] || null;
     if (!name) return null;
-    return {
-      id: `osm:${el.type}/${el.id}`,
-      name,
-      lat: elLat,
-      lon: elLon,
-      osm_tags: tags,
-    };
+    return { id: `osm:${el.type}/${el.id}`, name, lat: elLat, lon: elLon, osm_tags: tags };
   }).filter(Boolean);
 }
+
+async function fetchPoisAroundPlayer(lat, lon, radiusM) {
+  const r = Math.max(100, Math.round(radiusM));
+
+  // Primary query: significant named landmarks.
+  const qPrimary = [
+    `[out:json][timeout:10];`,
+    `(`,
+    `  nwr["name"]["railway"="station"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["amenity"~"^(bus_station|library|pub|bar|place_of_worship)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["tourism"~"^(museum|gallery|attraction|viewpoint)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["historic"~"^(monument|memorial|castle|building)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["leisure"~"^(park|garden|common)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["man_made"="pier"](around:${r},${lat},${lon});`,
+    `);`,
+    `out center 100;`,
+  ].join('\n');
+
+  const primaryData = await __overpassFetch(qPrimary);
+  const primary = __normaliseOverpassElements(primaryData.elements);
+
+  if (primary.length >= 50) return primary;
+
+  // Fewer than 50 — supplement with broader everyday landmarks.
+  const qBroader = [
+    `[out:json][timeout:10];`,
+    `(`,
+    `  nwr["name"]["amenity"~"^(restaurant|cafe|fast_food|school|college|university|hospital|clinic|theatre|cinema|hotel|pharmacy|bank|community_centre|social_centre|sports_centre)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["leisure"~"^(stadium|sports_centre|swimming_pool|golf_course)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["shop"~"^(supermarket|department_store|mall)$"](around:${r},${lat},${lon});`,
+    `  nwr["name"]["building"~"^(hotel|school|college|university|hospital)$"](around:${r},${lat},${lon});`,
+    `);`,
+    `out center 100;`,
+  ].join('\n');
+
+  const broaderData = await __overpassFetch(qBroader);
+  const broader = __normaliseOverpassElements(broaderData.elements);
+
+  // Merge, deduplicating by OSM id.
+  const seen = new Set(primary.map(p => p.id));
+  for (const p of broader) {
+    if (!seen.has(p.id)) { seen.add(p.id); primary.push(p); }
+  }
+  return primary;
+}
+
 
 // Called at game start (after player location is set) to populate POIS and BBOX
 // from live Overpass data. Skips if a user-imported custom pack is loaded.
