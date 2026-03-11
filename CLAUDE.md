@@ -43,17 +43,16 @@ GPS guess → get graded.
 ├── styles.css                      All UI styling (dark theme, mobile-first)
 ├── js/
 │   ├── 00_config.js                Master constants (BBOX, API keys, thresholds)
-│   ├── 01_pois.js                  POI loading (IndexedDB + localStorage)
+│   ├── 01_pois.js                  POI loading + live Overpass fetch at game start
 │   ├── 02_dom.js                   DOM refs, toast queue, debug panel, logs
 │   ├── 03_map_image.js             Leaflet map init, fog canvas setup
 │   ├── 04_state.js                 MASTER STATE: round state, heat, timers, gameSetup
 │   ├── 05_view_transform.js        Canvas coordinate mapping
 │   ├── 06_mobile_gestures_pointer_events.js  Touch/pinch/drag handlers
-│   ├── 07_geolocation.js           GPS watchPosition, last-known fix persistence
+│   ├── 07_geolocation.js           GPS watchPosition, high→low accuracy fallback, last-known fix persistence
 │   ├── 08_clues_questions.js       Question engine: all 5 tools + target picking
 │   ├── 09_ui_helpers.js            UI state, panel nav, cost badges, modals
 │   ├── 10_drawing.js               Canvas drawing (map overlay)
-│   ├── 11_geometry_drawing_helpers.js  Geometric shapes for canvas
 │   ├── 12_geo_helpers.js           Haversine distance, geo utilities
 │   ├── 13_boot.js                  Initialisation: POIs, state restore, first target
 │   ├── 14_panels_misc.js           Panel width management, misc UI
@@ -61,7 +60,7 @@ GPS guess → get graded.
 │   ├── 16_leaflet_markers.js       Player/target markers, accuracy circle, POI pins
 │   ├── 17_leaflet_fog.js           Fog-of-war (Martinez polygon clipping, EPSG:3857)
 │   ├── 18_streetview_glimpse.js    Google Street View API wrapper, photo caching
-│   ├── 19_curses.js                Curse loading + tier application (effects TODO)
+│   ├── 19_curses.js                Curse system: loading, tick, isCurseActive(), all 5 tier effects live
 │   └── 20_guess.js                 Lock-in scoring: distance → grade → points
 ├── POI.json                        Full POI dataset (~680KB, OSM-sourced)
 ├── POI_curated.json                Curated POI subset (~161KB)
@@ -129,7 +128,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Extra photos (near100/near200) | Done | Caching + echo snapshots |
 | N/S and E/W split | Done | Unlock-gated at 50% round time; potentially overpowered |
 | Heat meter | Done | Visible accumulation and decay |
-| Curses | **Placeholder** | UI and config exist; no real gameplay effects yet |
+| Curses | Done | All 5 tier effects live; heat1/2 cost surcharge, heat3 NSEW lock, heat4 radar cap, heat5 photo block + purple cursed UI |
 | Lock-in guess + scoring | Done | Distance-based grade + points |
 | Difficulty selector | **Stub** | Visible in setup UI but not yet a real rules layer |
 | Chain mode | **Not started** | Roadmap item (Phase D) |
@@ -137,7 +136,6 @@ Mode timers:    short=30min | medium=45min | long=60min
 
 **Known mismatches (build vs. intent):**
 - Legacy `coin_cost` fields still present in `tools.json` and config — no longer part of the design
-- Curses framework ready but all effects are test/placeholder
 - `difficulty` field is wired to setup UI but has no downstream effect on rules
 - Roadmap-era comments and historical design directions still visible in the codebase
 
@@ -167,7 +165,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | **E — Remote mode** | Expand access without diluting identity | Structurally distinct remote mode (not just map-click substitution) |
 | **F — Optional expansion** | Long-tail depth once core is strong | Daily challenges; async comparison; lore; social features |
 
-**Current priority: Phase A.** Do not add breadth before the single-run loop is coherent.
+**Current priority: Phase A** (late stage). Curses implemented, live POIs working. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails, coin-cost config cleanup. Do not add breadth before the single-run loop is coherent.
 
 ---
 
@@ -195,6 +193,36 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Coin cost fields in config | Legacy; don't surface or re-wire these; intended design has no coin economy |
 | Street View API costs | Treat as production risk; rate-limit, cache aggressively, handle imagery-unavailable gracefully |
 | GPS jitter | `adjustedDistanceM = max(0, rawDistance - gpsAccuracyM)` — check this is always applied at lock-in |
+
+---
+
+## Live POI system (01_pois.js)
+
+POIs are fetched live from the Overpass API at game start rather than read from a static JSON.
+
+- **Trigger:** `window.__refreshLivePoisForCurrentLocation()` called in `startNewGameFromMenuOrDebug()` after player location is set
+- **Radius:** matches the current game mode radius exactly (`getModeTargetRadiusM()`)
+- **Two-stage query:**
+  1. Primary — significant landmarks (stations, pubs, museums, parks, churches, historic)
+  2. If < 50 results — broader query added (restaurants, schools, hotels, sports centres, supermarkets) merged and deduped by OSM id
+- **Endpoints:** tries `overpass-api.de` first, falls back to `overpass.kumi.systems` on 504/timeout
+- **Timeout:** 12s AbortController per endpoint
+- **Skips:** if user has imported a custom POI pack (`window.__POI_PACK__.filename && !window.__POI_PACK__.live`)
+- **UI feedback:** `showToast` at start and on success/failure (not just debug log)
+- **Debug mode:** `positionPlayerForNewGame()` skips GPS and keeps the existing player location — live POI fetch still runs based on that location
+
+---
+
+## Geolocation fallback chain (07_geolocation.js)
+
+`__setPlayerFromCurrentLocation()` tries in order:
+
+1. **High accuracy GPS** — 12s timeout
+2. **Low accuracy (WiFi/cell)** — 10s timeout, only if step 1 times out
+3. **Last known fix** — from `lastGeoFix` / localStorage (`mapgame_last_real_geo_fix_v1`), any age, if steps 1 and 2 both time out; shows toast with age
+4. **Reject** — only if no fix has ever been recorded
+
+`startGeolocationWatch()` uses 20s timeout to reduce transient watch errors.
 
 ---
 
