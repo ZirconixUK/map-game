@@ -188,6 +188,7 @@ function formatMMSS(ms) {
 function updateHUD() {
   try { if (typeof applyHeatDecay === "function") applyHeatDecay(Date.now()); } catch (e) {}
   try { if (typeof tickCurses === 'function') tickCurses(Date.now()); } catch (e) {}
+  try { if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig(); } catch (e) {}
   // Timer
   if (elTimerMain) {
     const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;

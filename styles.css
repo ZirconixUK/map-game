@@ -168,6 +168,46 @@ button:disabled,
   right:6px;
 }
 
+/* Curse-blocked menu button (e.g. heat5 — extra photos blocked) */
+.menuBtn.cursed{
+  border-color:rgba(168,85,247,.35);
+  background:rgba(168,85,247,.08);
+}
+.menuBtn.cursed .iconBox{
+  background:rgba(88,28,135,.22);
+  border-color:rgba(168,85,247,.35);
+  overflow:hidden;
+}
+/* Miasma: blurred purple smoke that drifts upward */
+.menuBtn.cursed .iconBox::after{
+  content:"";
+  position:absolute;
+  inset:-4px;
+  border-radius:inherit;
+  background:radial-gradient(ellipse at 50% 110%, rgba(168,85,247,.65) 0%, rgba(168,85,247,.00) 65%);
+  animation:miasmaRise 2.4s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+@keyframes miasmaRise{
+  0%  { transform:translateY(4px); opacity:.50; }
+  100%{ transform:translateY(-4px); opacity:.90; }
+}
+/* 🌫️ badge (mirrors the 🔒 badge on .locked) */
+.menuBtn.cursed::after{
+  content:'🌫️';
+  position:absolute;
+  top:6px;
+  right:8px;
+  font-size:12px;
+  line-height:1;
+  opacity:.95;
+  pointer-events:none;
+  filter:drop-shadow(0 1px 3px rgba(168,85,247,.55));
+}
+@media (prefers-reduced-motion:reduce){
+  .menuBtn.cursed .iconBox::after{ animation:none; }
+}
+
 
 /* Phase 2 result modal helpers */
 .resultStack{ display:flex; flex-direction:column; gap:10px; }

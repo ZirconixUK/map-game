@@ -59,6 +59,11 @@ function updateCostBadgesFromConfig() {
             const done = (rs && rs.photosUncorrupted) ? true : false;
             if (done) cost = { heat_cost: 0 };
           }
+
+          // heat5 curse blocks extra photos — mark button visually
+          const isCurseBlocked = (id === 'near100' || id === 'near200') &&
+            typeof window.isCurseActive === 'function' && window.isCurseActive('heat5');
+          btn.classList.toggle('cursed', !!isCurseBlocked);
         }
       } catch(e) {}
       const row = btn.querySelector(".costRow");
