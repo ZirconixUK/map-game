@@ -275,20 +275,31 @@ async function fetchPoisAroundPlayer(lat, lon, radiusM) {
     `out center body;`,
   ].join('\n');
 
-  const controller = new AbortController();
-  const __timer = setTimeout(() => controller.abort(), 12000);
+  const __endpoints = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+  ];
+  const __body = 'data=' + encodeURIComponent(q);
   let res;
-  try {
-    res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: 'data=' + encodeURIComponent(q),
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(__timer);
+  for (let __i = 0; __i < __endpoints.length; __i++) {
+    const controller = new AbortController();
+    const __timer = setTimeout(() => controller.abort(), 12000);
+    try {
+      res = await fetch(__endpoints[__i], {
+        method: 'POST',
+        body: __body,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        signal: controller.signal,
+      });
+      clearTimeout(__timer);
+      if (res.ok) break;
+      // Non-ok (e.g. 504) — try next endpoint
+    } catch (e) {
+      clearTimeout(__timer);
+      if (__i === __endpoints.length - 1) throw e; // last endpoint, rethrow
+    }
   }
-  if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`);
+  if (!res || !res.ok) throw new Error(`Overpass HTTP ${res ? res.status : 'no response'}`);
   const data = await res.json();
 
   return (data.elements || []).map(el => {
