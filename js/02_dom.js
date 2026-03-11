@@ -6,7 +6,6 @@ const elLog = document.getElementById("log");
 const elPlayer = document.getElementById("playerOut");
 const elTarget = document.getElementById("targetOut");
 const elClues = document.getElementById("cluesOut");
-const elReveal = null; // dbgReveal removed (use debugMode)
 const elDbgMode = document.getElementById("dbgMode");
 const elBBox = document.getElementById("dbgBBox");
 const elDbgSimCurse = document.getElementById("dbgSimCurse");
@@ -15,11 +14,8 @@ const elViewBboxOut = document.getElementById("viewBboxOut");
 const elLast = document.getElementById("lastAnswer");
 
 const elRadarPreset = document.getElementById("radarPreset");
-const elThickness = document.getElementById("thickness");
 const elBearingBuckets = document.getElementById("bearingBuckets");
 const elDistBucket = document.getElementById("distBucket");
-const elFogOpacity = document.getElementById("fogOpacity");
-const elFogOpacityOut = document.getElementById("fogOpacityOut");
 
 // Debug: round controls
 const elDbgHeatNew = document.getElementById("dbgHeatNew");
@@ -364,11 +360,7 @@ function bindUI() {
   on("btnEast","click", () => askDirection("E"));
   on("btnWest","click", () => askDirection("W"));
   on("btnQuadrant","click",askQuadrant);
-  on("btnBearing","click",askBearing);
-  on("btnDistance","click",askDistanceBucket);
   on("btnThermo","click",askThermometer);
-  /* dbgReveal removed */
-// elReveal.addEventListener("change", draw);
   if (elBBox) elBBox.addEventListener("change", draw);
 
   // ---- Debug: simulate active curse (lights the curses button) ----
@@ -445,8 +437,6 @@ if (debugMode) {
       draw();
     });
   }
-
-  if (elFogOpacity) elFogOpacity.addEventListener("input", () => { updateFogUI(); draw(); });
 
   // Debug: heat override (typed value + Apply)
   const applyHeatFromInput = () => {

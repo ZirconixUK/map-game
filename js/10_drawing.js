@@ -65,9 +65,6 @@ function draw() {
 
   // Fog is now handled by Leaflet geometry (js/17_leaflet_fog.js)
 
-  // markers + outline rings
-  drawMarkers();
-  drawClueOutlines();
 }
 
 function drawMapBounds() {
@@ -82,70 +79,3 @@ function drawMapBounds() {
   ctx.restore();
 }
 
-function buildAllowedWorld() { /* Leaflet geometry fog now */ }
-
-
-function drawFog() { /* Leaflet geometry fog now */ }
-
-
-function drawMarkers() {
-  const MW = (window.FOG_W||0), MH = (window.FOG_H||0);
-  if (!MW || !MH) return;
-
-  // player/target markers are now Leaflet layers (so they stay anchored when panning/zooming)
-  // (We keep the fog on canvas overlay.)
-  // Legacy canvas markers removed in Leaflet mode.
-
-  // target marker is handled by Leaflet markers layer (only visible in debug mode)
-}
-
-function drawClueOutlines() {
-  // Outlines disabled (no stroke around radar/fog shapes)
-  return;
-
-  const MW = (window.FOG_W||0), MH = (window.FOG_H||0);
-  if (!MW || !MH) return;
-  const thick = clamp(parseFloat((elThickness ? elThickness.value : "3") || "3"), 1, 12);
-
-  ctx.save();
-  ctx.translate(view.tx, view.ty);
-  ctx.scale(view.scale, view.scale);
-
-  for (const c of clues) {
-    ctx.lineWidth = (thick / view.scale);
-    ctx.strokeStyle = c.ok ? "rgba(148,163,184,.85)" : "rgba(148,163,184,.55)";
-
-    if (c.type === "ring") {
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
-      ctx.stroke();
-    } else if (c.type === "donut") {
-      ctx.beginPath(); ctx.arc(c.x, c.y, c.rIn, 0, Math.PI*2); ctx.stroke();
-      ctx.beginPath(); ctx.arc(c.x, c.y, c.rOut, 0, Math.PI*2); ctx.stroke();
-    } else if (c.type === "half") {
-      ctx.beginPath();
-      drawHalfPlanePath(ctx, c.ok ? c.dir : oppositeDir(c.dir), c.x, c.y, MW, MH);
-      ctx.closePath();
-      ctx.stroke();
-    } else if (c.type === "quadrant") {
-      ctx.beginPath();
-      drawQuadrantPath(ctx, c.quad, c.x, c.y, MW, MH);
-      ctx.closePath();
-      ctx.stroke();
-    } else if (c.type === "wedge") {
-      const R = Math.max(MW, MH) * 2;
-      ctx.beginPath();
-      ctx.moveTo(c.x, c.y);
-      ctx.arc(c.x, c.y, R, c.a0, c.a1);
-      ctx.closePath();
-      ctx.stroke();
-    } else if (c.type === "thermo") {
-      // show baseline/current points + bisector
-      ctx.fillStyle = "rgba(148,163,184,.85)";
-      ctx.beginPath(); ctx.arc(c.a.x, c.a.y, 5 / view.scale, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(c.b.x, c.b.y, 5 / view.scale, 0, Math.PI*2); ctx.fill();
-    }
-  }
-
-  ctx.restore();
-}

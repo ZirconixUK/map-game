@@ -159,7 +159,6 @@ async function __pickStreetViewPanoTarget(startLatLng) {
         lat: meta.location.lat,
         lon: meta.location.lon,
         pano_id: panoId,
-        debug_dist_from_start_m: (typeof distFromStartM === 'number' && isFinite(distFromStartM)) ? distFromStartM : null,
         meta: { date: meta.date || null },
         debug_dist_from_start_m: (distFromStartM !== null) ? distFromStartM : null,
       }
@@ -373,7 +372,7 @@ function askRadar(metersOverride) {
 
   // Keep legacy clue storage for future tools/compat (not used for fog anymore)
   const pp = latLonToPixel(player.lat, player.lon);
-  const rPx = radiusMetersToPixels(player.lat, player.lon, meters);
+  const rPx = radiusMetersToPixels(meters, player.lat, player.lon);
   addClue({ type: "ring", x: pp.x, y: pp.y, r: rPx, ok });
 
   setLast(ok ? `TRUE (≤${meters}m)` : `FALSE (>${meters}m)`, ok);
@@ -472,8 +471,8 @@ function askDistanceBucket() {
 
   const pp = latLonToPixel(player.lat, player.lon);
   const MW = (window.FOG_W||1000), MH = (window.FOG_H||1000);
-  const rIn = bucket.min <= 0 ? 0 : radiusMetersToPixels(player.lat, player.lon, bucket.min);
-  const rOut = bucket.max === Infinity ? Math.max(MW, MH) * 1.6 : radiusMetersToPixels(player.lat, player.lon, bucket.max);
+  const rIn = bucket.min <= 0 ? 0 : radiusMetersToPixels(bucket.min, player.lat, player.lon);
+  const rOut = bucket.max === Infinity ? Math.max(MW, MH) * 1.6 : radiusMetersToPixels(bucket.max, player.lat, player.lon);
 
   addClue({ type: "donut", x: pp.x, y: pp.y, rIn, rOut, ok, text: bucket.text });
   setLast(ok ? `TRUE (${bucket.text})` : `FALSE (${bucket.text})`, ok);
@@ -502,9 +501,6 @@ function askThermometer() {
   const d0 = distFn(thermoBaseline.lat, thermoBaseline.lon, target.lat, target.lon);
   const d1 = distFn(player.lat, player.lon, target.lat, target.lon);
   const hotter = d1 < d0;
-
-  // Leaflet geometry fog (thermometer)
-  try { if (typeof addFogThermometer === "function") addFogThermometer(startP.lat, startP.lon, endP.lat, endP.lon, hotter); } catch(e) {}
 
   try { if (typeof addFogThermometer === "function") addFogThermometer(thermoBaseline.lat, thermoBaseline.lon, player.lat, player.lon, hotter); } catch(e) {}
 

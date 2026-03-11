@@ -1,5 +1,22 @@
 # Map Game — CLAUDE.md
 
+## Repository
+
+- **GitHub:** `https://github.com/ZirconixUK/map-game` (private)
+- **Local:** `/Users/sierro/Claude`
+- **Branch:** `main` tracked to `origin/main`
+- **Workflow:** commit with a descriptive message and push after any meaningful change; use `gh` CLI for GitHub operations
+
+**API key safety:**
+- Real Google Street View key lives in `js/secrets.js` — gitignored, never committed
+- `js/secrets.example.js` is the committed template
+- `index.html` loads `secrets.js` optionally (silent skip if missing)
+- `00_config.js` reads `window.GOOGLE_STREETVIEW_API_KEY || ""`
+
+**gitignored:** `js/secrets.js`, `.claude/`, `mapGame.zip`, `.DS_Store`, `__pycache__/`
+
+---
+
 ## Project overview
 
 A mobile-first, browser-based location game. Players physically walk through their local area,

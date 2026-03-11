@@ -9,14 +9,6 @@ const view = {
   ty: 0
 };
 
-function clampView() {
-  // no-op in Leaflet mode
-}
-
-function fitViewToMap() {
-  // no-op in Leaflet mode
-}
-
 function resizeCanvasToDisplaySize() {
   const c = (window.canvas || document.getElementById('view'));
   if (!c) return;
