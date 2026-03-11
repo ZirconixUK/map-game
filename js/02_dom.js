@@ -160,7 +160,7 @@ function bindUI() {
 
     if (!("geolocation" in navigator)) {
       try { log("❌ Geolocation not available in this browser."); } catch(e) {}
-      try { if (typeof showToast === "function") showToast("Geolocation isn’t available in this browser.", false); } catch(e) {}
+      try { if (typeof showToast === "function") showToast("Geolocation isn't available in this browser.", false); } catch(e) {}
       return;
     }
     if (!window.isSecureContext) {
@@ -231,9 +231,9 @@ function bindUI() {
       try { log(`📍 Debug mode: keeping location (${player.lat.toFixed(6)}, ${player.lon.toFixed(6)})`); } catch(e) {}
       return true;
     }
-    // Use the exact same working helper as the top-right “Use location” button.
+    // Use the exact same working helper as the top-right "Use location" button.
     // Order required by design: get real location -> centre map on player -> then pick target.
-    try { log(“📡 Requesting your current location for new game…”); } catch (e) {}
+    try { log("📡 Requesting your current location for new game…"); } catch (e) {}
 
     try {
       if (typeof window.__setPlayerFromCurrentLocation === 'function') {
@@ -794,7 +794,7 @@ if (debugMode) {
             try {
               if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
                 const c = curseRoll.applied.curse;
-                showToast(`You’ve been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
               }
             } catch (e) {}
           }
@@ -830,7 +830,7 @@ if (debugMode) {
           try {
             if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
               const c = curseRoll.applied.curse;
-              showToast(`You’ve been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+              showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
             }
           } catch (e) {}
         } else {
@@ -875,7 +875,7 @@ if (debugMode) {
             try {
               if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
                 const c = curseRoll.applied.curse;
-                showToast(`You’ve been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
               }
             } catch (e) {}
           }
@@ -961,14 +961,14 @@ if (debugMode) {
               noteToolOptionUsed('landmark', String(kind));
             } else {
               log("❌ Train Station result: NO (no match)");
-              showToast("NO — your nearest train station is not the target’s nearest.", false);
+              showToast("NO — your nearest train station is not the target's nearest.", false);
               noteToolOptionUsed('landmark', String(kind));
             }
 
             try {
               if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
                 const c = curseRoll.applied.curse;
-                showToast(`You’ve been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
               }
             } catch (e) {}
           } catch (e) {
@@ -1048,14 +1048,14 @@ if (debugMode) {
             noteToolOptionUsed('landmark', String(kind));
           } else {
             log(`❌ ${label} result: NO (no match)`);
-            showToast(`NO — your nearest ${label.toLowerCase()} is not the target’s nearest.`, false);
+            showToast(`NO — your nearest ${label.toLowerCase()} is not the target's nearest.`, false);
             noteToolOptionUsed('landmark', String(kind));
           }
 
           try {
             if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
               const c = curseRoll.applied.curse;
-              showToast(`You’ve been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+              showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
             }
           } catch (e) {}
         } catch (e) {

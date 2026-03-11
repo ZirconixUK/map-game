@@ -295,7 +295,7 @@
       openModal();
       if (__unc && __cachedImgUrl) {
         const tip = (context === 'snapshot')
-          ? 'This is the Circle’s snapshot. Your job is to find the street location where it was taken.'
+          ? 'This is the Circle's snapshot. Your job is to find the street location where it was taken.'
           : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
         setPhoto(__cachedImgUrl, tip, context);
         try {
@@ -309,7 +309,7 @@
       } else {
         // Fallback: no cached HTML, just re-render from cached image URL.
         const tip = (context === 'snapshot')
-          ? 'This is the Circle’s snapshot. Your job is to find the street location where it was taken.'
+          ? 'This is the Circle's snapshot. Your job is to find the street location where it was taken.'
           : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
         setPhoto(__cachedImgUrl, tip, context);
       }
@@ -379,10 +379,10 @@
       return { ok:false, reason:'no_key' };
     }
 
-    // We can’t reliably preflight the image without triggering another request.
+    // We can't reliably preflight the image without triggering another request.
     // Instead, let the <img> load and handle errors.
     const tip = (context === 'snapshot')
-      ? 'This is the Circle’s snapshot. Your job is to find the street location where it was taken.'
+      ? 'This is the Circle's snapshot. Your job is to find the street location where it was taken.'
       : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
 
     // Use a persistent cached data URL on refresh so we do not re-request the image.
