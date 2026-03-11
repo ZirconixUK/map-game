@@ -68,38 +68,34 @@ window.__setPlayerFromCurrentLocation = function __setPlayerFromCurrentLocation(
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('no_geolocation'));
     if (!window.isSecureContext) return reject(new Error('insecure_context'));
-    const geoOpts = (opts && opts.geoOpts && typeof opts.geoOpts === 'object')
-      ? opts.geoOpts
-      : { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
 
+    const force = !!(opts && opts.force);
+    const source = (opts && opts.source) ? opts.source : 'gps-current';
+
+    function applyFix(fix) {
+      try { lastGeoFix = fix; persistLastGeoFix(fix); } catch(e) {}
+      try {
+        setPlayerLatLng(fix.lat, fix.lon, { source, accuracy: fix.accuracy, force, manual: force ? false : undefined });
+      } catch (e) { return reject(e); }
+      try { if (opts && opts.centerAfterFix) centerOnPlayer(); } catch(e) {}
+      try { if (!debugMode) startGeolocationWatch(); } catch(e) {}
+      resolve(fix);
+    }
+
+    // Try high accuracy first (12s). On timeout, retry with low accuracy (cell/WiFi, near-instant).
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const fix = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          ts: Date.now(),
-        };
-        try { lastGeoFix = fix; persistLastGeoFix(fix); } catch(e) {}
-
-        const force = !!(opts && opts.force);
-        try {
-          setPlayerLatLng(fix.lat, fix.lon, {
-            source: (opts && opts.source) ? opts.source : 'gps-current',
-            accuracy: fix.accuracy,
-            force,
-            manual: force ? false : undefined,
-          });
-        } catch (e) {
-          return reject(e);
-        }
-
-        try { if (opts && opts.centerAfterFix) centerOnPlayer(); } catch(e) {}
-        try { if (!debugMode) startGeolocationWatch(); } catch(e) {}
-        resolve(fix);
+      (pos) => applyFix({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy, ts: Date.now() }),
+      (err) => {
+        const isTimeout = err && (err.code === 3 || (err.message && /timed?\s*out/i.test(err.message)));
+        if (!isTimeout) return reject(err || new Error('geo_error'));
+        // Timeout on high accuracy — retry with low accuracy (uses WiFi/cell, much faster).
+        navigator.geolocation.getCurrentPosition(
+          (pos) => applyFix({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy, ts: Date.now() }),
+          (err2) => reject(err2 || new Error('geo_error')),
+          { enableHighAccuracy: false, maximumAge: 30000, timeout: 10000 }
+        );
       },
-      (err) => reject(err || new Error('geo_error')),
-      geoOpts
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
     );
   });
 };
@@ -185,7 +181,7 @@ function startGeolocationWatch() {
       // Don't kill the watch on transient errors/timeouts; just log.
       log(`Geolocation error: ${err && err.message ? err.message : err}`);
     },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
   );
 }
 
