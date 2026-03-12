@@ -273,17 +273,7 @@ function updateGameplayPanelWidth() {
   try {
     const panel = document.getElementById("panelGameplay");
     if (!panel) return;
-
-    // Always let CSS handle width; we only toggle a compact mode for the main menu.
-    panel.style.width = "";
-
-    // On small screens the panel is effectively full-width; keep default sizing.
-    const small = window.matchMedia && window.matchMedia("(max-width: 420px)").matches;
-    if (small) {
-      panel.classList.remove("panel--compact");
-      return;
-    }
-
+    // Bottom-sheet panels are always full-width; toggle compact only for header centering.
     const menus = [
       document.getElementById("gameMenu"),
       document.getElementById("radarMenu"),
@@ -292,17 +282,10 @@ function updateGameplayPanelWidth() {
       document.getElementById("landmarkMenu"),
       document.getElementById("photoMenu"),
     ].filter(Boolean);
-
-    // Find the currently visible menu element
     const visible = menus.find(m => !m.classList.contains("hidden")) || menus[0];
-    if (!visible) return;
-
-    // Compact mode for the main icon-only menu.
-    const isMain = (visible && visible.id === "gameMenu");
+    const isMain = visible && visible.id === "gameMenu";
     panel.classList.toggle("panel--compact", !!isMain);
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) {}
 }
 
 // Called by state when heatLevel changes (either by tool use or decay).

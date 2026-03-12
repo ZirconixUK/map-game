@@ -7,10 +7,24 @@
   const btnGameplay = document.getElementById("btnGameplay");
   const btnDebug = document.getElementById("btnDebug");
   const btnCurses = document.getElementById("btnCurses");
+  const backdrop = document.getElementById("panelBackdrop");
+
+  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame].filter(Boolean);
+
+  function syncBackdrop() {
+    if (!backdrop) return;
+    const anyOpen = allPanels.some(p => p.classList.contains("open"));
+    backdrop.classList.toggle("active", anyOpen);
+  }
+
+  // Watch for direct .classList mutations from other modules (e.g. 02_dom.js)
+  const mo = new MutationObserver(syncBackdrop);
+  allPanels.forEach(p => mo.observe(p, { attributes: true, attributeFilter: ["class"] }));
 
   function setOpen(panel, open) {
     if (!panel) return;
     panel.classList.toggle("open", open);
+    syncBackdrop();
   }
 
   if (btnGameplay && panelGameplay) {
@@ -66,55 +80,14 @@
     });
   }
 
-  // Click/tap outside the gameplay panel closes it.
-  // (But don't treat clicks on the toggle button itself as "outside".)
-  if (panelGameplay && btnGameplay) {
-    document.addEventListener(
-      "pointerdown",
-      (ev) => {
-        if (!panelGameplay.classList.contains("open")) return;
-        const t = ev.target;
-        if (!t) return;
-        if (panelGameplay.contains(t)) return;
-        if (btnGameplay.contains(t)) return;
-        setOpen(panelGameplay, false);
-      },
-      true // capture so we close even if the map eats the event
-    );
-  }
-
-  // Click/tap outside the new game panel closes it.
-  if (panelNewGame) {
-    const closeIfOutsideNewGame = (ev) => {
-      try {
-        if (!panelNewGame.classList.contains("open")) return;
-        const t = ev && ev.target;
-        if (!t) return;
-        if (panelNewGame.contains(t)) return;
-        if (btnGameplay && btnGameplay.contains(t)) return;
-        const btnGameNewGame = document.getElementById("btnGameNewGame");
-        if (btnGameNewGame && btnGameNewGame.contains(t)) return;
-        setOpen(panelNewGame, false);
-      } catch (e) {}
-    };
-    document.addEventListener("pointerdown", closeIfOutsideNewGame, { passive: true });
-  }
-
-  // Click/tap outside the curses panel closes it.
-  if (panelCurses && btnCurses) {
-    document.addEventListener(
-      "pointerdown",
-      (ev) => {
-        if (!panelCurses.classList.contains("open")) return;
-        const t = ev.target;
-        if (!t) return;
-        // When the curses panel is open, tapping ANYWHERE closes it (including the panel).
-        // The only exception is the toggle button, otherwise opening would immediately close.
-        if (btnCurses.contains(t)) return;
-        setOpen(panelCurses, false);
-      },
-      true
-    );
+  // Tapping the backdrop closes all panels
+  if (backdrop) {
+    backdrop.addEventListener("pointerdown", () => {
+      setOpen(panelGameplay, false);
+      setOpen(panelDebug, false);
+      setOpen(panelCurses, false);
+      setOpen(panelNewGame, false);
+    });
   }
 
   if (btnDebug && panelDebug) {

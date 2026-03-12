@@ -63,39 +63,46 @@ body{
   box-shadow:0 10px 28px rgba(0,0,0,.35);
 }
 
-/* Overlay panels */
+/* Overlay panels — mobile-first bottom sheet */
 .panel{
-  position:absolute;
-  /* push panels below the HUD row so they never overlap the top buttons/widgets */
-  top:var(--hud-row);
-  z-index:25;
+  position:fixed;
+  bottom:0;
+  left:50%;
+  z-index:40;
 
-  /* Let the panel shrink-to-fit its current contents, but cap it for submenus */
-  width:auto;
-  max-width:min(420px, calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)));
-  min-width:200px;
-
-  max-height:min(78dvh, 720px);
+  width:min(520px, 100vw);
+  max-height:82dvh;
   overflow-y:auto;
   overflow-x:hidden;
 
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:16px;
-  box-shadow:0 12px 36px rgba(0,0,0,.35);
+  border-bottom:none;
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -8px 40px rgba(0,0,0,.45);
 
-  padding:14px;
-  padding-left:calc(14px + env(safe-area-inset-left));
-  padding-right:calc(14px + env(safe-area-inset-right));
+  padding-top:0;
+  padding-left:calc(16px + env(safe-area-inset-left));
+  padding-right:calc(16px + env(safe-area-inset-right));
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
 
-  /* hidden by default */
-  transform: translateY(calc(-100% - 18px));
+  /* hidden by default — slides in from below */
+  transform:translateX(-50%) translateY(100%);
   opacity:0;
   pointer-events:none;
-  transition: transform .18s ease, opacity .18s ease;
+  transition:transform .26s cubic-bezier(.32,.72,0,1), opacity .20s ease;
+}
+.panel::before{
+  content:'';
+  display:block;
+  width:40px;
+  height:4px;
+  border-radius:2px;
+  background:rgba(148,163,184,.30);
+  margin:14px auto 0;
 }
 .panel.open{
-  transform: translateY(0);
+  transform:translateX(-50%) translateY(0);
   opacity:1;
   pointer-events:auto;
 }
@@ -105,12 +112,13 @@ body{
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:10px;
+  padding-top:10px;
+  margin-bottom:14px;
 }
 .panelTitle{
-  font-size:14px;
-  font-weight:650;
-  letter-spacing:.2px;
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:.1px;
 }
 .iconBtn{
   width:40px;
@@ -452,34 +460,12 @@ label.check{ display:flex; align-items:center; gap:8px; margin:0; }
 }
 
 
-.panel--right{ right:calc(12px + env(safe-area-inset-right)); }
-.panel--left{ left:calc(12px + env(safe-area-inset-left)); }
-
-/*
-  On wider screens, shift the Gameplay panel left so it doesn't sit underneath
-  the top-right HUD stack (recenter + gameplay buttons + vertical heat widget).
-  On small screens the panel is near full width, so keep the default right inset.
-*/
-@media (min-width: 520px){
-  .panel--right{
-    right:calc(12px + env(safe-area-inset-right) + var(--hud-btn) + var(--hud-gap) + 8px);
-  }
-}
-
-@media (max-width: 420px){
-  :root{
-    /* On small screens, the vertical heat widget sits under recenter+gameplay+curses. Push panels below it. */
-    --hud-row:calc(var(--hud-pad) + (3 * (var(--hud-btn) + var(--hud-gap))) + 132px + 10px);
-  }
-  .panel{
-    width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));
-    max-height:calc(100dvh - 24px);
-  }
-}
+/* Bottom sheet: left/right anchors no longer used for panel positioning */
+.panel--right{}
+.panel--left{}
 
 /* Curses panel */
-.panel--curses{ width:min(320px, calc(100vw - 24px)); }
-.panel--curses .panelBody{ padding:12px 14px 14px; }
+.panel--curses .panelBody{ padding:12px 0 0; }
 .cursesList{ margin:10px 0 0; padding-left:18px; }
 .cursesList li{ margin:6px 0; }
 
@@ -504,19 +490,16 @@ label.check{ display:flex; align-items:center; gap:8px; margin:0; }
   gap:10px;
 }
 
-/* Main gameplay menu: icon-only grid should be tight (no 1fr stretching) */
+/* Main gameplay menu: all 5 tools in a single row */
 .menuGrid--icon{
-  grid-template-columns: repeat(2, 54px);
-  justify-content:center;
+  grid-template-columns: repeat(5, 1fr);
+  gap:8px;
 }
 
-/* Compact gameplay panel: center header + wrap subtitle nicely */
+/* Compact gameplay panel: center header and subtitle */
 .panel--compact .panelHeader{ justify-content:center; }
 .panel--compact .panelHeader > div{ text-align:center; }
 .panel--compact #gameMenu .muted{
-  max-width: calc(54px * 2 + 10px);
-  margin-left:auto;
-  margin-right:auto;
   text-align:center;
 }
 
@@ -537,9 +520,8 @@ label.check{ display:flex; align-items:center; gap:8px; margin:0; }
 
 /* Icon-only square tool buttons (main menu) */
 .menuBtn--iconOnly{
-  /* Keep existing height feel, but make width match so it's a square */
-  width:54px;
-  height:54px;
+  width:100%;
+  aspect-ratio:1;
   padding:0;
   gap:0;
   justify-content:center;
@@ -552,7 +534,7 @@ label.check{ display:flex; align-items:center; gap:8px; margin:0; }
   width:100%;
   height:100%;
   border-radius:14px;
-  font-size:28px;
+  font-size:30px;
   line-height:1;
 }
 
@@ -967,4 +949,19 @@ label.check{ display:flex; align-items:center; gap:8px; margin:0; }
 .choiceBtn:hover{ transform:translateY(-1px); border-color:rgba(255,255,255,.22); }
 .choiceBtn .iconBox{ font-size:22px; }
 .choiceBtn.is-selected{ border-color:rgba(96,165,250,.95); background:rgba(59,130,246,.18); box-shadow:0 0 0 1px rgba(96,165,250,.35) inset; }
-#panelNewGame{ width:min(360px, calc(100vw - 24px)); }
+/* #panelNewGame width handled by base .panel bottom-sheet style */
+
+/* Panel backdrop — dims the map when any panel is open */
+#panelBackdrop{
+  position:fixed;
+  inset:0;
+  z-index:39;
+  background:rgba(0,0,0,.45);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease;
+}
+#panelBackdrop.active{
+  opacity:1;
+  pointer-events:auto;
+}
