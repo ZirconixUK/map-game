@@ -92,14 +92,23 @@ body{
   pointer-events:none;
   transition:transform .26s cubic-bezier(.32,.72,0,1), opacity .20s ease;
 }
-.panel::before{
+.panelHandle{
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+}
+.panelHandle::before{
   content:'';
   display:block;
   width:40px;
   height:4px;
   border-radius:2px;
   background:rgba(148,163,184,.30);
-  margin:14px auto 0;
 }
 .panel.open{
   transform:translateX(-50%) translateY(0);
@@ -955,7 +964,7 @@ label.check{ display:flex; align-items:center; gap:8px; margin:0; }
 #panelBackdrop{
   position:fixed;
   inset:0;
-  z-index:39;
+  z-index:24;
   background:rgba(0,0,0,.45);
   opacity:0;
   pointer-events:none;

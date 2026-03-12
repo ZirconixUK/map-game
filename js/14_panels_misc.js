@@ -28,69 +28,51 @@
   }
 
   // ---- Swipe-down-to-dismiss ----
+  // Attached to the .panelHandle element (touch-action:none) so the browser
+  // never competes with a scroll gesture.
   function addSwipeDismiss(panel) {
-    let startY = 0, startScrollTop = 0;
-    let dragging = false, pointerId = null;
+    const handle = panel.querySelector('.panelHandle');
+    if (!handle) return;
+
+    let startY = 0, pointerId = null;
     let lastY = 0, lastT = 0, velocity = 0;
 
-    panel.addEventListener('pointerdown', (e) => {
+    handle.addEventListener('pointerdown', (e) => {
       if (!e.isPrimary) return;
       startY = e.clientY;
-      startScrollTop = panel.scrollTop;
-      dragging = false;
-      pointerId = e.pointerId;
       lastY = e.clientY;
       lastT = e.timeStamp;
       velocity = 0;
-    }, { passive: true });
+      pointerId = e.pointerId;
+      handle.setPointerCapture(e.pointerId);
+      panel.style.transition = 'none';
+    });
 
-    panel.addEventListener('pointermove', (e) => {
+    handle.addEventListener('pointermove', (e) => {
       if (e.pointerId !== pointerId) return;
       const dy = e.clientY - startY;
       const dt = e.timeStamp - lastT;
       if (dt > 0) velocity = (e.clientY - lastY) / dt;
       lastY = e.clientY;
       lastT = e.timeStamp;
+      if (dy > 0) panel.style.transform = `translateX(-50%) translateY(${dy}px)`;
+    });
 
-      // Only engage if dragging downward from a non-scrolled position
-      if (!dragging) {
-        if (dy > 10 && startScrollTop === 0) {
-          dragging = true;
-          try { panel.setPointerCapture(e.pointerId); } catch (_) {}
-        } else {
-          return;
-        }
-      }
-
-      panel.style.transform = `translateX(-50%) translateY(${Math.max(0, dy)}px)`;
-      panel.style.transition = 'none';
-      e.preventDefault();
-    }, { passive: false });
-
-    function finish(e) {
+    handle.addEventListener('pointerup', (e) => {
       if (e.pointerId !== pointerId) return;
-      if (!dragging) { pointerId = null; return; }
-      dragging = false;
       pointerId = null;
       const dy = e.clientY - startY;
       panel.style.transition = '';
       if (dy > panel.offsetHeight * 0.28 || velocity > 0.5) {
-        // Fling off-screen then close
         panel.style.transform = `translateX(-50%) translateY(${panel.offsetHeight}px)`;
-        setTimeout(() => {
-          panel.style.transform = '';
-          setOpen(panel, false);
-        }, 300);
+        setTimeout(() => { panel.style.transform = ''; setOpen(panel, false); }, 280);
       } else {
-        // Snap back
         panel.style.transform = '';
       }
-    }
+    });
 
-    panel.addEventListener('pointerup', finish);
-    panel.addEventListener('pointercancel', (e) => {
+    handle.addEventListener('pointercancel', (e) => {
       if (e.pointerId !== pointerId) return;
-      dragging = false;
       pointerId = null;
       panel.style.transform = '';
       panel.style.transition = '';
