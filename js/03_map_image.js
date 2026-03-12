@@ -46,7 +46,7 @@ function initLeafletMap() {
       zoomControl: false,
       attributionControl: true,
       preferCanvas: true,
-    }).setView([53.4075, -2.9919], 16);
+    }).setView([20, 0], 2);
 
     // Move zoom controls away from the debug button (top-left)
     L.control.zoom({ position: "bottomleft" }).addTo(leafletMap);

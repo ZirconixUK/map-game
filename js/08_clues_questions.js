@@ -318,6 +318,13 @@ function pickNewTarget(verbose = true) {
         if (debugMode) {
           try { log(`📡 Start radius applied: within ${Math.round(startRadiusM)}m`); } catch (e) {}
         }
+        // Zoom the map to show the full mode-radius circle.
+        try {
+          if (window.leafletMap) {
+            const circle = L.circle([player.lat, player.lon], { radius: startRadiusM });
+            window.leafletMap.fitBounds(circle.getBounds(), { padding: [50, 50], animate: true });
+          }
+        } catch (e) {}
       }
     } catch (e) {}
 

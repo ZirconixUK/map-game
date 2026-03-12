@@ -114,6 +114,9 @@
     <button id="btnGameplay"  class="fab fab--right fab--stack2 rounded-2xl bg-blue-600 border border-blue-500 shadow-fab text-white text-lg grid place-items-center hover:bg-blue-500 transition-colors" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
     <button id="btnCurses"    class="fab fab--right fab--stack3 fab--curse rounded-2xl bg-[#2d1a4a] border border-[#4a2d7a] shadow-fab grid place-items-center hover:bg-[#3d2560] transition-colors" aria-label="Curses" title="Curses">☠</button>
 
+    <!-- System FAB -->
+    <button id="btnSystem" class="fab fab--left fab--stack2 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-amber-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="System" title="System">⌂</button>
+
     <!-- Heat widget -->
     <button id="heatWidget" class="heatWidget heatWidget--vertical fab--right fab--stack4 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab flex items-center justify-center" aria-label="Heat" title="Heat">
       <div class="heatBoxes" aria-hidden="true">
@@ -137,7 +140,6 @@
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-4">
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight text-white">Gameplay</div>
-          <div class="text-xs text-slate-400 leading-snug">Choose a question to ask</div>
         </div>
       </div>
 
@@ -151,13 +153,12 @@
           <button id="qPhoto"   class="menuBtn menuBtn--iconOnly rounded-2xl bg-violet-600  border-0 transition-all duration-150 hover:bg-violet-500  active:scale-95" aria-label="Photo"       title="Photo"><span class="iconBox text-2xl">📷</span></button>
         </div>
 
-        <div class="text-xs text-slate-400 leading-snug mt-3">Use a tool to narrow down your target location.</div>
-
         <div id="roundActions" class="mt-3 flex flex-col gap-2">
-          <button id="btnGameNewGame"  class="w-full px-4 py-3 rounded-2xl bg-amber-500 border-0 text-white font-bold text-sm transition-all duration-150 hover:bg-amber-400 active:scale-[.98] cursor-pointer" type="button">New Game</button>
-          <button id="btnNewGameStart" class="hidden" type="button" aria-hidden="true"></button>
-          <button id="btnLockGuess"    class="w-full px-4 py-3 rounded-2xl bg-cyan-600  border-0 text-white font-bold text-sm transition-all duration-150 hover:bg-cyan-500  active:scale-[.98] cursor-pointer">Lock In Guess</button>
-          <button id="btnNewRound"     class="hidden w-full px-4 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-gray-300 text-sm cursor-pointer hover:bg-[#253550]">Start New Round</button>
+          <button id="btnLockGuess" class="w-full rounded-2xl bg-amber-500 border-0 flex flex-col items-center justify-center gap-1 py-3 transition-all duration-150 hover:bg-amber-400 active:scale-95 cursor-pointer" style="min-height:72px;" aria-label="Lock In Guess" title="Lock In Guess">
+            <span class="text-2xl">🎯</span>
+            <span class="text-xs font-bold text-white">Lock In</span>
+          </button>
+          <button id="btnNewRound" class="hidden w-full px-4 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-gray-300 text-sm cursor-pointer hover:bg-[#253550]">Start New Round</button>
         </div>
       </div>
 
@@ -213,7 +214,7 @@
           <button id="thermoBack"  class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
           <button id="thermoClose" class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Close ✕</button>
         </div>
-        <div class="text-[11px] uppercase tracking-widest text-orange-400 font-semibold mb-2">Thermometer window (dev)</div>
+        <div class="text-[11px] uppercase tracking-widest text-orange-400 font-semibold mb-2">Thermometer window</div>
         <div class="grid grid-cols-2 gap-2.5">
           <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-left text-sm transition-all duration-150 hover:bg-[#253550] active:scale-[.98]" data-thermo="10"><span class="iconBox w-9 h-9 rounded-xl grid place-items-center bg-orange-500/20 border border-orange-400/30 text-lg flex-none">⏱️</span><span class="flex-1 text-gray-100">10s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-400 bg-amber-900/30 border border-amber-600/30 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
           <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-left text-sm transition-all duration-150 hover:bg-[#253550] active:scale-[.98]" data-thermo="20"><span class="iconBox w-9 h-9 rounded-xl grid place-items-center bg-orange-500/20 border border-orange-400/30 text-lg flex-none">⏱️</span><span class="flex-1 text-gray-100">20s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-400 bg-amber-900/30 border border-amber-600/30 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
@@ -299,6 +300,22 @@
           <button id="btnNewGameCancel" class="px-4 py-2.5 rounded-2xl border border-[#2a3f60] bg-[#1e2d44] text-gray-300 text-sm cursor-pointer hover:bg-[#253550]" type="button">Cancel</button>
           <button id="btnNewGameStartReal" class="flex-1 px-4 py-3 rounded-2xl bg-emerald-600 border-0 text-white font-bold text-sm cursor-pointer hover:bg-emerald-500 active:scale-[.98] transition-all duration-150" type="button">Start</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ── System panel ──────────────────────────────────── -->
+    <div id="panelSystem" class="panel panel--right bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="System">
+      <div class="panelHandle" aria-hidden="true"></div>
+      <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-4">
+        <div>
+          <div class="panelTitle text-lg font-bold tracking-tight text-white">System</div>
+        </div>
+      </div>
+      <div class="panelBody flex flex-col gap-2">
+        <button id="btnSystemNewGame" class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-amber-500 border-0 text-white font-bold cursor-pointer hover:bg-amber-400 active:scale-[.98] transition-all duration-150" type="button">
+          <span class="text-2xl">🎮</span>
+          <span>New Game</span>
+        </button>
       </div>
     </div>
 

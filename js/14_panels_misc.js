@@ -4,12 +4,14 @@
   const panelDebug = document.getElementById("panelDebug");
   const panelCurses = document.getElementById("panelCurses");
   const panelNewGame = document.getElementById("panelNewGame");
+  const panelSystem = document.getElementById("panelSystem");
   const btnGameplay = document.getElementById("btnGameplay");
   const btnDebug = document.getElementById("btnDebug");
   const btnCurses = document.getElementById("btnCurses");
+  const btnSystem = document.getElementById("btnSystem");
   const backdrop = document.getElementById("panelBackdrop");
 
-  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame].filter(Boolean);
+  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame, panelSystem].filter(Boolean);
 
   function syncBackdrop() {
     if (!backdrop) return;
@@ -129,7 +131,22 @@
         setOpen(panelGameplay, false);
         setOpen(panelDebug, false);
         setOpen(panelNewGame, false);
+        setOpen(panelSystem, false);
         try { if (typeof updateCursesPanel === 'function') updateCursesPanel(); } catch (e) {}
+      }
+    });
+  }
+
+  // System panel toggle
+  if (btnSystem && panelSystem) {
+    btnSystem.addEventListener("click", () => {
+      const willOpen = !panelSystem.classList.contains("open");
+      setOpen(panelSystem, willOpen);
+      if (willOpen) {
+        setOpen(panelGameplay, false);
+        setOpen(panelDebug, false);
+        setOpen(panelCurses, false);
+        setOpen(panelNewGame, false);
       }
     });
   }
@@ -141,6 +158,7 @@
       setOpen(panelDebug, false);
       setOpen(panelCurses, false);
       setOpen(panelNewGame, false);
+      setOpen(panelSystem, false);
     });
   }
 
@@ -152,6 +170,7 @@
         setOpen(panelGameplay, false);
         setOpen(panelCurses, false);
         setOpen(panelNewGame, false);
+        setOpen(panelSystem, false);
       }
     });
   }
@@ -161,6 +180,7 @@
   setOpen(panelDebug, false);
   setOpen(panelCurses, false);
   setOpen(panelNewGame, false);
+  setOpen(panelSystem, false);
 })();
 
 

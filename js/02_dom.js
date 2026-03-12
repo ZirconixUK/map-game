@@ -337,13 +337,15 @@ function bindUI() {
 
   function openNewGamePanel() {
     const panelGameplay = document.getElementById("panelGameplay");
+    const panelSystem = document.getElementById("panelSystem");
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelGameplay) panelGameplay.classList.remove("open");
+    if (panelSystem) panelSystem.classList.remove("open");
     if (panelNewGame) panelNewGame.classList.add("open");
   }
 
   on("btnNewTarget","click", startNewGameFromMenuOrDebug);
-  on("btnGameNewGame","click", openNewGamePanel);
+  on("btnSystemNewGame","click", openNewGamePanel);
   on("btnNewGameStartReal","click", () => {
     try {
       if (typeof window.setGameSetupSelection === 'function') {
