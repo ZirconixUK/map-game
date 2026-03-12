@@ -174,10 +174,12 @@ function __tryRestoreFog(saved) {
         } catch (e) {}
       }
     } else {
-      pickNewTarget(false);
+      // No saved game — flag so startup flow opens the New Game panel
+      window.__needsNewGameSetup = true;
     }
   } catch (e) {
-    pickNewTarget(false);
+    // Corrupted save — flag so startup flow opens the New Game panel
+    window.__needsNewGameSetup = true;
   }
 
   try { startHUDTicker(); } catch (e) {}
@@ -207,6 +209,46 @@ function __tryRestoreFog(saved) {
 if (typeof window.bindUI === "function") {
   window.bindUI();
 }
+
+// Auto-locate player on startup and open New Game panel if no game is in progress.
+// Delay slightly so 14_panels_misc.js has finished wiring up panel observers.
+setTimeout(async function __autoStartup() {
+  // Respect debug mode — don't override a manually-placed position with GPS
+  const inDebug = (typeof debugMode !== 'undefined') && debugMode;
+
+  if (!inDebug && window.isSecureContext && navigator.geolocation) {
+    try {
+      await window.__setPlayerFromCurrentLocation({ centerAfterFix: true });
+    } catch (e) {
+      // GPS failed — try to center on whatever fix we already have
+      try {
+        const fix = typeof window.__getLastGeoFix === 'function' ? window.__getLastGeoFix() : null;
+        if (fix && typeof fix.lat === 'number') {
+          if (typeof setPlayerLatLng === 'function') setPlayerLatLng(fix.lat, fix.lon, { source: 'cached', accuracy: fix.accuracy });
+          if (typeof centerOnPlayer === 'function') centerOnPlayer();
+        }
+      } catch (e2) {}
+    }
+  } else if (!inDebug) {
+    // HTTPS not available (dev HTTP) — still try to center on last known fix
+    try {
+      const fix = typeof window.__getLastGeoFix === 'function' ? window.__getLastGeoFix() : null;
+      if (fix && typeof fix.lat === 'number') {
+        if (typeof setPlayerLatLng === 'function') setPlayerLatLng(fix.lat, fix.lon, { source: 'cached', accuracy: fix.accuracy });
+        if (typeof centerOnPlayer === 'function') centerOnPlayer();
+      }
+    } catch (e) {}
+  }
+
+  // Open New Game setup panel if there was no saved game to resume
+  if (window.__needsNewGameSetup) {
+    try {
+      const p = document.getElementById('panelNewGame');
+      if (p) p.classList.add('open');
+    } catch (e) {}
+    window.__needsNewGameSetup = false;
+  }
+}, 400);
 
 // Keep Gameplay panel sizing responsive when switching menus or resizing.
 try {
