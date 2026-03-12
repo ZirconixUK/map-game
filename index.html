@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 <title>Map Game (mobile)</title>
@@ -12,12 +12,10 @@
       corePlugins: { preflight: false },
       theme: {
         extend: {
-          backdropBlur: { glass: '20px', heavy: '32px' },
           boxShadow: {
-            'panel-up':     '0 -8px 40px rgba(0,0,0,.5)',
-            'fab':          '0 10px 28px rgba(0,0,0,.35)',
-            'modal':        '0 14px 50px rgba(0,0,0,.35)',
-            'glow-purple':  '0 0 28px rgba(168,85,247,.45)',
+            'panel-up': '0 -8px 40px rgba(0,0,0,.6)',
+            'fab':      '0 4px 18px rgba(0,0,0,.5)',
+            'modal':    '0 14px 50px rgba(0,0,0,.5)',
           },
           colors: {
             heat:  '#faca15',
@@ -34,13 +32,11 @@
       var cb = Date.now();
       window.__cb = cb;
 
-      // CSS (no-cache via querystring)
       var css = document.createElement('link');
       css.rel = 'stylesheet';
       css.href = './styles.css?cb=' + cb;
       document.head.appendChild(css);
 
-      // Load scripts sequentially to preserve globals/order.
       function load(src) {
         return new Promise(function (resolve, reject) {
           var s = document.createElement('script');
@@ -59,7 +55,7 @@
         await load('./js/01_pois.js?cb=' + cb);
         await load('./js/15_tools_config.js?cb=' + cb);
         await load('./js/18_streetview_glimpse.js?cb=' + cb);
-      await load('./js/02_dom.js?cb=' + cb);
+        await load('./js/02_dom.js?cb=' + cb);
         await load('./js/03_map_image.js?cb=' + cb);
         await load('./js/04_state.js?cb=' + cb);
         await load('./js/19_curses.js?cb=' + cb);
@@ -88,7 +84,6 @@
     })();
   </script>
 
-
   <!-- Leaflet -->
   <link
     rel="stylesheet"
@@ -98,30 +93,29 @@
   />
 </head>
 <body class="overflow-hidden bg-[#0b0f14] text-gray-200">
-    <div id="mapShell">
+  <div id="mapShell">
     <div id="panelBackdrop" aria-hidden="true"></div>
     <div id="leafletMap" aria-label="Leaflet map"></div>
     <canvas id="view"></canvas>
 
-    <div id="toast" class="hidden fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] max-w-[min(520px,calc(100vw-32px))] px-4 py-3.5 rounded-2xl border border-white/15 bg-slate-900/90 backdrop-blur-xl text-gray-200 shadow-[0_14px_38px_rgba(0,0,0,.45)] text-sm leading-snug text-center cursor-pointer [&.good]:border-emerald-500/50 [&.bad]:border-red-500/50 [&.curse]:border-purple-500/60 [&.curse]:shadow-[0_14px_38px_rgba(0,0,0,.45),0_0_0_2px_rgba(168,85,247,.15),0_0_24px_rgba(168,85,247,.18)]" role="status" aria-live="polite"></div>
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] max-w-[min(520px,calc(100vw-32px))] px-4 py-3.5 rounded-2xl border border-amber-400/25 bg-[#141210] text-gray-200 shadow-[0_14px_38px_rgba(0,0,0,.6)] text-sm leading-snug text-center cursor-pointer [&.good]:border-emerald-500/60 [&.bad]:border-red-500/55 [&.curse]:border-purple-500/60 [&.curse]:shadow-[0_14px_38px_rgba(0,0,0,.6),0_0_0_2px_rgba(168,85,247,.15),0_0_24px_rgba(168,85,247,.18)]" role="status" aria-live="polite"></div>
 
-    <!-- HUD (timer) centered -->
+    <!-- HUD timer (centered) -->
     <div id="hudTopCenter" class="hudTopCenter flex flex-col items-center gap-2" aria-label="HUD">
-      <div id="timerWidget" class="flex items-center gap-2.5 h-[46px] px-3 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab tabular-nums select-none" aria-label="Round timer">
+      <div id="timerWidget" class="flex items-center gap-2.5 h-[46px] px-3 rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab tabular-nums select-none" aria-label="Round timer">
         <span id="timerMain" class="font-bold text-green-400 tracking-tight">30:00</span>
         <span id="timerPenalty" class="font-bold text-red-400 tracking-tight" style="display:none;"></span>
       </div>
     </div>
 
-    <!-- Gameplay overlay (top-right) -->
-    <button id="btnRecenter" class="fab fab--right rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab text-gray-200 text-lg grid place-items-center" aria-label="Center on me" title="Center on me">⌖</button>
-    <button id="btnGameplay" class="fab fab--right fab--stack2 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab text-gray-200 text-lg grid place-items-center" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
+    <!-- FABs (top-right) -->
+    <button id="btnRecenter" class="fab fab--right rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab text-gray-200 text-lg grid place-items-center" aria-label="Center on me" title="Center on me">⌖</button>
+    <button id="btnGameplay" class="fab fab--right fab--stack2 rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab text-gray-200 text-lg grid place-items-center" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
+    <button id="btnCurses" class="fab fab--right fab--stack3 fab--curse rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab grid place-items-center" aria-label="Curses" title="Curses">☠</button>
 
-    <!-- Curses overlay (top-right, under gameplay button) -->
-    <button id="btnCurses" class="fab fab--right fab--stack3 fab--curse rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab grid place-items-center" aria-label="Curses" title="Curses">☠</button>
-
-    <!-- Heat widget (top-right, under gameplay button) -->
-    <button id="heatWidget" class="heatWidget heatWidget--vertical fab--right fab--stack4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab flex items-center justify-center" aria-label="Heat" title="Heat">
+    <!-- Heat widget -->
+    <button id="heatWidget" class="heatWidget heatWidget--vertical fab--right fab--stack4 rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab flex items-center justify-center" aria-label="Heat" title="Heat">
       <div class="heatBoxes" aria-hidden="true">
         <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
         <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
@@ -130,312 +124,290 @@
         <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
       </div>
     </button>
-    <div id="thermoProgress" class="thermoProgress hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab p-2.5 flex flex-col gap-1.5" aria-label="Thermometer in progress">
-      <div class="w-full h-2.5 rounded-full border border-white/10 bg-white/5 overflow-hidden" aria-hidden="true"><div id="thermoProgressFill" class="h-full w-0 rounded-full bg-sky-400/75"></div></div>
-      <div id="thermoProgressText" class="text-xs font-semibold text-gray-200 opacity-90">Thermometer</div>
+
+    <!-- Thermometer progress -->
+    <div id="thermoProgress" class="thermoProgress hidden rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab p-2.5 flex flex-col gap-1.5" aria-label="Thermometer in progress">
+      <div class="w-full h-2.5 rounded-full border border-amber-400/15 bg-[#1e1a14] overflow-hidden" aria-hidden="true"><div id="thermoProgressFill" class="h-full w-0 rounded-full bg-amber-400/70"></div></div>
+      <div id="thermoProgressText" class="text-xs font-semibold text-stone-300 opacity-90">Thermometer</div>
     </div>
-    <div id="panelGameplay" class="panel panel--right bg-slate-900/80 backdrop-blur-[20px] border border-white/10 shadow-panel-up" aria-label="Gameplay controls">
+
+    <!-- ── Gameplay panel ─────────────────────────────────── -->
+    <div id="panelGameplay" class="panel panel--right bg-[#141210] border border-amber-400/20 shadow-panel-up" aria-label="Gameplay controls">
       <div class="panelHandle" aria-hidden="true"></div>
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3.5">
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight">Gameplay</div>
-          <div class="text-xs text-slate-400 leading-snug">Choose a question to ask</div>
+          <div class="text-xs text-stone-400 leading-snug">Choose a question to ask</div>
         </div>
       </div>
 
-      <!-- Main question menu -->
+      <!-- Main tool row -->
       <div id="gameMenu">
         <div class="grid gap-2" style="grid-template-columns:repeat(5,1fr)">
-          <button id="qRadar" class="menuBtn menuBtn--iconOnly rounded-2xl bg-white/5 border border-white/10 transition-all duration-150 hover:bg-white/10 hover:border-white/20" aria-label="Radar" title="Radar"><span class="iconBox">📡</span></button>
-          <button id="qThermo" class="menuBtn menuBtn--iconOnly rounded-2xl bg-white/5 border border-white/10 transition-all duration-150 hover:bg-white/10 hover:border-white/20" aria-label="Thermometer" title="Thermometer"><span class="iconBox">🌡️</span></button>
-          <button id="qDir" class="menuBtn menuBtn--iconOnly rounded-2xl bg-white/5 border border-white/10 transition-all duration-150 hover:bg-white/10 hover:border-white/20" aria-label="N/S/E/W" title="N/S/E/W"><span class="iconBox">🧭</span></button>
-          <button id="qLandmark" class="menuBtn menuBtn--iconOnly rounded-2xl bg-white/5 border border-white/10 transition-all duration-150 hover:bg-white/10 hover:border-white/20" aria-label="Landmark" title="Landmark"><span class="iconBox">🏛️</span></button>
-          <button id="qPhoto" class="menuBtn menuBtn--iconOnly rounded-2xl bg-white/5 border border-white/10 transition-all duration-150 hover:bg-white/10 hover:border-white/20" aria-label="Photo" title="Photo"><span class="iconBox">📷</span></button>
+          <button id="qRadar"    class="menuBtn menuBtn--iconOnly rounded-2xl bg-[#1e1a14] border border-amber-400/15 transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" aria-label="Radar"       title="Radar"><span class="iconBox">📡</span></button>
+          <button id="qThermo"  class="menuBtn menuBtn--iconOnly rounded-2xl bg-[#1e1a14] border border-amber-400/15 transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" aria-label="Thermometer" title="Thermometer"><span class="iconBox">🌡️</span></button>
+          <button id="qDir"     class="menuBtn menuBtn--iconOnly rounded-2xl bg-[#1e1a14] border border-amber-400/15 transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" aria-label="N/S/E/W"     title="N/S/E/W"><span class="iconBox">🧭</span></button>
+          <button id="qLandmark" class="menuBtn menuBtn--iconOnly rounded-2xl bg-[#1e1a14] border border-amber-400/15 transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" aria-label="Landmark"    title="Landmark"><span class="iconBox">🏛️</span></button>
+          <button id="qPhoto"   class="menuBtn menuBtn--iconOnly rounded-2xl bg-[#1e1a14] border border-amber-400/15 transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" aria-label="Photo"       title="Photo"><span class="iconBox">📷</span></button>
         </div>
 
-        <div class="text-xs text-slate-400 leading-snug mt-2.5">Nearest-landmark match test (adds fog based on the result).</div>
+        <div class="text-xs text-stone-400 leading-snug mt-2.5">Use a tool to narrow down your target location.</div>
 
         <div id="roundActions" class="mt-3.5 flex flex-col gap-2">
-          <button id="btnGameNewGame" class="w-full px-4 py-2.5 rounded-2xl border border-amber-400/35 bg-amber-500/10 text-amber-300 font-semibold text-sm transition-all duration-150 hover:bg-amber-500/20 cursor-pointer" type="button">New Game</button>
+          <button id="btnGameNewGame" class="w-full px-4 py-2.5 rounded-2xl border border-amber-500/40 bg-amber-950/50 text-amber-300 font-semibold text-sm transition-all duration-150 hover:bg-amber-900/40 hover:border-amber-400/60 cursor-pointer" type="button">New Game</button>
           <button id="btnNewGameStart" class="hidden" type="button" aria-hidden="true"></button>
-          <button id="btnLockGuess" class="w-full px-4 py-2.5 rounded-2xl border border-sky-400/40 bg-sky-500/15 text-sky-300 font-semibold text-sm transition-all duration-150 hover:bg-sky-500/25 hover:border-sky-400/60 cursor-pointer">Lock In Guess</button>
-          <button id="btnNewRound" class="hidden w-full px-4 py-2.5 rounded-2xl border border-white/10 bg-white/5 text-gray-200 text-sm cursor-pointer">Start New Round</button>
+          <button id="btnLockGuess" class="w-full px-4 py-2.5 rounded-2xl border border-sky-500/45 bg-sky-950/55 text-sky-200 font-semibold text-sm transition-all duration-150 hover:bg-sky-900/50 hover:border-sky-400/65 cursor-pointer">Lock In Guess</button>
+          <button id="btnNewRound" class="hidden w-full px-4 py-2.5 rounded-2xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16]">Start New Round</button>
         </div>
       </div>
 
-
-
-      <!-- Photo menu -->
+      <!-- Photo submenu -->
       <div id="photoMenu" class="hidden">
         <div class="flex justify-between items-center mb-2.5">
-          <button id="photoBack" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">← Back</button>
-          <button id="photoClose" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">Close ✕</button>
+          <button id="photoBack"  class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">← Back</button>
+          <button id="photoClose" class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">Close ✕</button>
         </div>
-
-        <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Photo</div>
+        <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">Photo</div>
         <div class="grid grid-cols-2 gap-2.5">
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-photo="starter">
-            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">🕵️‍♂️</span>
-            <span class="flex-1 min-w-0">Starter photo<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-photo="starter">
+            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">🕵️‍♂️</span>
+            <span class="flex-1 min-w-0">Starter photo<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
           </button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-photo="near100">
-            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">📸</span>
-            <span class="flex-1 min-w-0">Extra photo (≤100m)<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-photo="near100">
+            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">📸</span>
+            <span class="flex-1 min-w-0">Extra photo (≤100m)<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
           </button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-photo="near200">
-            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">📷</span>
-            <span class="flex-1 min-w-0">Extra photo (≤200m)<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-photo="near200">
+            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">📷</span>
+            <span class="flex-1 min-w-0">Extra photo (≤200m)<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
           </button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-photo="uncorrupt">
-            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">✨</span>
-            <span class="flex-1 min-w-0">Uncorrupt all photos<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-photo="uncorrupt">
+            <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">✨</span>
+            <span class="flex-1 min-w-0">Uncorrupt all photos<div class="costRow mt-1.5 flex gap-2 flex-wrap"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.0</span></div></span>
           </button>
         </div>
-
-        <div class="text-xs text-slate-400 leading-snug mt-2.5">Starter photo is always free. Extra photos are cached per round and can be re-opened any time after purchase.</div>
+        <div class="text-xs text-stone-400 leading-snug mt-2.5">Starter photo is always free. Extra photos are cached per round and can be re-opened any time after purchase.</div>
       </div>
 
-      <!-- Radar menu -->
+      <!-- Radar submenu -->
       <div id="radarMenu" class="hidden">
         <div class="flex justify-between mb-2.5">
-          <button id="radarBack" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">← Back</button>
-          <button id="gameClose" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">Close ✕</button>
+          <button id="radarBack" class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">← Back</button>
+          <button id="gameClose" class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">Close ✕</button>
         </div>
-
-        <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Radar radius</div>
+        <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">Radar radius</div>
         <div class="grid grid-cols-2 gap-2.5">
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-radar="50"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⭕</span><span class="flex-1">50m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-radar="100"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⭕</span><span class="flex-1">100m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-radar="250"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⭕</span><span class="flex-1">250m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-radar="500"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⭕</span><span class="flex-1">500m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-radar="1000"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⭕</span><span class="flex-1">1km<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-radar="2000"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⭕</span><span class="flex-1">2km<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-radar="50">  <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⭕</span><span class="flex-1">50m<div  class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-radar="100"> <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⭕</span><span class="flex-1">100m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-radar="250"> <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⭕</span><span class="flex-1">250m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-radar="500"> <span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⭕</span><span class="flex-1">500m<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-radar="1000"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⭕</span><span class="flex-1">1km<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-radar="2000"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⭕</span><span class="flex-1">2km<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
         </div>
-
-        <div class="text-xs text-slate-400 leading-snug mt-2.5">Nearest-landmark match test (adds fog based on the result).</div>
+        <div class="text-xs text-stone-400 leading-snug mt-2.5">Reveals whether the target is inside or outside the chosen radius.</div>
       </div>
 
-      <!-- Thermometer menu -->
+      <!-- Thermometer submenu -->
       <div id="thermoMenu" class="hidden">
         <div class="flex justify-between mb-2.5">
-          <button id="thermoBack" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">← Back</button>
-          <button id="thermoClose" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">Close ✕</button>
+          <button id="thermoBack"  class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">← Back</button>
+          <button id="thermoClose" class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">Close ✕</button>
         </div>
-
-        <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Thermometer window (dev)</div>
+        <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">Thermometer window (dev)</div>
         <div class="grid grid-cols-2 gap-2.5">
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-thermo="10"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⏱️</span><span class="flex-1">10s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-thermo="20"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⏱️</span><span class="flex-1">20s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-thermo="30"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⏱️</span><span class="flex-1">30s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-thermo="10"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⏱️</span><span class="flex-1">10s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-thermo="20"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⏱️</span><span class="flex-1">20s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-thermo="30"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⏱️</span><span class="flex-1">30s<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
         </div>
-
-        <div class="text-xs text-slate-400 leading-snug mt-2.5">Nearest-landmark match test (adds fog based on the result).</div>
+        <div class="text-xs text-stone-400 leading-snug mt-2.5">Tracks getting warmer/colder as you walk for the chosen window.</div>
       </div>
 
-      <!-- N/S/E/W menu -->
+      <!-- N/S/E/W submenu -->
       <div id="dirMenu" class="hidden">
         <div class="flex justify-between mb-2.5">
-          <button id="dirBack" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">← Back</button>
-          <button id="dirClose" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">Close ✕</button>
+          <button id="dirBack"  class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">← Back</button>
+          <button id="dirClose" class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">Close ✕</button>
         </div>
-
-        <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">N/S/E/W</div>
+        <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">N/S/E/W</div>
         <div class="grid grid-cols-2 gap-2.5">
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-dir="NS"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">↕️</span><span class="flex-1">North or South?<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-dir="EW"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">↔️</span><span class="flex-1">East or West?<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-dir="NS"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">↕️</span><span class="flex-1">North or South?<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-dir="EW"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">↔️</span><span class="flex-1">East or West?<div class="costRow mt-1.5 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div></span></button>
         </div>
-
-        <div class="text-xs text-slate-400 leading-snug mt-2.5">Nearest-landmark match test (adds fog based on the result).</div>
+        <div class="text-xs text-stone-400 leading-snug mt-2.5">Splits the map in half — reveals which side the target is on.</div>
       </div>
 
-      <!-- Landmark menu -->
+      <!-- Landmark submenu -->
       <div id="landmarkMenu" class="hidden">
         <div class="flex justify-between mb-2.5">
-          <button id="landmarkBack" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">← Back</button>
-          <button id="landmarkClose" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 cursor-pointer hover:bg-white/10">Close ✕</button>
+          <button id="landmarkBack"  class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">← Back</button>
+          <button id="landmarkClose" class="px-3 py-2 rounded-xl bg-[#1e1a14] border border-amber-400/15 text-sm text-gray-200 cursor-pointer hover:bg-[#261f16]">Close ✕</button>
         </div>
-
-        <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Landmark type</div>
+        <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">Landmark type</div>
         <div class="menuGrid landmarkGrid grid gap-2.5" style="grid-template-columns:1fr">
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-landmark="train_station"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">🚉</span><span class="flex-1">Train Station<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-slate-400"><span data-nearest-label="train_station">Nearest: —</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-landmark="cathedral"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">⛪</span><span class="flex-1">Cathedral<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-slate-400"><span data-nearest-label="cathedral">Nearest: —</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-landmark="bus_station"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">🚌</span><span class="flex-1">Bus Station<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-slate-400"><span data-nearest-label="bus_station">Nearest: —</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-landmark="library"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">📚</span><span class="flex-1">Library<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-slate-400"><span data-nearest-label="library">Nearest: —</span></div></span></button>
-          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-white/5 border border-white/10 text-left text-sm transition-all duration-150 hover:bg-white/10" data-landmark="museum"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-white/8 border border-white/15 text-base flex-none">🏛️</span><span class="flex-1">Museum<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-slate-200 bg-slate-900/35 border border-white/15 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-slate-400"><span data-nearest-label="museum">Nearest: —</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-landmark="train_station"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">🚉</span><span class="flex-1">Train Station<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-stone-400"><span data-nearest-label="train_station">Nearest: —</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-landmark="cathedral"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">⛪</span><span class="flex-1">Cathedral<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-stone-400"><span data-nearest-label="cathedral">Nearest: —</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-landmark="bus_station"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">🚌</span><span class="flex-1">Bus Station<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-stone-400"><span data-nearest-label="bus_station">Nearest: —</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-landmark="library"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">📚</span><span class="flex-1">Library<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-stone-400"><span data-nearest-label="library">Nearest: —</span></div></span></button>
+          <button class="menuBtn flex items-center gap-2.5 px-3 py-3 rounded-2xl bg-[#1e1a14] border border-amber-400/15 text-left text-sm transition-all duration-150 hover:bg-[#261f16] hover:border-amber-400/30" data-landmark="museum"><span class="iconBox w-8 h-8 rounded-xl grid place-items-center bg-[#261f16] border border-amber-400/20 text-base flex-none">🏛️</span><span class="flex-1">Museum<div class="costRow mt-1 flex gap-2"><span class="costItem text-[11px] font-semibold text-amber-300/90 bg-amber-950/30 border border-amber-400/20 px-2 py-0.5 rounded-full">🔥 0.5</span></div><div class="nearestRow mt-1 text-[11px] text-stone-400"><span data-nearest-label="museum">Nearest: —</span></div></span></button>
         </div>
-
-        <div class="text-xs text-slate-400 leading-snug mt-2.5">Nearest-landmark match test (adds fog based on the result).</div>
+        <div class="text-xs text-stone-400 leading-snug mt-2.5">Nearest-landmark match test (adds fog based on the result).</div>
       </div>
-
-</div>
     </div>
 
-    <div id="panelNewGame" class="panel panel--right bg-slate-900/80 backdrop-blur-[20px] border border-white/10 shadow-panel-up" aria-label="New game setup">
+    <!-- ── New Game panel ──────────────────────────────────── -->
+    <div id="panelNewGame" class="panel panel--right bg-[#141210] border border-amber-400/20 shadow-panel-up" aria-label="New game setup">
       <div class="panelHandle" aria-hidden="true"></div>
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3.5">
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight">New Game</div>
-          <div class="text-xs text-slate-400 leading-snug">Choose length and difficulty</div>
+          <div class="text-xs text-stone-400 leading-snug">Choose length and difficulty</div>
         </div>
       </div>
 
       <div id="newGameMenu" class="panelBody">
         <div>
-          <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Game Length</div>
+          <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">Game Length</div>
           <div class="grid grid-cols-3 gap-2.5">
-            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-white/12 bg-white/4 font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px is-selected" type="button" data-game-length="short" aria-pressed="true">
+            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-amber-400/15 bg-[#1e1a14] font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-amber-400/30 is-selected" type="button" data-game-length="short" aria-pressed="true">
               <span class="text-2xl">⚡</span><span>Short</span>
             </button>
-            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-white/12 bg-white/4 font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px" type="button" data-game-length="medium" aria-pressed="false">
+            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-amber-400/15 bg-[#1e1a14] font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-amber-400/30" type="button" data-game-length="medium" aria-pressed="false">
               <span class="text-2xl">🧭</span><span>Medium</span>
             </button>
-            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-white/12 bg-white/4 font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px" type="button" data-game-length="long" aria-pressed="false">
+            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-amber-400/15 bg-[#1e1a14] font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-amber-400/30" type="button" data-game-length="long" aria-pressed="false">
               <span class="text-2xl">🌍</span><span>Long</span>
             </button>
           </div>
         </div>
 
         <div class="mt-3.5">
-          <div class="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-2">Difficulty</div>
+          <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mb-2">Difficulty</div>
           <div class="grid grid-cols-3 gap-2.5">
-            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-white/12 bg-white/4 font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px" type="button" data-game-difficulty="easy" aria-pressed="false">
+            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-amber-400/15 bg-[#1e1a14] font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-amber-400/30" type="button" data-game-difficulty="easy" aria-pressed="false">
               <span class="text-2xl">🙂</span><span>Easy</span>
             </button>
-            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-white/12 bg-white/4 font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px is-selected" type="button" data-game-difficulty="normal" aria-pressed="true">
+            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-amber-400/15 bg-[#1e1a14] font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-amber-400/30 is-selected" type="button" data-game-difficulty="normal" aria-pressed="true">
               <span class="text-2xl">⚖️</span><span>Normal</span>
             </button>
-            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-white/12 bg-white/4 font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px" type="button" data-game-difficulty="hard" aria-pressed="false">
+            <button class="choiceBtn relative flex flex-col items-center justify-center gap-2 min-h-[88px] rounded-2xl border border-amber-400/15 bg-[#1e1a14] font-bold text-sm cursor-pointer transition-all duration-150 hover:-translate-y-px hover:border-amber-400/30" type="button" data-game-difficulty="hard" aria-pressed="false">
               <span class="text-2xl">🔥</span><span>Hard</span>
             </button>
           </div>
         </div>
 
         <div class="flex justify-between gap-2 mt-4">
-          <button id="btnNewGameCancel" class="px-4 py-2.5 rounded-2xl border border-white/10 bg-white/5 text-gray-200 text-sm cursor-pointer hover:bg-white/10" type="button">Cancel</button>
-          <button id="btnNewGameStartReal" class="flex-1 px-4 py-2.5 rounded-2xl border border-sky-400/40 bg-sky-500/15 text-sky-300 font-semibold text-sm cursor-pointer hover:bg-sky-500/25 hover:border-sky-400/60 transition-all duration-150" type="button">Start</button>
+          <button id="btnNewGameCancel" class="px-4 py-2.5 rounded-2xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16]" type="button">Cancel</button>
+          <button id="btnNewGameStartReal" class="flex-1 px-4 py-2.5 rounded-2xl border border-sky-500/45 bg-sky-950/55 text-sky-200 font-semibold text-sm cursor-pointer hover:bg-sky-900/50 hover:border-sky-400/65 transition-all duration-150" type="button">Start</button>
         </div>
       </div>
     </div>
 
-    <!-- Curses panel -->
-    <div id="panelCurses" class="panel panel--right panel--curses bg-slate-900/80 backdrop-blur-[20px] border border-white/10 shadow-panel-up" aria-label="Curses">
+    <!-- ── Curses panel ───────────────────────────────────── -->
+    <div id="panelCurses" class="panel panel--right panel--curses bg-[#141210] border border-amber-400/20 shadow-panel-up" aria-label="Curses">
       <div class="panelHandle" aria-hidden="true"></div>
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3.5">
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight">Curses</div>
-          <div class="text-xs text-slate-400 leading-snug">Status effects currently active</div>
+          <div class="text-xs text-stone-400 leading-snug">Status effects currently active</div>
         </div>
       </div>
       <div id="cursesBody" class="panelBody pt-3">
-        <div id="cursesEmpty" class="text-xs text-slate-400 leading-snug">No curses currently active.</div>
+        <div id="cursesEmpty" class="text-xs text-stone-400 leading-snug">No curses currently active.</div>
         <ul id="cursesList" class="cursesList hidden"></ul>
       </div>
     </div>
 
-    <!-- Photo modal -->
-    <div id="photoModal" class="hidden fixed inset-0 bg-black/55 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Circle snapshot">
-      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-slate-900/95 backdrop-blur-xl border border-white/12 rounded-3xl shadow-modal flex flex-col">
-        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-white/8">
+    <!-- ── Photo modal ────────────────────────────────────── -->
+    <div id="photoModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Circle snapshot">
+      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#141210] border border-amber-400/20 rounded-3xl shadow-modal flex flex-col">
+        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-amber-400/[0.1]">
           <div id="photoModalTitle" class="font-bold text-base">Circle Snapshot</div>
-          <button id="photoModalClose" class="appearance-none border-0 bg-white/8 text-white rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-white/15" aria-label="Close">✕</button>
+          <button id="photoModalClose" class="appearance-none bg-[#1e1a14] border border-amber-400/15 text-gray-200 rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-[#261f16]" aria-label="Close">✕</button>
         </div>
         <div id="photoModalBody" class="px-3.5 py-3 overflow-auto max-h-[70vh]">
-          <div class="text-xs text-slate-400">Loading…</div>
+          <div class="text-xs text-stone-400">Loading…</div>
         </div>
-        <div id="photoModalFooter" class="px-3.5 pb-3.5 pt-2.5 border-t border-white/8 text-xs text-slate-400 leading-snug"></div>
+        <div id="photoModalFooter" class="px-3.5 pb-3.5 pt-2.5 border-t border-amber-400/[0.1] text-xs text-stone-400 leading-snug"></div>
       </div>
     </div>
 
-    <!-- Result modal (Phase 2) -->
-    <div id="resultModal" class="hidden fixed inset-0 bg-black/55 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Round result">
-      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-slate-900/95 backdrop-blur-xl border border-white/12 rounded-3xl shadow-modal flex flex-col">
-        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-white/8">
+    <!-- ── Result modal ───────────────────────────────────── -->
+    <div id="resultModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Round result">
+      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#141210] border border-amber-400/20 rounded-3xl shadow-modal flex flex-col">
+        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-amber-400/[0.1]">
           <div class="font-bold text-base">Round Result</div>
-          <button id="resultModalClose" class="appearance-none border-0 bg-white/8 text-white rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-white/15" aria-label="Close">✕</button>
+          <button id="resultModalClose" class="appearance-none bg-[#1e1a14] border border-amber-400/15 text-gray-200 rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-[#261f16]" aria-label="Close">✕</button>
         </div>
         <div id="resultModalBody" class="px-3.5 py-3 overflow-auto max-h-[70vh]"></div>
-        <div class="px-3.5 pb-3.5 pt-2.5 border-t border-white/8 text-xs text-slate-400 leading-snug">Lock in your guess to reveal distance and score.</div>
+        <div class="px-3.5 pb-3.5 pt-2.5 border-t border-amber-400/[0.1] text-xs text-stone-400 leading-snug">Lock in your guess to reveal distance and score.</div>
       </div>
     </div>
 
-    <!-- Debug overlay (top-left) -->
-    <button id=”btnDebug” class=”fab fab--left rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-fab text-gray-200 text-lg grid place-items-center” aria-label=”Show/hide debug” title=”Show/hide debug”>⚙︎</button>
-    <div id=”panelDebug” class=”panel panel--left bg-slate-900/80 backdrop-blur-[20px] border border-white/10 shadow-panel-up” aria-label=”Debug controls”>
-      <div class=”panelHandle” aria-hidden=”true”></div>
-      <div class=”panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3.5”>
+    <!-- ── Debug panel ────────────────────────────────────── -->
+    <button id="btnDebug" class="fab fab--left rounded-2xl bg-[#141210] border border-amber-400/20 shadow-fab text-gray-200 text-lg grid place-items-center" aria-label="Show/hide debug" title="Show/hide debug">⚙︎</button>
+    <div id="panelDebug" class="panel panel--left bg-[#141210] border border-amber-400/20 shadow-panel-up" aria-label="Debug controls">
+      <div class="panelHandle" aria-hidden="true"></div>
+      <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3.5">
         <div>
-          <div class=”panelTitle text-lg font-bold tracking-tight”>Debug</div>
-          <div class=”text-xs text-slate-400 leading-snug”>Location, target controls, and logs</div>
+          <div class="panelTitle text-lg font-bold tracking-tight">Debug</div>
+          <div class="text-xs text-stone-400 leading-snug">Location, target controls, and logs</div>
         </div>
       </div>
 
-      <div class=”flex gap-2 flex-wrap”>
-        <button class=”px-3 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-sky-300 text-sm font-semibold cursor-pointer hover:bg-sky-500/25 transition-all” id=”btnGeo” type=”button”>Use location</button>
-        <button class=”px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 text-sm cursor-pointer hover:bg-white/10” id=”btnCenter” type=”button”>Center</button>
-        <button class=”px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 text-sm cursor-pointer hover:bg-white/10” id=”btnClear” type=”button”>Clear</button>
-        <button class=”px-3 py-2 rounded-xl border border-amber-400/35 bg-amber-500/10 text-amber-300 text-sm font-semibold cursor-pointer hover:bg-amber-500/20 transition-all” id=”btnNewTarget” type=”button”>New target</button>
+      <div class="flex gap-2 flex-wrap">
+        <button class="px-3 py-2 rounded-xl border border-sky-500/40 bg-sky-950/50 text-sky-200 text-sm font-semibold cursor-pointer hover:bg-sky-900/40 transition-all" id="btnGeo" type="button">Use location</button>
+        <button class="px-3 py-2 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16]" id="btnCenter" type="button">Center</button>
+        <button class="px-3 py-2 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16]" id="btnClear" type="button">Clear</button>
+        <button class="px-3 py-2 rounded-xl border border-amber-500/40 bg-amber-950/50 text-amber-300 text-sm font-semibold cursor-pointer hover:bg-amber-900/40 transition-all" id="btnNewTarget" type="button">New target</button>
       </div>
 
-      <div class=”grid mt-2” style=”grid-template-columns:90px 1fr;gap:8px 10px;font-size:13px;”>
-        <div class=”text-slate-400”>Player</div><div id=”playerOut”>not set</div>
-        <div class=”text-slate-400”>Target</div><div id=”targetOut”>hidden</div>
-        <div class=”text-slate-400”>Clues</div><div id=”cluesOut”>0</div>
+      <div class="grid mt-2" style="grid-template-columns:90px 1fr;gap:8px 10px;font-size:13px;">
+        <div class="text-stone-400">Player</div><div id="playerOut">not set</div>
+        <div class="text-stone-400">Target</div><div id="targetOut">hidden</div>
+        <div class="text-stone-400">Clues</div><div id="cluesOut">0</div>
       </div>
 
-      <div class=”text-[11px] uppercase tracking-widest text-slate-400 font-semibold mt-3 mb-1.5”>Round</div>
-      <div class=”dbgHeatRow flex flex-wrap gap-2 items-center”>
-        <div class=”text-slate-400 text-xs” style=”min-width:60px;”>Heat</div>
-        <div class=”text-slate-400 text-xs” style=”min-width:96px;”>Current</div>
-        <div class=”inline-block px-2 py-0.5 rounded-full border border-white/20 text-xs whitespace-nowrap” id=”dbgHeatCurrent” style=”min-width:70px;text-align:center;”>0.0/5</div>
-        <div class=”text-slate-400 text-xs” style=”min-width:72px;”>New</div>
-        <input id=”dbgHeatNew” type=”number” min=”0” max=”5” step=”0.1” placeholder=”0.0”
-               class=”h-8 px-2 rounded-xl border border-white/15 bg-slate-900/35 text-gray-200 text-sm”
-               style=”width:90px;” inputmode=”decimal” aria-label=”New heat level (0 to 5)”>
-        <button id=”dbgHeatApply” class=”h-8 w-9 rounded-xl border border-white/15 bg-slate-900/45 text-gray-200 text-sm cursor-pointer hover:bg-white/10 flex items-center justify-center” type=”button” aria-label=”Apply heat level”>✓</button>
-        <button id=”dbgTimerPlus5” class=”h-8 px-2.5 rounded-xl border border-white/15 bg-slate-900/45 text-gray-200 text-xs font-semibold cursor-pointer hover:bg-white/10” type=”button” aria-label=”Advance elapsed time by 5 minutes”>+5 min</button>
+      <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mt-3 mb-1.5">Round</div>
+      <div class="dbgHeatRow flex flex-wrap gap-2 items-center">
+        <div class="text-stone-400 text-xs" style="min-width:60px;">Heat</div>
+        <div class="text-stone-400 text-xs" style="min-width:96px;">Current</div>
+        <div class="inline-block px-2 py-0.5 rounded-full border border-amber-400/25 text-xs whitespace-nowrap" id="dbgHeatCurrent" style="min-width:70px;text-align:center;">0.0/5</div>
+        <div class="text-stone-400 text-xs" style="min-width:72px;">New</div>
+        <input id="dbgHeatNew" type="number" min="0" max="5" step="0.1" placeholder="0.0"
+               class="h-8 px-2 rounded-xl border border-amber-400/15 bg-[#0e0c09] text-gray-200 text-sm"
+               style="width:90px;" inputmode="decimal" aria-label="New heat level (0 to 5)">
+        <button id="dbgHeatApply" class="h-8 w-9 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16] flex items-center justify-center" type="button" aria-label="Apply heat level">✓</button>
+        <button id="dbgTimerPlus5" class="h-8 px-2.5 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-xs font-semibold cursor-pointer hover:bg-[#261f16]" type="button" aria-label="Advance elapsed time by 5 minutes">+5 min</button>
       </div>
 
-      <div class=”flex flex-wrap gap-3 mt-2”>
-        <label class=”flex items-center gap-2 text-xs text-slate-400 cursor-pointer”>
-          <input type=”checkbox” id=”dbgMode”>
-          Debug mode
-        </label>
-        <label class=”flex items-center gap-2 text-xs text-slate-400 cursor-pointer”>
-          <input type=”checkbox” id=”dbgBBox” checked>
-          Draw map bounds
-        </label>
-        <label class=”flex items-center gap-2 text-xs text-slate-400 cursor-pointer”>
-          <input type=”checkbox” id=”dbgSimCurse”>
-          Simulate active curse
-        </label>
+      <div class="flex flex-wrap gap-3 mt-2">
+        <label class="flex items-center gap-2 text-xs text-stone-400 cursor-pointer"><input type="checkbox" id="dbgMode"> Debug mode</label>
+        <label class="flex items-center gap-2 text-xs text-stone-400 cursor-pointer"><input type="checkbox" id="dbgBBox" checked> Draw map bounds</label>
+        <label class="flex items-center gap-2 text-xs text-stone-400 cursor-pointer"><input type="checkbox" id="dbgSimCurse"> Simulate active curse</label>
       </div>
 
-      <div class=”text-[11px] uppercase tracking-widest text-slate-400 font-semibold mt-3 mb-1.5”>POIs</div>
-      <div class=”flex gap-2 flex-wrap”>
-        <button id=”btnImportPois” class=”px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 text-sm cursor-pointer hover:bg-white/10” type=”button”>Import POIs</button>
-        <button id=”btnExportPois” class=”px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 text-sm cursor-pointer hover:bg-white/10” type=”button”>Export POIs</button>
-        <button id=”btnForgetImportedPois” class=”h-8 px-2.5 rounded-xl border border-white/15 bg-slate-900/45 text-gray-200 text-xs font-semibold cursor-pointer hover:bg-white/10” type=”button” title=”Forget imported POIs and revert to POI.json on refresh”>Forget</button>
+      <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mt-3 mb-1.5">POIs</div>
+      <div class="flex gap-2 flex-wrap">
+        <button id="btnImportPois"       class="px-3 py-2 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16]" type="button">Import POIs</button>
+        <button id="btnExportPois"       class="px-3 py-2 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-sm cursor-pointer hover:bg-[#261f16]" type="button">Export POIs</button>
+        <button id="btnForgetImportedPois" class="h-8 px-2.5 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-xs font-semibold cursor-pointer hover:bg-[#261f16]" type="button" title="Forget imported POIs and revert to POI.json on refresh">Forget</button>
       </div>
-      <div class=”grid mt-2” style=”grid-template-columns:90px 1fr;gap:8px 10px;font-size:13px;”>
-        <div class=”text-slate-400”>POI source</div><div id=”poiSourceOut”>(loading…)</div>
-        <div class=”text-slate-400”>View BBOX</div><div id=”viewBboxOut” class=”font-mono text-slate-400 text-xs”>(click “Get”)</div>
+      <div class="grid mt-2" style="grid-template-columns:90px 1fr;gap:8px 10px;font-size:13px;">
+        <div class="text-stone-400">POI source</div><div id="poiSourceOut">(loading…)</div>
+        <div class="text-stone-400">View BBOX</div><div id="viewBboxOut" class="font-mono text-stone-400 text-xs">(click "Get")</div>
       </div>
-      <div class=”flex gap-2 mt-1.5”>
-        <button id=”btnGetViewBbox” class=”h-8 px-2.5 rounded-xl border border-white/15 bg-slate-900/45 text-gray-200 text-xs font-semibold cursor-pointer hover:bg-white/10” type=”button”>Get</button>
-        <button id=”btnCopyViewBbox” class=”h-8 px-2.5 rounded-xl border border-white/15 bg-slate-900/45 text-gray-200 text-xs font-semibold cursor-pointer hover:bg-white/10” type=”button”>Copy</button>
+      <div class="flex gap-2 mt-1.5">
+        <button id="btnGetViewBbox"  class="h-8 px-2.5 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-xs font-semibold cursor-pointer hover:bg-[#261f16]" type="button">Get</button>
+        <button id="btnCopyViewBbox" class="h-8 px-2.5 rounded-xl border border-amber-400/15 bg-[#1e1a14] text-gray-200 text-xs font-semibold cursor-pointer hover:bg-[#261f16]" type="button">Copy</button>
       </div>
-      <div class=”flex gap-2 mt-2”>
-        <label class=”flex items-center gap-2 text-xs text-slate-400 cursor-pointer”>
-          <input type=”checkbox” id=”dbgShowAllPois”>
-          Display all POIs
-        </label>
+      <div class="flex gap-2 mt-2">
+        <label class="flex items-center gap-2 text-xs text-stone-400 cursor-pointer"><input type="checkbox" id="dbgShowAllPois"> Display all POIs</label>
       </div>
-      <div class=”text-xs text-slate-400 leading-snug mt-1.5”>Import a JSON file generated by your Python script. Import clears the currently loaded POIs and starts a fresh target.</div>
-      <input id=”fileImportPois” type=”file” accept=”application/json” class=”hidden”>
+      <div class="text-xs text-stone-400 leading-snug mt-1.5">Import a JSON file generated by your Python script. Import clears the currently loaded POIs and starts a fresh target.</div>
+      <input id="fileImportPois" type="file" accept="application/json" class="hidden">
 
-      <div class=”text-[11px] uppercase tracking-widest text-slate-400 font-semibold mt-3 mb-1.5”>Logs</div>
-      <div class=”min-h-[180px] h-auto overflow-auto p-2.5 rounded-xl border border-white/10 bg-slate-950/45 text-xs leading-snug” id=”log”></div>
-
+      <div class="text-[11px] uppercase tracking-widest text-amber-400/60 font-semibold mt-3 mb-1.5">Logs</div>
+      <div class="min-h-[180px] h-auto overflow-auto p-2.5 rounded-xl border border-amber-400/[0.12] bg-[#0e0c09] text-xs leading-snug" id="log"></div>
     </div>
 
   </div>

@@ -115,7 +115,7 @@ body{
   width:40px;
   height:4px;
   border-radius:2px;
-  background:rgba(148,163,184,.30);
+  background:rgba(180,140,60,.28);
 }
 
 /* ─── Panel backdrop ────────────────────────────────────────────── */
@@ -273,9 +273,9 @@ body{
 
 /* choiceBtn selected state */
 .choiceBtn.is-selected{
-  border-color:rgba(96,165,250,.95);
-  background:rgba(59,130,246,.18);
-  box-shadow:0 0 0 1px rgba(96,165,250,.35) inset;
+  border-color:rgba(251,191,36,.85);
+  background:rgba(120,53,15,.30);
+  box-shadow:0 0 0 1px rgba(251,191,36,.28) inset;
 }
 
 /* button disabled */
