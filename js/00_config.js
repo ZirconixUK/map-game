@@ -16,7 +16,7 @@ const BBOX = {
 // Used by the Photo → Glimpse tool. Leave blank to disable.
 // Create a browser-restricted key and enable "Street View Static API".
 // Set via js/secrets.js (gitignored) — see js/secrets.example.js.
-const GOOGLE_STREETVIEW_API_KEY = window.GOOGLE_STREETVIEW_API_KEY || "";
+const GOOGLE_STREETVIEW_API_KEY = window.GOOGLE_STREETVIEW_API_KEY || "AIzaSyDXvuatJSnLxTIZXcdALlQB2x6T7w_ecbE";
 const STREETVIEW_SIZE = "640x640";
 const STREETVIEW_FOV = 90;
 // Smaller FOV = more zoomed/cropped. Snapshot is the core clue, so we keep it tighter.
