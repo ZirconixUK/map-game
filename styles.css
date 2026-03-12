@@ -115,7 +115,7 @@ body{
   width:40px;
   height:4px;
   border-radius:2px;
-  background:rgba(180,140,60,.28);
+  background:rgba(0,0,0,.22);
 }
 
 /* ─── Panel backdrop ────────────────────────────────────────────── */
@@ -220,7 +220,7 @@ body{
 
 /* Curses button states */
 .fab--curse{ font-size:22px; }
-.fab--curse.isInactive{ color:rgba(255,255,255,.35); }
+.fab--curse.isInactive{ color:rgba(0,0,0,.35); }
 .fab--curse.isActive{
   color:rgba(216,180,254,1);
   text-shadow:0 0 16px rgba(168,85,247,.85);
@@ -235,9 +235,9 @@ body{
 /* menuBtn state classes */
 .menuBtn.disabled{ pointer-events:none; }
 .menuBtn.used{ opacity:.45; cursor:not-allowed; }
-.menuBtn.used .iconBox{ background:rgba(148,163,184,.08); border-color:rgba(148,163,184,.12); }
+.menuBtn.used .iconBox{ background:rgba(0,0,0,.08); border-color:rgba(0,0,0,.12); }
 .menuBtn.locked{ opacity:.6; cursor:not-allowed; }
-.menuBtn.locked .iconBox{ background:rgba(96,165,250,.08); border-color:rgba(96,165,250,.20); }
+.menuBtn.locked .iconBox{ background:rgba(56,130,246,.12); border-color:rgba(56,130,246,.30); }
 .menuBtn{ position:relative; }
 .menuBtn.locked::after{
   content:'🔒';
@@ -247,12 +247,12 @@ body{
 }
 .menuBtn--iconOnly.locked::after{ top:5px; right:6px; }
 .menuBtn.cursed{
-  border-color:rgba(168,85,247,.35);
-  background:rgba(168,85,247,.08);
+  border-color:rgba(168,85,247,.55);
+  background:rgba(233,213,255,.35);
 }
 .menuBtn.cursed .iconBox{
-  background:rgba(88,28,135,.22);
-  border-color:rgba(168,85,247,.35);
+  background:rgba(233,213,255,.45);
+  border-color:rgba(168,85,247,.55);
   overflow:hidden;
 }
 .menuBtn.cursed .iconBox::after{
@@ -273,9 +273,9 @@ body{
 
 /* choiceBtn selected state */
 .choiceBtn.is-selected{
-  border-color:rgba(251,191,36,.85);
-  background:rgba(120,53,15,.30);
-  box-shadow:0 0 0 1px rgba(251,191,36,.28) inset;
+  border-color:rgba(217,119,6,.85);
+  background:rgba(255,255,255,.55);
+  box-shadow:0 0 0 1px rgba(217,119,6,.35) inset;
 }
 
 /* button disabled */
