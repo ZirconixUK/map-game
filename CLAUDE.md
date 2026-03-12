@@ -237,6 +237,57 @@ POIs are fetched live from the Overpass API at game start rather than read from 
 
 ---
 
+## UI design language (current, March 2026)
+
+Inspired by the **Jet Lag the Game** dark app aesthetic — dark navy panels with solid vibrant accent colours. No glassmorphism or frosted glass.
+
+**Colour tokens:**
+- Panel background: `#0f1729` (deep navy)
+- Surface/card: `#1e2d44` — hover `#253550`
+- Border: `#1e3a5f` (outer), `#2a3f60` (inner cards)
+- Ambient background: `#080c14`
+- Primary text: `text-gray-100` / `text-white`
+- Muted text: `text-slate-400`
+
+**Per-tool colours (solid, full-fill, bold):**
+| Tool | Colour |
+|------|--------|
+| 📡 Radar | `bg-blue-600` |
+| 🌡️ Thermometer | `bg-orange-500` |
+| 🧭 N/S/E/W | `bg-cyan-600` |
+| 🏛️ Landmark | `bg-emerald-600` |
+| 📷 Photo | `bg-violet-600` |
+
+Tool iconBoxes in submenus use a tinted `bg-{tool-colour}/20 border border-{tool-colour}/30` well.
+Section labels in each submenu are `text-{tool-colour}-400 uppercase tracking-widest`.
+
+**FABs (right stack):**
+- Recenter: `bg-[#111827] border-[#1e3a5f]` — `text-cyan-400`
+- Gameplay: `bg-blue-600`
+- Curses: `bg-[#2d1a4a] border-[#4a2d7a]` — purple glow when `isActive`
+- Heat widget: `bg-[#111827] border-[#1e3a5f]`
+- Debug (left): `bg-[#111827] border-[#1e3a5f] text-slate-400`
+
+**Action buttons:**
+- New Game: `bg-amber-500 text-white font-bold`
+- Lock In Guess: `bg-cyan-600 text-white font-bold`
+- Start (new game): `bg-emerald-600 text-white font-bold`
+
+**Choice buttons** (Short/Medium/Long, difficulty): `bg-[#1e2d44] border-[#2a3f60]`
+Selected state: `border-cyan-500 bg-cyan-600/22` (via `.choiceBtn.is-selected` in styles.css)
+
+**Timer:** `bg-[#111827] border-[#1e3a5f]` — timer text `text-cyan-400`
+
+**Toast:** `bg-[#111827] border-cyan-500/30`
+
+**Modals (photo, result):** `bg-[#0f1729] border-[#1e3a5f]`
+
+**Curse miasma:** `.menuBtn.cursed .iconBox` uses `bg-[rgba(88,28,135,.35)]` (dark purple) so the `miasmaRise` radial-gradient animation is visible. The skull FAB inactive state is `rgba(255,255,255,.40)` (light on dark).
+
+**Cost badges:** `text-amber-400 bg-amber-900/30 border border-amber-600/30 rounded-full`
+
+---
+
 ## Qualitative success test (from GDD)
 
 When testing, ask:
