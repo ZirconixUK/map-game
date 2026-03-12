@@ -540,7 +540,7 @@ function __panoMatchesExisting(panoId, lat, lon){
   return false;
 }
 
-async function showStreetViewExtraPhotoForTarget({ tier = 'near100', coinCost = 0 } = {}){
+async function showStreetViewExtraPhotoForTarget({ tier = 'near100' } = {}){
   const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
   const center = (rs && rs.targetPanoLatLng) ? rs.targetPanoLatLng : null;
   if (!center || typeof center.lat !== 'number' || typeof center.lon !== 'number') {

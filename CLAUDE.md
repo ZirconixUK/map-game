@@ -135,7 +135,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Remote mode | **Not started** | Future optional mode (Phase E) |
 
 **Known mismatches (build vs. intent):**
-- Legacy `coin_cost` fields still present in `tools.json` and config — no longer part of the design
+- `coin_cost` fields removed from `tools.json` and JS — coin economy fully removed
 - `difficulty` field is wired to setup UI but has no downstream effect on rules
 - Roadmap-era comments and historical design directions still visible in the codebase
 
@@ -190,7 +190,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | N/S/E/W overpowered | These tools can collapse the deduction game into clean area deletion; keep them gated or late |
 | Solved meta (same opener every run) | Design for situational clue value; avoid universal openers |
 | Dead air in mid-run | The weakest part of current runs; clue pacing and recognition moments need design attention |
-| Coin cost fields in config | Legacy; don't surface or re-wire these; intended design has no coin economy |
+| ~~Coin cost fields in config~~ | Removed — `tools.json` and JS fully cleaned up |
 | Street View API costs | Treat as production risk; rate-limit, cache aggressively, handle imagery-unavailable gracefully |
 | GPS jitter | `adjustedDistanceM = max(0, rawDistance - gpsAccuracyM)` — check this is always applied at lock-in |
 

@@ -1101,7 +1101,7 @@ if (debugMode) {
           }
           try {
             if (typeof window.showStreetViewExtraPhotoForTarget === 'function') {
-              const res = await window.showStreetViewExtraPhotoForTarget({ tier: mode, coinCost: 0 });
+              const res = await window.showStreetViewExtraPhotoForTarget({ tier: mode });
               if (!res || !res.ok) {
                 showToast('No further photos available for this target.', false);
               } else {
