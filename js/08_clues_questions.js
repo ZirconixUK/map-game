@@ -536,98 +536,65 @@ function askThermometer() {
   log(`🌡️ ${hotter ? "HOTTER" : "COLDER"} (baseline ${d0.toFixed(0)}m → now ${d1.toFixed(0)}m)`);
   return { hotter, d0, d1 };
 }
-// ---- Timed Thermometer ----
-let __thermoTimeout = null;
+// ---- Distance Thermometer ----
 
-function startTimedThermometer(seconds) {
+function startDistanceThermometer(distM) {
   if (!ensureReady()) return null;
   if (!player) {
     log("🌡️ Thermometer failed: no player location yet.");
     return { ok: false, reason: "no_player" };
   }
-  const secs = Math.max(1, parseFloat(seconds) || 0);
-  const durationMs = Math.round(secs * 1000);
+  const dm = Math.max(1, parseFloat(distM) || 0);
 
   const run = {
     startMs: Date.now(),
-    durationMs,
+    requiredDistM: dm,
     startPlayer: { lat: player.lat, lon: player.lon },
   };
   if (typeof setThermoRun === "function") setThermoRun(run);
 
-  // Log start info
   const t = new Date(run.startMs);
   const hh = String(t.getHours()).padStart(2,"0");
   const mm = String(t.getMinutes()).padStart(2,"0");
   const ss = String(t.getSeconds()).padStart(2,"0");
-  log(`🌡️ Thermometer started (${secs}s) at ${hh}:${mm}:${ss} — start @ ${run.startPlayer.lat.toFixed(6)}, ${run.startPlayer.lon.toFixed(6)}`);
+  log(`🌡️ Thermometer started (${dm}m) at ${hh}:${mm}:${ss} — start @ ${run.startPlayer.lat.toFixed(6)}, ${run.startPlayer.lon.toFixed(6)}`);
 
-  scheduleThermoCompletion();
-  return { ok: true, seconds: secs };
+  return { ok: true, distM: dm };
 }
 
-function scheduleThermoCompletion() {
-  try { if (__thermoTimeout) clearTimeout(__thermoTimeout); } catch (e) {}
-  __thermoTimeout = null;
-
-  if (!thermoRun || typeof thermoRun.startMs !== "number" || typeof thermoRun.durationMs !== "number") return;
-  const endMs = thermoRun.startMs + thermoRun.durationMs;
-  const remaining = endMs - Date.now();
-  const delay = Math.max(0, remaining);
-
-  __thermoTimeout = setTimeout(() => {
-    try { completeTimedThermometer(); } catch (e) { console.error(e); }
-  }, delay);
+// Called on every GPS position update. Completes the run if the required distance has been walked.
+function checkDistanceThermometer(currentLat, currentLon) {
+  if (!thermoRun || typeof thermoRun.requiredDistM !== "number") return;
+  if (!thermoRun.startPlayer) return;
+  const moved = haversineMeters(
+    thermoRun.startPlayer.lat, thermoRun.startPlayer.lon,
+    currentLat, currentLon
+  );
+  if (moved >= thermoRun.requiredDistM) {
+    completeDistanceThermometer({ lat: currentLat, lon: currentLon });
+  }
 }
 
-function completeTimedThermometer() {
+function completeDistanceThermometer(endP) {
   if (!thermoRun) return;
-  if (!ensureReady()) return;
+  if (!endP || typeof endP.lat !== "number" || typeof endP.lon !== "number") return;
+  if (!target || typeof target.lat !== "number") return;
 
   const startP = thermoRun.startPlayer;
-  const endP = player ? { lat: player.lat, lon: player.lon } : null;
-
-  const endMs = thermoRun.startMs + thermoRun.durationMs;
-  const t = new Date(endMs);
-  const hh = String(t.getHours()).padStart(2,"0");
-  const mm = String(t.getMinutes()).padStart(2,"0");
-  const ss = String(t.getSeconds()).padStart(2,"0");
-
-  if (!endP) {
-    log(`🌡️ Thermometer completed at ${hh}:${mm}:${ss} — but no current player location, so cannot compare.`);
-    if (typeof clearThermoRun === "function") clearThermoRun();
-    try { if (typeof updateHUD === "function") updateHUD(); } catch(e) {}
-    if (typeof showToast === "function") showToast("Thermometer finished, but I couldn't read your current location.", false);
-    return;
-  }
-
-  
-  // Validate that the player actually moved (>= 100m) or the thermo is invalid.
-  const moved = haversineMeters(startP.lat, startP.lon, endP.lat, endP.lon);
-  if (moved < 100) {
-    log(`🌡️ Thermometer cancelled: you only moved ${moved.toFixed(0)}m (need at least 100m).`);
-    if (typeof clearThermoRun === "function") clearThermoRun();
-    try { if (typeof updateHUD === "function") updateHUD(); } catch(e) {}
-    if (typeof showToast === "function") showToast("Thermometer cancelled — move at least 100m before it completes.", false);
-    return;
-  }
-
-const d0 = haversineMeters(startP.lat, startP.lon, target.lat, target.lon);
+  const d0 = haversineMeters(startP.lat, startP.lon, target.lat, target.lon);
   const d1 = haversineMeters(endP.lat, endP.lon, target.lat, target.lon);
   const hotter = d1 < d0;
 
-  // Leaflet geometry fog (thermometer)
   try { if (typeof addFogThermometer === "function") addFogThermometer(startP.lat, startP.lon, endP.lat, endP.lon, hotter); } catch(e) {}
 
-  log(`🌡️ Thermometer completed at ${hh}:${mm}:${ss}`);
-  log(`   Start @ ${startP.lat.toFixed(6)}, ${startP.lon.toFixed(6)} (dist ${d0.toFixed(0)}m)`);
-  log(`   End   @ ${endP.lat.toFixed(6)}, ${endP.lon.toFixed(6)} (dist ${d1.toFixed(0)}m)`);
-  log(`   Result: ${hotter ? "HOTTER (closer)" : "COLDER (further)"}`);
-
-  // Apply fog half-plane perpendicular bisector between start and end.
-const p0 = latLonToPixel(startP.lat, startP.lon);
+  const p0 = latLonToPixel(startP.lat, startP.lon);
   const p1 = latLonToPixel(endP.lat, endP.lon);
   addClue({ type: "thermo", a: p0, b: p1, ok: hotter });
+
+  log(`🌡️ Thermometer completed`);
+  log(`   Start @ ${startP.lat.toFixed(6)}, ${startP.lon.toFixed(6)} (dist to target ${d0.toFixed(0)}m)`);
+  log(`   End   @ ${endP.lat.toFixed(6)}, ${endP.lon.toFixed(6)} (dist to target ${d1.toFixed(0)}m)`);
+  log(`   Result: ${hotter ? "HOTTER (closer)" : "COLDER (further)"}`);
 
   if (typeof clearThermoRun === "function") clearThermoRun();
   try { if (typeof updateHUD === "function") updateHUD(); } catch(e) {}
@@ -636,6 +603,9 @@ const p0 = latLonToPixel(startP.lat, startP.lon);
     showToast(hotter ? "✅ Hotter — you're closer to the target." : "❌ Colder — you're further from the target.", hotter);
   }
 }
+
+// Keep scheduleThermoCompletion as a no-op so boot.js restore call doesn't error.
+function scheduleThermoCompletion() {}
 
 
 function askAxisDirection(axis) {

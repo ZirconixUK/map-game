@@ -7,7 +7,7 @@ const clues = [];   // constraints to intersect
 let thermoBaseline = null;
 
 // Timed thermometer run (persisted)
-let thermoRun = null; // { startMs, durationMs, startPlayer:{lat,lon} }
+let thermoRun = null; // { startMs, requiredDistM, startPlayer:{lat,lon} }
 
 // Per-round tool usage lockout (exact option ids only).
 // Example shape: { radar: { '100': true }, nsew: { 'NS': true } }

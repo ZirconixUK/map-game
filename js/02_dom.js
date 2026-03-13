@@ -811,33 +811,33 @@ if (debugMode) {
   if (thermoMenu) {
     thermoMenu.querySelectorAll("[data-thermo]").forEach(btn => {
       btn.addEventListener("click", () => {
-        const mins = parseFloat(btn.getAttribute("data-thermo") || "0");
-        if (blockIfToolOptionAlreadyUsed('thermometer', String(mins), `${mins}s thermometer`)) return;
+        const distM = parseFloat(btn.getAttribute("data-thermo") || "0");
+        if (blockIfToolOptionAlreadyUsed('thermometer', String(distM), `${distM}m thermometer`)) return;
         if (panelGameplay) panelGameplay.classList.remove("open");
         showMenu("main");
         if (typeof showToast === "function") {
           let started = false;
-        try {
-          if (typeof startTimedThermometer === "function") {
-            const r = startTimedThermometer(mins);
-            started = !!(r && r.ok);
-          }
-        } catch(e) { console.error(e); }
-        if (started) {
-          const curseRoll = applyQuestionCosts("thermometer", String(mins));
-          if (curseRoll && curseRoll.blocked) return;
-          showToast(`Thermometer running: ${mins}s.`, true);
-          noteToolOptionUsed('thermometer', String(mins));
-
           try {
-            if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
-              const c = curseRoll.applied.curse;
-              showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+            if (typeof startDistanceThermometer === "function") {
+              const r = startDistanceThermometer(distM);
+              started = !!(r && r.ok);
             }
-          } catch (e) {}
-        } else {
-          showToast("Set your location first (geolocation) before using the thermometer.", false);
-        }
+          } catch(e) { console.error(e); }
+          if (started) {
+            const curseRoll = applyQuestionCosts("thermometer", String(distM));
+            if (curseRoll && curseRoll.blocked) return;
+            showToast(`Thermometer active — walk ${distM}m.`, true);
+            noteToolOptionUsed('thermometer', String(distM));
+
+            try {
+              if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
+                const c = curseRoll.applied.curse;
+                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+              }
+            } catch (e) {}
+          } else {
+            showToast("Set your location first (geolocation) before using the thermometer.", false);
+          }
         }
       });
     });

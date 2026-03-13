@@ -58,22 +58,22 @@
       },
       "options": [
         {
-          "id": "10",
-          "value_s": 10,
+          "id": "100",
+          "value_m": 100,
           "cost": {
             "heat_cost": 0.2
           }
         },
         {
-          "id": "20",
-          "value_s": 20,
+          "id": "200",
+          "value_m": 200,
           "cost": {
             "heat_cost": 0.3
           }
         },
         {
-          "id": "30",
-          "value_s": 30,
+          "id": "300",
+          "value_m": 300,
           "cost": {
             "heat_cost": 0.4
           }

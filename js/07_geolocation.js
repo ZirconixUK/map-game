@@ -20,6 +20,9 @@ function setPlayerLatLng(lat, lon, opts) {
 
   try { if (typeof syncLeafletPlayerMarker === "function") syncLeafletPlayerMarker(); } catch(e) {}
 
+  // Check if a distance thermometer run has completed at this new position.
+  try { if (typeof checkDistanceThermometer === "function") checkDistanceThermometer(lat, lon); } catch(e) {}
+
   drawThrottled();
 }
 

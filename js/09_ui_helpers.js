@@ -239,14 +239,17 @@ function updateHUD() {
   const tpFill = document.getElementById("thermoProgressFill");
   const tpText = document.getElementById("thermoProgressText");
   if (tp && tpFill && tpText) {
-    if (thermoRun && typeof thermoRun.startMs === "number" && typeof thermoRun.durationMs === "number") {
-      const endMs = thermoRun.startMs + thermoRun.durationMs;
-      const now = Date.now();
-      const pct = Math.max(0, Math.min(1, (now - thermoRun.startMs) / thermoRun.durationMs));
+    if (thermoRun && typeof thermoRun.requiredDistM === "number" && thermoRun.startPlayer) {
+      const moved = (player && typeof player.lat === "number" && typeof haversineMeters === "function")
+        ? haversineMeters(thermoRun.startPlayer.lat, thermoRun.startPlayer.lon, player.lat, player.lon)
+        : 0;
+      const pct = Math.max(0, Math.min(1, moved / thermoRun.requiredDistM));
+      const remaining = Math.max(0, Math.round(thermoRun.requiredDistM - moved));
       tp.classList.remove("hidden");
       tpFill.style.width = `${Math.round(pct * 100)}%`;
-      const remaining = Math.max(0, endMs - now);
-      tpText.textContent = `Thermometer: ${formatMMSS(remaining)} remaining`;
+      tpText.textContent = remaining > 0
+        ? `Thermometer: ${remaining}m to go`
+        : `Thermometer: almost there…`;
     } else {
       tp.classList.add("hidden");
       tpFill.style.width = "0%";
