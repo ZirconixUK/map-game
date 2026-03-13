@@ -919,7 +919,11 @@ if (debugMode) {
 
             const stations = (Array.isArray(POIS) ? POIS : []).filter(p => {
               const t = p && p.osm_tags;
-              return t && String(t.railway || "").toLowerCase() === "station";
+              if (!t) return false;
+              const railway = String(t.railway || "").toLowerCase();
+              const station = String(t.station || "").toLowerCase();
+              return railway === "station" || railway === "halt" || railway === "tram_stop" ||
+                station === "subway" || station === "light_rail" || station === "rail" || station === "monorail";
             });
 
             if (!stations.length) {
@@ -999,10 +1003,15 @@ if (debugMode) {
 
           const filtered = pois.filter(p => {
             if (!p) return false;
-            if (kind === "cathedral") return tag(p, "building") === "cathedral";
+            if (kind === "cathedral") {
+              return tag(p, "building") === "cathedral" ||
+                tag(p, "building") === "church" ||
+                tag(p, "building") === "chapel" ||
+                (tag(p, "amenity") === "place_of_worship" && (tag(p, "building") === "cathedral" || tag(p, "religion") === "christian"));
+            }
             if (kind === "bus_station") return tag(p, "amenity") === "bus_station";
             if (kind === "library") return tag(p, "amenity") === "library";
-            if (kind === "museum") return tag(p, "tourism") === "museum";
+            if (kind === "museum") return tag(p, "tourism") === "museum" || tag(p, "amenity") === "museum";
             return false;
           });
 

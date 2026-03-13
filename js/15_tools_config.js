@@ -66,10 +66,34 @@ function updateCostBadgesFromConfig() {
           btn.classList.toggle('cursed', !!isCurseBlocked);
         }
       } catch(e) {}
+      // Apply active curse surcharges to the displayed cost.
+      let curseSurcharge = 0;
+      let isCursed = false;
+      try {
+        if (typeof window.isCurseActive === 'function') {
+          if (window.isCurseActive('heat1')) { curseSurcharge += 0.25; isCursed = true; }
+          if (window.isCurseActive('heat2')) { curseSurcharge += 0.5; isCursed = true; }
+        }
+      } catch(e) {}
+
+      const displayedHeat = cost.heat_cost + curseSurcharge;
+
       const row = btn.querySelector(".costRow");
       if (!row) return;
       const items = row.querySelectorAll(".costItem");
-      if (items.length >= 1) items[0].textContent = `🔥 ${Number(cost.heat_cost).toFixed(1)}`;
+      if (items.length >= 1) {
+        items[0].textContent = `🔥 ${Number(displayedHeat).toFixed(1)}`;
+        // Purple badge when a cost-surcharge curse is active
+        if (isCursed && curseSurcharge > 0 && cost.heat_cost > 0) {
+          items[0].style.color = '#c084fc';
+          items[0].style.backgroundColor = 'rgba(88,28,135,0.30)';
+          items[0].style.borderColor = 'rgba(168,85,247,0.40)';
+        } else {
+          items[0].style.color = '';
+          items[0].style.backgroundColor = '';
+          items[0].style.borderColor = '';
+        }
+      }
       if (items.length >= 2) items[1].style.display = 'none';
     });
   });

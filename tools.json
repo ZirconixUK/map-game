@@ -136,21 +136,21 @@
           "id": "near100",
           "label": "Extra photo (\u2264100m)",
           "cost": {
-            "heat_cost": 0.0
+            "heat_cost": 1.5
           }
         },
         {
           "id": "near200",
           "label": "Extra photo (\u2264200m)",
           "cost": {
-            "heat_cost": 0.0
+            "heat_cost": 1.2
           }
         },
         {
           "id": "uncorrupt",
           "label": "Uncorrupt all photos",
           "cost": {
-            "heat_cost": 0.0
+            "heat_cost": 0.8
           }
         }
       ]

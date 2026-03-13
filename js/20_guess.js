@@ -200,8 +200,11 @@
   }
 
   function startNewRound(){
-    // Always pick a new target and immediately show the snapshot (Phase 1 behaviour)
-    try { if (typeof pickNewTarget === 'function') pickNewTarget(true); } catch(e) {}
+    // Open the New Game setup panel so the player can choose length and difficulty.
+    try {
+      const p = document.getElementById('panelNewGame');
+      if (p) p.classList.add('open');
+    } catch(e) {}
   }
 
   function canUseTools(){
