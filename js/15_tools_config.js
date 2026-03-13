@@ -1,7 +1,20 @@
 // ---- Tools config (JSON-driven costs & options metadata) ----
 window.TOOLS_CONFIG = null;
 
+// Runtime radar cost map populated by updateRadarMenuForMode().
+// Keyed by String(meters) → heat cost for the current game mode.
+window.__radarCostMap = {};
+
 function getToolCosts(toolId, optionId) {
+  // Radar costs are mode-dependent; use the live map when available.
+  if (toolId === 'radar' && optionId != null) {
+    const key = String(optionId);
+    const map = window.__radarCostMap;
+    if (map && typeof map[key] === 'number') {
+      return { heat_cost: map[key] };
+    }
+  }
+
   const cfg = window.TOOLS_CONFIG;
   const fallback = {
     heat_cost: (typeof QUESTION_HEAT_COST === "number" ? QUESTION_HEAT_COST : 0.5),
@@ -22,6 +35,53 @@ function getToolCosts(toolId, optionId) {
   }
   return base;
 }
+
+// Rebuilds the 6 radar buttons to match the current game mode's distance options,
+// and refreshes the runtime cost map so getToolCosts() stays accurate.
+function updateRadarMenuForMode() {
+  try {
+    const mode = (typeof window.getSelectedGameLength === 'function')
+      ? window.getSelectedGameLength()
+      : 'short';
+
+    const opts = (typeof RADAR_OPTIONS_BY_MODE !== 'undefined' && RADAR_OPTIONS_BY_MODE[mode])
+      ? RADAR_OPTIONS_BY_MODE[mode]
+      : RADAR_OPTIONS_BY_MODE['short'];
+
+    // Rebuild cost map for this mode.
+    const costMap = {};
+    opts.forEach(o => { costMap[String(o.m)] = o.heat; });
+    window.__radarCostMap = costMap;
+
+    // Update each button in the radar submenu.
+    const btns = document.querySelectorAll('#radarMenu [data-radar]');
+    btns.forEach((btn, i) => {
+      const opt = opts[i];
+      if (!opt) return;
+      const label = opt.m >= 1000 ? `${opt.m / 1000}km` : `${opt.m}m`;
+      btn.setAttribute('data-radar', String(opt.m));
+
+      // Update the label text node (first text child of the inner span).
+      const labelSpan = btn.querySelector('.flex-1');
+      if (labelSpan) {
+        // Replace the text node before the costRow div.
+        const costRow = labelSpan.querySelector('.costRow');
+        // Clear existing text nodes, preserve the costRow child.
+        Array.from(labelSpan.childNodes).forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE) node.remove();
+        });
+        labelSpan.insertBefore(document.createTextNode(label), costRow || null);
+      }
+    });
+
+    // Refresh cost badges now that data-radar values have changed.
+    try { if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig(); } catch(e) {}
+  } catch(e) {
+    console.error('updateRadarMenuForMode error:', e);
+  }
+}
+
+window.updateRadarMenuForMode = updateRadarMenuForMode;
 
 function updateCostBadgesFromConfig() {
   const map = [

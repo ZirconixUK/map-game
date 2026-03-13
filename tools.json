@@ -7,48 +7,17 @@
         "heat_cost": 0.6
       },
       "options": [
-        {
-          "id": "50",
-          "value_m": 50,
-          "cost": {
-            "heat_cost": 0.2
-          }
-        },
-        {
-          "id": "100",
-          "value_m": 100,
-          "cost": {
-            "heat_cost": 0.3
-          }
-        },
-        {
-          "id": "250",
-          "value_m": 250,
-          "cost": {
-            "heat_cost": 0.4
-          }
-        },
-        {
-          "id": "500",
-          "value_m": 500,
-          "cost": {
-            "heat_cost": 0.6
-          }
-        },
-        {
-          "id": "1000",
-          "value_m": 1000,
-          "cost": {
-            "heat_cost": 0.8
-          }
-        },
-        {
-          "id": "2000",
-          "value_m": 2000,
-          "cost": {
-            "heat_cost": 1.0
-          }
-        }
+        { "id": "50",   "value_m": 50,   "cost": { "heat_cost": 0.2 } },
+        { "id": "100",  "value_m": 100,  "cost": { "heat_cost": 0.3 } },
+        { "id": "150",  "value_m": 150,  "cost": { "heat_cost": 0.4 } },
+        { "id": "250",  "value_m": 250,  "cost": { "heat_cost": 0.4 } },
+        { "id": "350",  "value_m": 350,  "cost": { "heat_cost": 0.6 } },
+        { "id": "400",  "value_m": 400,  "cost": { "heat_cost": 0.6 } },
+        { "id": "500",  "value_m": 500,  "cost": { "heat_cost": 0.6 } },
+        { "id": "650",  "value_m": 650,  "cost": { "heat_cost": 0.8 } },
+        { "id": "800",  "value_m": 800,  "cost": { "heat_cost": 0.8 } },
+        { "id": "900",  "value_m": 900,  "cost": { "heat_cost": 0.8 } },
+        { "id": "1200", "value_m": 1200, "cost": { "heat_cost": 1.0 } }
       ]
     },
     "thermometer": {

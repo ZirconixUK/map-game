@@ -104,6 +104,15 @@ const DEFAULT_START_LATLNG = { lat: 53.40744, lon: -2.97785 };
 // Default round timer (mode-specific later).
 const ROUND_TIME_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
 
+// ---- Radar options per game mode ----
+// Each entry is { m: distanceInMeters, heat: heatCost }.
+// Order = button order (smallest → largest). Heat scales with radius.
+const RADAR_OPTIONS_BY_MODE = {
+  short:  [ {m:50,heat:0.2}, {m:100,heat:0.3}, {m:150,heat:0.4}, {m:250,heat:0.6}, {m:350,heat:0.8}, {m:400,heat:1.0} ],
+  medium: [ {m:50,heat:0.2}, {m:100,heat:0.3}, {m:250,heat:0.4}, {m:400,heat:0.6}, {m:650,heat:0.8}, {m:800,heat:1.0} ],
+  long:   [ {m:50,heat:0.2}, {m:100,heat:0.3}, {m:250,heat:0.4}, {m:500,heat:0.6}, {m:900,heat:0.8}, {m:1200,heat:1.0} ],
+};
+
 // ---- Question costs (placeholder; can be individualized later) ----
 const QUESTION_TIME_COST_MS = 5 * 60 * 1000; // 5 minutes
 const QUESTION_HEAT_COST = 0.5;

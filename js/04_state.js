@@ -68,7 +68,7 @@ window.getModeTargetRadiusM = () => {
   try {
     const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
     const length = setup && typeof setup.length === 'string' ? setup.length.toLowerCase() : 'short';
-    if (length === 'medium') return 750;
+    if (length === 'medium') return 1000;
     if (length === 'long') return 1500;
     return 500;
   } catch (e) {
