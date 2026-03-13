@@ -352,7 +352,7 @@ async function fetchPoisAroundPlayer(lat, lon, radiusM) {
     `  nwr["name"]["shop"~"^(supermarket|department_store|mall)$"](around:${r},${lat},${lon});`,
     `  nwr["name"]["building"~"^(hotel|school|college|university|hospital)$"](around:${r},${lat},${lon});`,
     `);`,
-    `out center 1000;`,
+    `out center 2000;`,
   ].join('\n');
 
   const data = await __overpassFetch(q);
@@ -375,7 +375,7 @@ window.__refreshLivePoisForCurrentLocation = async function() {
   if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live) return;
 
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
-  const queryRadius = modeCapM;
+  const queryRadius = Math.max(modeCapM, 2500);
 
   const __toast = (typeof window.showToast === 'function') ? window.showToast : null;
   try {
@@ -432,6 +432,15 @@ function __landmarkCategoryPoisFilter(kind, poisArray) {
 window.__landmarkCategoryPoisFilter = __landmarkCategoryPoisFilter;
 
 window.__fetchLandmarkPoisForKind = async function(kind, lat, lon, radiusM) {
+  // Fast path: if the game-start fetch already covered this radius, filter
+  // window.POIS locally — no network call needed.
+  if (__overpassCache && __overpassCache.radiusM >= radiusM &&
+      Array.isArray(window.POIS) && window.POIS.length) {
+    log(`🏛️ Landmark "${kind}": using cached POIs (no Overpass query)`);
+    const pois = __landmarkCategoryPoisFilter(kind, window.POIS);
+    return { pois, error: null };
+  }
+
   const r = Math.max(100, Math.round(radiusM));
   const kindLines = {
     train_station: [
