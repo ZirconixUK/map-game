@@ -414,7 +414,10 @@ function addFogNearestStation(key, ok, opts) {
 
   const stations = (Array.isArray(window.POIS) ? window.POIS : []).filter(p => {
     const t = p && p.osm_tags;
-    return t && String(t.railway || '').toLowerCase() === 'station';
+    if (!t) return false;
+    const rw = String(t.railway || '').toLowerCase(), st = String(t.station || '').toLowerCase();
+    return rw === 'station' || rw === 'halt' || rw === 'tram_stop' ||
+           st === 'subway' || st === 'light_rail' || st === 'rail' || st === 'monorail';
   });
   if (!stations.length) return;
 
@@ -477,11 +480,15 @@ function addFogNearestLandmark(kind, key, ok, opts) {
   const getTag = (p, k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
   const filtered = pois.filter(p => {
     if (!p) return false;
-    if (knd === 'train_station') return getTag(p, 'railway') === 'station';
-    if (knd === 'cathedral') return getTag(p, 'building') === 'cathedral';
+    if (knd === 'train_station') { const rw=getTag(p,'railway'), st=getTag(p,'station');
+      return rw==='station'||rw==='halt'||rw==='tram_stop'||
+             st==='subway'||st==='light_rail'||st==='rail'||st==='monorail'; }
+    if (knd === 'cathedral') return getTag(p,'building')==='cathedral' ||
+      getTag(p,'building')==='church' || getTag(p,'building')==='chapel' ||
+      getTag(p,'amenity')==='place_of_worship';
     if (knd === 'bus_station') return getTag(p, 'amenity') === 'bus_station';
     if (knd === 'library') return getTag(p, 'amenity') === 'library';
-    if (knd === 'museum') return getTag(p, 'tourism') === 'museum';
+    if (knd === 'museum') return getTag(p,'tourism')==='museum' || getTag(p,'amenity')==='museum';
     return false;
   });
 

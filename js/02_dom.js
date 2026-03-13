@@ -1,4 +1,8 @@
 // ---- DOM ----
+let __landmarkLiveCache = {};       // { [kind]: { pois, ts } } — cleared each new game
+let __landmarkCategoryHTML = null;  // saved category list HTML for restore
+let __landmarkActiveFetchKind = null; // stale-fetch guard
+
 const canvas = document.getElementById("view");
 const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -320,6 +324,8 @@ function bindUI() {
         btnStart.textContent = 'Starting game…';
       }
       try { if (typeof log === 'function') log(`🎮 Game setup: ${__formatGameSetupLabel()}`); } catch (e) {}
+      __landmarkLiveCache = {};
+      __landmarkCategoryHTML = null;
       // Rebuild radar menu for the newly-selected mode before the round starts.
       try { if (typeof window.updateRadarMenuForMode === 'function') window.updateRadarMenuForMode(); } catch(e) {}
       await positionPlayerForNewGame();
@@ -895,190 +901,155 @@ if (debugMode) {
   }
 
 
+  // Landmark live-query helpers
+
+  function __landmarkSaveCategoryHTML() {
+    if (__landmarkCategoryHTML !== null) return;
+    if (landmarkMenu) __landmarkCategoryHTML = landmarkMenu.innerHTML;
+  }
+
+  function __landmarkRestoreCategoryList() {
+    __landmarkActiveFetchKind = null;
+    if (landmarkMenu && __landmarkCategoryHTML) {
+      landmarkMenu.innerHTML = __landmarkCategoryHTML;
+      try { if (typeof refreshLandmarkNearestLabels === 'function') refreshLandmarkNearestLabels(); } catch(e) {}
+    }
+  }
+
+  function __landmarkShowLoading(kind) {
+    const label = kind.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    if (!landmarkMenu) return;
+    landmarkMenu.innerHTML = `
+      <div class="flex justify-between mb-3">
+        <button id="lmPreviewBack" class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
+        <button id="lmPreviewClose" class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Close ✕</button>
+      </div>
+      <div class="text-[11px] uppercase tracking-widest text-emerald-400 font-semibold mb-3">${label}</div>
+      <div id="lmPreviewBody" class="flex flex-col gap-3 py-2">
+        <div class="text-slate-400 text-sm animate-pulse">Searching nearby…</div>
+      </div>`;
+    document.getElementById('lmPreviewBack')
+      ?.addEventListener('click', __landmarkRestoreCategoryList);
+    document.getElementById('lmPreviewClose')
+      ?.addEventListener('click', () => { __landmarkRestoreCategoryList(); if (panelGameplay) panelGameplay.classList.remove('open'); showMenu('main'); });
+  }
+
+  function __landmarkShowPreviewResult(kind, nearestPoi, nearestMeters, error) {
+    const body = document.getElementById('lmPreviewBody');
+    if (!body) return;
+    const cost = (typeof getToolCosts === 'function') ? getToolCosts('landmark', kind) : { heat_cost: 0.5 };
+    const heatDisplay = Number(cost && cost.heat_cost != null ? cost.heat_cost : 0.5).toFixed(1);
+    if (error || !nearestPoi) {
+      body.innerHTML = `
+        <div class="text-slate-400 text-sm">${error || 'Nothing found nearby.'}</div>
+        <button id="lmCancelBtn" class="mt-2 px-4 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>`;
+    } else {
+      const dist = nearestMeters < 1000 ? `${Math.round(nearestMeters)}m` : `${(nearestMeters/1000).toFixed(1)}km`;
+      body.innerHTML = `
+        <div class="text-gray-100 text-sm">Your nearest: <b>${nearestPoi.name}</b><span class="text-slate-400"> (${dist})</span></div>
+        <div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat to confirm.</div>
+        <div class="flex gap-2 mt-1">
+          <button id="lmConfirmBtn" class="flex-1 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm cursor-pointer hover:bg-emerald-500 active:scale-[.98]">Confirm</button>
+          <button id="lmCancelBtn" class="px-4 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>
+        </div>`;
+    }
+    document.getElementById('lmCancelBtn')?.addEventListener('click', __landmarkRestoreCategoryList);
+  }
+
+  function __landmarkConfirm(kind, categoryPois) {
+    const pretty = kind.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    if (blockIfToolOptionAlreadyUsed('landmark', kind, pretty)) return;
+
+    const curseRoll = applyQuestionCosts('landmark', kind);
+    if (curseRoll && curseRoll.blocked) return;
+
+    __landmarkRestoreCategoryList();
+    if (panelGameplay) panelGameplay.classList.remove('open');
+    showMenu('main');
+
+    let npPoi = null, npDist = Infinity, ntPoi = null, ntDist = Infinity;
+    for (const p of categoryPois) {
+      const dp = haversineMeters(player.lat, player.lon, p.lat, p.lon);
+      const dt = haversineMeters(target.lat, target.lon, p.lat, p.lon);
+      if (dp < npDist) { npDist = dp; npPoi = p; }
+      if (dt < ntDist) { ntDist = dt; ntPoi = p; }
+    }
+
+    if (!npPoi) { showToast(`No ${pretty} found in range.`, false); return; }
+
+    const pKey = String(npPoi.id || npPoi.name);
+    const tKey = ntPoi ? String(ntPoi.id || ntPoi.name) : '';
+    const same = !!ntPoi && pKey === tKey;
+
+    try {
+      if (kind === 'train_station' && typeof addFogNearestStation === 'function')
+        addFogNearestStation(pKey, same);
+      else if (typeof addFogNearestLandmark === 'function')
+        addFogNearestLandmark(kind, pKey, same);
+    } catch(e) { console.error(e); }
+
+    showToast(
+      same ? `YES — you and the target share the same nearest ${pretty}.`
+           : `NO — your nearest ${pretty} is not the target's nearest.`,
+      same
+    );
+
+    noteToolOptionUsed('landmark', kind);
+
+    try {
+      if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
+        const c = curseRoll.applied.curse;
+        showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+      }
+    } catch(e) {}
+  }
+
   // Landmark menu
   if (landmarkMenu) {
-    landmarkMenu.querySelectorAll("[data-landmark]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const kind = (btn.getAttribute("data-landmark") || "").toLowerCase();
-        if (blockIfToolOptionAlreadyUsed('landmark', String(kind), kind.replace(/_/g, ' '))) return;
-        // Apply costs
-        const curseRoll = applyQuestionCosts("landmark", String(kind));
-        if (curseRoll && curseRoll.blocked) return;
-        // Close overlay immediately
-        if (panelGameplay) panelGameplay.classList.remove("open");
-        showMenu("main");
-
-        // Train station landmark (nearest station match test)
-        if (kind === "train_station") {
-          try {
-            if (!player || typeof player.lat !== "number" || typeof player.lon !== "number") {
-              log("🚉 Train Station check: player location not set.");
-              showToast("Set your location first (geolocation) before using Train Station.", false);
-              return;
-            }
-            if (!target || typeof target.lat !== "number" || typeof target.lon !== "number") {
-              log("🚉 Train Station check: target not set.");
-              showToast("No target set yet.", false);
-              return;
-            }
-
-            const stations = (Array.isArray(POIS) ? POIS : []).filter(p => {
-              const t = p && p.osm_tags;
-              if (!t) return false;
-              const railway = String(t.railway || "").toLowerCase();
-              const station = String(t.station || "").toLowerCase();
-              return railway === "station" || railway === "halt" || railway === "tram_stop" ||
-                station === "subway" || station === "light_rail" || station === "rail" || station === "monorail";
-            });
-
-            if (!stations.length) {
-              log("🚉 Train Station check: no railway=station POIs found.");
-              showToast("No train stations found in POI list.", false);
-              return;
-            }
-
-            function nearestStationTo(lat, lon) {
-              let best = null;
-              let bestD = Infinity;
-              for (const s of stations) {
-                const d = haversineMeters(lat, lon, s.lat, s.lon);
-                if (d < bestD) { bestD = d; best = s; }
-              }
-              return { poi: best, meters: bestD };
-            }
-
-            const np = nearestStationTo(player.lat, player.lon);
-            const nt = nearestStationTo(target.lat, target.lon);
-
-            const pName = (np.poi && np.poi.name) ? np.poi.name : "Unknown station";
-            const tName = (nt.poi && nt.poi.name) ? nt.poi.name : "Unknown station";
-
-            log(`🚉 Player nearest train station: ${pName} (${Math.round(np.meters)}m)`);
-            log(`🎯 Target nearest train station: ${tName} (${Math.round(nt.meters)}m)`);
-
-            const same = (np.poi && nt.poi) && (String(np.poi.id || np.poi.name) === String(nt.poi.id || nt.poi.name));
-
-            // Apply fog constraint (Voronoi-style):
-            // - YES => eliminate areas closer to OTHER stations
-            // - NO  => eliminate areas closer to THIS (player) station
-            try {
-              const k = String(np.poi.id || np.poi.name);
-              if (typeof addFogNearestStation === "function") addFogNearestStation(k, same);
-            } catch(e) { console.error(e); }
-
-            if (same) {
-              log("✅ Train Station result: YES (match)");
-              showToast("YES — you and the target share the same nearest train station.", true);
-              noteToolOptionUsed('landmark', String(kind));
-            } else {
-              log("❌ Train Station result: NO (no match)");
-              showToast("NO — your nearest train station is not the target's nearest.", false);
-              noteToolOptionUsed('landmark', String(kind));
-            }
-
-            try {
-              if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
-                const c = curseRoll.applied.curse;
-                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-              }
-            } catch (e) {}
-          } catch (e) {
-            console.error(e);
-            log("🚉 Train Station check: error (see console).");
-            showToast("Train Station check failed (see console).", false);
-          }
-          return;
+    landmarkMenu.querySelectorAll('[data-landmark]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const kind = (btn.getAttribute('data-landmark') || '').toLowerCase();
+        if (!player || typeof player.lat !== 'number') {
+          showToast('Set your location before using Landmark.', false); return;
+        }
+        if (!target || typeof target.lat !== 'number') {
+          showToast('No target set yet.', false); return;
         }
 
-        // Other landmark categories (Cathedral, Bus Station, Library, Museum)
-        try {
-          if (!player || typeof player.lat !== "number" || typeof player.lon !== "number") {
-            log(`📍 ${kind}: player location not set.`);
-            showToast("Set your location first (geolocation) before using this Landmark.", false);
-            return;
+        __landmarkSaveCategoryHTML();
+        __landmarkActiveFetchKind = kind;
+        __landmarkShowLoading(kind);
+
+        let categoryPois;
+        const cached = __landmarkLiveCache[kind];
+        if (cached) {
+          categoryPois = cached.pois;
+        } else {
+          const modeCapM = (typeof window.getModeTargetRadiusM === 'function')
+            ? window.getModeTargetRadiusM() : 500;
+          const result = await window.__fetchLandmarkPoisForKind(
+            kind, player.lat, player.lon, Math.max(modeCapM, 2500)
+          );
+          if (__landmarkActiveFetchKind !== kind) return; // user pressed Back mid-fetch
+          if (result.error && !result.pois.length) {
+            __landmarkShowPreviewResult(kind, null, null, result.error); return;
           }
-          if (!target || typeof target.lat !== "number" || typeof target.lon !== "number") {
-            log(`🎯 ${kind}: target not set.`);
-            showToast("No target set yet.", false);
-            return;
-          }
-
-          const pois = (Array.isArray(POIS) ? POIS : []);
-          const tag = (p, k) => (p && p.osm_tags) ? String(p.osm_tags[k] || "").toLowerCase() : "";
-
-          const filtered = pois.filter(p => {
-            if (!p) return false;
-            if (kind === "cathedral") {
-              return tag(p, "building") === "cathedral" ||
-                tag(p, "building") === "church" ||
-                tag(p, "building") === "chapel" ||
-                (tag(p, "amenity") === "place_of_worship" && (tag(p, "building") === "cathedral" || tag(p, "religion") === "christian"));
-            }
-            if (kind === "bus_station") return tag(p, "amenity") === "bus_station";
-            if (kind === "library") return tag(p, "amenity") === "library";
-            if (kind === "museum") return tag(p, "tourism") === "museum" || tag(p, "amenity") === "museum";
-            return false;
-          });
-
-          if (!filtered.length) {
-            log(`🧭 ${kind}: no matching POIs found in list.`);
-            showToast(`No ${kind.replace("_"," ")} POIs found in POI list.`, false);
-            return;
-          }
-
-          function nearestTo(lat, lon) {
-            let best = null;
-            let bestD = Infinity;
-            for (const p of filtered) {
-              const d = haversineMeters(lat, lon, p.lat, p.lon);
-              if (d < bestD) { bestD = d; best = p; }
-            }
-            return { poi: best, meters: bestD };
-          }
-
-          const np = nearestTo(player.lat, player.lon);
-          const nt = nearestTo(target.lat, target.lon);
-
-          const pName = (np.poi && np.poi.name) ? np.poi.name : `Unknown ${kind}`;
-          const tName = (nt.poi && nt.poi.name) ? nt.poi.name : `Unknown ${kind}`;
-
-          const pretty = (s) => String(s).replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-          const label = pretty(kind);
-
-          log(`🧭 Player nearest ${label}: ${pName} (${Math.round(np.meters)}m)`);
-          log(`🎯 Target nearest ${label}: ${tName} (${Math.round(nt.meters)}m)`);
-
-          const same = (np.poi && nt.poi) && (String(np.poi.id || np.poi.name) === String(nt.poi.id || nt.poi.name));
-
-          // Apply fog constraint (Voronoi-style):
-          // - YES => eliminate areas closer to OTHER landmarks
-          // - NO  => eliminate areas closer to THIS (player) landmark
-          try {
-            const k = String(np.poi.id || np.poi.name);
-            if (typeof addFogNearestLandmark === "function") addFogNearestLandmark(kind, k, same);
-          } catch(e) { console.error(e); }
-
-          if (same) {
-            log(`✅ ${label} result: YES (match)`);
-            showToast(`YES — you and the target share the same nearest ${label.toLowerCase()}.`, true);
-            noteToolOptionUsed('landmark', String(kind));
-          } else {
-            log(`❌ ${label} result: NO (no match)`);
-            showToast(`NO — your nearest ${label.toLowerCase()} is not the target's nearest.`, false);
-            noteToolOptionUsed('landmark', String(kind));
-          }
-
-          try {
-            if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
-              const c = curseRoll.applied.curse;
-              showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-            }
-          } catch (e) {}
-        } catch (e) {
-          console.error(e);
-          log(`🧭 ${kind}: error (see console).`);
-          showToast("Landmark check failed (see console).", false);
+          __landmarkLiveCache[kind] = { pois: result.pois, ts: Date.now() };
+          categoryPois = result.pois;
         }
+
+        let nearestPoi = null, nearestDist = Infinity;
+        for (const p of categoryPois) {
+          const d = haversineMeters(player.lat, player.lon, p.lat, p.lon);
+          if (d < nearestDist) { nearestDist = d; nearestPoi = p; }
+        }
+
+        __landmarkShowPreviewResult(kind, nearestPoi, nearestDist, null);
+
+        document.getElementById('lmConfirmBtn')?.addEventListener('click', () => {
+          __landmarkActiveFetchKind = null;
+          __landmarkConfirm(kind, categoryPois);
+        });
       });
     });
   }

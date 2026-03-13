@@ -409,3 +409,66 @@ window.__refreshLivePoisForCurrentLocation = async function() {
     if (__toast) __toast(`⚠️ POI fetch failed: ${msg}`, false);
   }
 };
+
+// ---- Landmark live-query helpers ----
+
+function __landmarkCategoryPoisFilter(kind, poisArray) {
+  const tag = (p, k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
+  return (poisArray || []).filter(p => {
+    if (!p) return false;
+    const rw = tag(p, 'railway'), st = tag(p, 'station');
+    if (kind === 'train_station')
+      return rw === 'station' || rw === 'halt' || rw === 'tram_stop' ||
+             st === 'subway' || st === 'light_rail' || st === 'rail' || st === 'monorail';
+    if (kind === 'cathedral')
+      return tag(p, 'building') === 'cathedral' || tag(p, 'building') === 'church' ||
+             tag(p, 'building') === 'chapel' || tag(p, 'amenity') === 'place_of_worship';
+    if (kind === 'bus_station') return tag(p, 'amenity') === 'bus_station';
+    if (kind === 'library')     return tag(p, 'amenity') === 'library';
+    if (kind === 'museum')      return tag(p, 'tourism') === 'museum' || tag(p, 'amenity') === 'museum';
+    return false;
+  });
+}
+window.__landmarkCategoryPoisFilter = __landmarkCategoryPoisFilter;
+
+window.__fetchLandmarkPoisForKind = async function(kind, lat, lon, radiusM) {
+  const r = Math.max(100, Math.round(radiusM));
+  const kindLines = {
+    train_station: [
+      `nwr["name"]["railway"~"^(station|halt|tram_stop)$"](around:${r},${lat},${lon});`,
+      `nwr["name"]["station"~"^(subway|light_rail|monorail|rail)$"](around:${r},${lat},${lon});`,
+    ],
+    cathedral: [
+      `nwr["name"]["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
+      `nwr["name"]["amenity"="place_of_worship"]["name"](around:${r},${lat},${lon});`,
+    ],
+    bus_station: [`nwr["name"]["amenity"="bus_station"](around:${r},${lat},${lon});`],
+    library:     [`nwr["name"]["amenity"="library"](around:${r},${lat},${lon});`],
+    museum:      [
+      `nwr["name"]["tourism"="museum"](around:${r},${lat},${lon});`,
+      `nwr["name"]["amenity"="museum"](around:${r},${lat},${lon});`,
+    ],
+  };
+  const lines = kindLines[kind];
+  if (!lines) return { pois: [], error: `Unknown kind: ${kind}` };
+
+  const q = `[out:json][timeout:25];\n(\n  ${lines.join('\n  ')}\n);\nout center 200;`;
+  try {
+    const data = await __overpassFetch(q);
+    const newPois = __normaliseOverpassElements(data.elements);
+
+    // Merge into window.POIS (deduped by id) so fog Voronoi sees them.
+    const existingIds = new Set((window.POIS || []).map(p => p.id));
+    const novel = newPois.filter(p => !existingIds.has(p.id));
+    if (novel.length) {
+      POIS.push(...novel);
+      window.POIS = POIS;
+    }
+
+    // Return only the subset matching this kind.
+    const catPois = __landmarkCategoryPoisFilter(kind, window.POIS);
+    return { pois: catPois, error: null };
+  } catch (e) {
+    return { pois: [], error: e && e.name === 'AbortError' ? 'Timed out.' : (e.message || 'Query failed.') };
+  }
+};
