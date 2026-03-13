@@ -72,15 +72,16 @@ const TARGET_BAND_FAR_MIN_M = 2000;
 // Adjusted distance can optionally subtract GPS accuracy to be fair.
 const USE_ACCURACY_ADJUSTED_DISTANCE = true;
 
-// Grade thresholds in meters (applied to adjusted distance if enabled).
-// Tune these to taste; defaults are "GeoGuessr-ish" for city-centre play.
-const GRADE_THRESHOLDS_M = [
-  { label: 'S', max: 25 },
-  { label: 'A', max: 75 },
-  { label: 'B', max: 150 },
-  { label: 'C', max: 300 },
-  { label: 'D', max: 600 },
-  { label: 'F', max: Infinity },
+// Grade thresholds as fractions of getModeTargetRadiusM() (short=500m, medium=1000m, long=1500m).
+// Copper is ~the maximum target distance for the mode; all tiers scale proportionally.
+const GRADE_THRESHOLDS_FRAC = [
+  { label: 'Diamond',  frac: 0.04 },   // short ≤20m  | medium ≤40m  | long ≤60m
+  { label: 'Emerald',  frac: 0.12 },   // short ≤60m  | medium ≤120m | long ≤180m
+  { label: 'Platinum', frac: 0.24 },   // short ≤120m | medium ≤240m | long ≤360m
+  { label: 'Gold',     frac: 0.44 },   // short ≤220m | medium ≤440m | long ≤660m
+  { label: 'Silver',   frac: 0.68 },   // short ≤340m | medium ≤680m | long ≤1020m
+  { label: 'Bronze',   frac: 0.92 },   // short ≤460m | medium ≤920m | long ≤1380m
+  { label: 'Copper',   frac: Infinity },
 ];
 
 // Points: a smooth-ish curve. 5,000 at 0m → ~0 by ~2,000m.

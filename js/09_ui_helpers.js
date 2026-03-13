@@ -191,11 +191,18 @@ function updateHUD() {
   try { if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig(); } catch (e) {}
   // Timer
   if (elTimerMain) {
-    const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
-    const elapsed = start ? (Date.now() - start) : 0;
-    const limit = (typeof window.getRoundTimeLimitMs === "function") ? window.getRoundTimeLimitMs() : (((typeof ROUND_TIME_LIMIT_MS === "number" && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000)));
-    const remaining = Math.max(0, limit - elapsed);
-    elTimerMain.textContent = formatMMSS(remaining);
+    const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : (window.roundStateV1 || null);
+    if (r && r.hasGuessed && typeof r.guessRemainingMs === 'number') {
+      elTimerMain.textContent = formatMMSS(Math.max(0, r.guessRemainingMs));
+      elTimerMain.style.color = '#fbbf24'; // amber — locked
+    } else {
+      elTimerMain.style.color = '';
+      const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
+      const elapsed = start ? (Date.now() - start) : 0;
+      const limit = (typeof window.getRoundTimeLimitMs === "function") ? window.getRoundTimeLimitMs() : (((typeof ROUND_TIME_LIMIT_MS === "number" && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000)));
+      const remaining = Math.max(0, limit - elapsed);
+      elTimerMain.textContent = formatMMSS(remaining);
+    }
   }
   if (elTimerPenalty) {
     const elapsed = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? (Date.now() - roundStartMs) : 0;

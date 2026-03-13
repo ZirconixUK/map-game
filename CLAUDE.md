@@ -98,8 +98,11 @@ Heat decay:     HEAT_DECAY_BASE_PER_SEC = 0.0015
 Scoring:        SCORE_MAX_POINTS = 5000
                 SCORE_ZERO_AT_M = 2000
 
-Grade bands:    S ≤ 25m | A ≤ 75m | B ≤ 150m | C ≤ 300m | D ≤ 600m | F > 600m
-                (NOTE: these thresholds are extremely strict for outdoor GPS variance)
+Grade bands:    7 medal tiers, scaled to getModeTargetRadiusM() (short=500m, medium=1000m, long=1500m)
+                Diamond ≤4% | Emerald ≤12% | Platinum ≤24% | Gold ≤44% | Silver ≤68% | Bronze ≤92% | Copper >92%
+                e.g. short: Diamond≤20m, Gold≤220m, Copper>460m
+                e.g. long:  Diamond≤60m, Gold≤660m, Copper>1380m
+                Constant: GRADE_THRESHOLDS_FRAC in 00_config.js
 
 Street View:    Size 640×640, FOV 90 (glimpse) / 70 (snapshot)
                 ECHO_SNAPSHOT_INNER_M = 150, OUTER_M = 300

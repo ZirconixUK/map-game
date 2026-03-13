@@ -39,13 +39,19 @@
 
   function computeGrade(distM){
     const d = Math.max(0, num(distM) ?? Infinity);
-    const bands = (typeof GRADE_THRESHOLDS_M !== 'undefined' && Array.isArray(GRADE_THRESHOLDS_M)) ? GRADE_THRESHOLDS_M : [
-      { label:'S', max:25 },{ label:'A', max:75 },{ label:'B', max:150 },{ label:'C', max:300 },{ label:'D', max:600 },{ label:'F', max:Infinity }
-    ];
+    const radius = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
+    const bands = (typeof GRADE_THRESHOLDS_FRAC !== 'undefined' && Array.isArray(GRADE_THRESHOLDS_FRAC))
+      ? GRADE_THRESHOLDS_FRAC
+      : [
+          { label:'Diamond', frac:0.04 }, { label:'Emerald', frac:0.12 },
+          { label:'Platinum', frac:0.24 }, { label:'Gold', frac:0.44 },
+          { label:'Silver', frac:0.68 }, { label:'Bronze', frac:0.92 },
+          { label:'Copper', frac:Infinity },
+        ];
     for (const b of bands) {
-      if (d <= (num(b.max) ?? Infinity)) return String(b.label || 'F');
+      if (d <= (num(b.frac) ?? Infinity) * radius) return String(b.label);
     }
-    return 'F';
+    return 'Copper';
   }
 
   function computeScore(distM){
@@ -159,6 +165,10 @@
     const score = computeScore(useAdj ? adjD : rawD);
     const grade = computeGrade(useAdj ? adjD : rawD);
 
+    const _tLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30*60*1000;
+    const _tStart = (typeof roundStartMs === 'number' && isFinite(roundStartMs)) ? roundStartMs : Date.now();
+    const guessRemainingMs = _tLimit - (Date.now() - _tStart);
+
     setRound({
       hasGuessed: true,
       guessLatLng: { lat: guess.lat, lon: guess.lon },
@@ -168,6 +178,7 @@
       adjustedDistanceM: adjD,
       scorePoints: score,
       gradeLabel: grade,
+      guessRemainingMs,
     });
 
     // Reveal line/markers if Leaflet helpers exist
@@ -175,16 +186,47 @@
       if (typeof window.showRevealOverlay === 'function') window.showRevealOverlay({ guess, target: tgt });
     } catch(e) {}
 
+    const gradeInfo = {
+      Diamond:  { color:'#a5f3fc', flavor:'Extraordinary' },
+      Emerald:  { color:'#34d399', flavor:'Exceptional' },
+      Platinum: { color:'#e2e8f0', flavor:'Excellent' },
+      Gold:     { color:'#fbbf24', flavor:'Impressive' },
+      Silver:   { color:'#94a3b8', flavor:'Good effort' },
+      Bronze:   { color:'#f97316', flavor:'Off the mark' },
+      Copper:   { color:'#ef4444', flavor:'Way off' },
+    }[grade] || { color:'#94a3b8', flavor:'' };
+    const gc = gradeInfo.color;
+    const flavor = gradeInfo.flavor;
+
+    const timeStatVal = guessRemainingMs >= 0
+      ? formatMMSS(guessRemainingMs)
+      : `OT ${formatMMSS(Math.abs(guessRemainingMs))}`;
+    const timeStatColor = guessRemainingMs >= 0 ? '#fff' : '#ef4444';
+    const timeStatLabel = guessRemainingMs >= 0 ? 'Remaining' : 'Overtime';
+
+    const adjLine = (useAdj && rawD != null && adjD != null && rawD !== adjD)
+      ? `<div class="muted" style="font-size:0.7rem;text-align:center;margin-bottom:4px;">Adjusted ${fmtMeters(adjD)} · GPS ±${acc != null ? fmtMeters(acc) : '—'}</div>`
+      : '';
+
     const html = `
-      <div class="resultStack">
-        <div class="resultRow"><div class="resultLabel">Grade</div><div class="resultValue"><b>${grade}</b></div></div>
-        <div class="resultRow"><div class="resultLabel">Points</div><div class="resultValue"><b>${score}</b></div></div>
-        <div class="resultRow"><div class="resultLabel">Distance</div><div class="resultValue">${fmtMeters(rawD)}</div></div>
-        <div class="resultRow"><div class="resultLabel">Adjusted</div><div class="resultValue">${useAdj ? fmtMeters(adjD) : '—'}</div></div>
-        <div class="muted" style="margin-top:10px;">${useAdj ? `GPS accuracy used: ${acc != null ? fmtMeters(acc) : '—'}` : ''}</div>
-        <div class="row" style="justify-content:space-between; gap:10px; margin-top:14px;">
-          <button id="btnResultNewRound" class="primary" style="flex:1;">Start New Round</button>
-          <button id="btnResultClose" style="flex:0;">Close ✕</button>
+      <div class="resultHero">
+        <div class="resultGradeBadge" style="color:${gc};border-color:${gc};box-shadow:0 0 24px ${gc}33">${grade}</div>
+        <div class="resultFlavor" style="color:${gc}">${flavor}</div>
+        <div class="resultScore">${score.toLocaleString()}<span class="resultScoreLabel">pts</span></div>
+        <div class="resultStats">
+          <div class="resultStat">
+            <div class="resultStatVal">${fmtMeters(rawD)}</div>
+            <div class="resultStatLabel">Distance</div>
+          </div>
+          <div class="resultStat">
+            <div class="resultStatVal" style="color:${timeStatColor}">${timeStatVal}</div>
+            <div class="resultStatLabel">${timeStatLabel}</div>
+          </div>
+        </div>
+        ${adjLine}
+        <div class="resultActions">
+          <button id="btnResultNewRound" class="primary" style="flex:1;">New Round</button>
+          <button id="btnResultClose" style="flex:0 0 auto;">Close ✕</button>
         </div>
       </div>
     `;

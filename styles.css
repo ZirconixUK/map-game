@@ -468,6 +468,23 @@ button:disabled, .disabled{ opacity:.45; cursor:not-allowed; }
 .resultLabel{ color:var(--muted); font-size:12px; }
 .resultValue{ font-size:14px; }
 
+/* Result hero layout */
+.resultHero{ display:flex; flex-direction:column; align-items:center; padding:8px 0 4px; }
+.resultGradeBadge{
+  display:flex; align-items:center; justify-content:center;
+  width:88px; height:88px; border-radius:50%; border:2.5px solid;
+  font-size:0.9rem; font-weight:900; letter-spacing:.04em;
+  text-transform:uppercase; margin-bottom:6px;
+}
+.resultFlavor{ font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; margin-bottom:14px; }
+.resultScore{ font-size:2.2rem; font-weight:900; color:#fff; line-height:1; margin-bottom:4px; }
+.resultScoreLabel{ font-size:0.8rem; font-weight:400; color:var(--muted); margin-left:4px; vertical-align:middle; }
+.resultStats{ display:flex; gap:10px; width:100%; margin:14px 0 10px; }
+.resultStat{ flex:1; background:#1e2d44; border:1px solid #2a3f60; border-radius:14px; padding:12px 8px; text-align:center; }
+.resultStatVal{ font-size:1.15rem; font-weight:700; color:#fff; }
+.resultStatLabel{ font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:3px; }
+.resultActions{ display:flex; gap:10px; width:100%; margin-top:14px; }
+
 /* Debug heat row narrow override */
 @media (max-width:520px){
   .dbgHeatRow .muted{ min-width:auto !important; }
