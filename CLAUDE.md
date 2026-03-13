@@ -43,8 +43,8 @@ GPS guess → get graded.
 ├── styles.css                      All UI styling (dark theme, mobile-first)
 ├── js/
 │   ├── 00_config.js                Master constants (BBOX, API keys, thresholds)
-│   ├── 01_pois.js                  POI loading + live Overpass fetch at game start
-│   ├── 02_dom.js                   DOM refs, toast queue, debug panel, logs
+│   ├── 01_pois.js                  POI loading + live Overpass fetch at game start; __fetchLandmarkPoisForKind + __landmarkCategoryPoisFilter
+│   ├── 02_dom.js                   DOM refs, toast queue, debug panel, logs; landmark live-query flow + cache
 │   ├── 03_map_image.js             Leaflet map init, fog canvas setup
 │   ├── 04_state.js                 MASTER STATE: round state, heat, timers, gameSetup
 │   ├── 05_view_transform.js        Canvas coordinate mapping
@@ -82,6 +82,7 @@ All game state lives in module globals in `04_state.js`, exposed on `window.*`.
 - **Async tool system** — `tools.json` → JS objects → `updateCostBadgesFromConfig()` → UI badges
 - **Street View caching** — photos stored as `data:` URLs in localStorage under `mg_sv_img_{context}_{key}`
 - **Round persistence** — `saveRoundState()` / `loadRoundState()` via `localStorage["mapgame_round_v1"]`
+- **Landmark live-query** — on category tap, `__fetchLandmarkPoisForKind` fires a targeted Overpass query (radius = max(modeCapM, 2500)m), merges results into `window.POIS`, then shows a preview (nearest POI + distance + heat cost) before charging heat on Confirm. Results cached per kind in `__landmarkLiveCache` (cleared on new game). Stale-fetch guard (`__landmarkActiveFetchKind`) prevents race if user presses Back mid-request.
 
 ---
 
@@ -124,7 +125,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Starter photo (Street View) | Done | Core identity pillar |
 | Radar | Done | Map/fog interactions |
 | Thermometer | Done | Needs ongoing tuning |
-| Landmark clues | Done | POI category quality matters |
+| Landmark clues | Done | Live Overpass query per category tap; preview before heat charge; per-round cache |
 | Extra photos (near100/near200) | Done | Caching + echo snapshots |
 | N/S and E/W split | Done | Unlock-gated at 50% round time; potentially overpowered |
 | Heat meter | Done | Visible accumulation and decay |
@@ -165,7 +166,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | **E — Remote mode** | Expand access without diluting identity | Structurally distinct remote mode (not just map-click substitution) |
 | **F — Optional expansion** | Long-tail depth once core is strong | Daily challenges; async comparison; lore; social features |
 
-**Current priority: Phase A** (late stage). Curses implemented, live POIs working. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails, coin-cost config cleanup. Do not add breadth before the single-run loop is coherent.
+**Current priority: Phase A** (late stage). Curses implemented, live POIs working, landmark live-query done. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails. Do not add breadth before the single-run loop is coherent.
 
 ---
 
@@ -202,14 +203,19 @@ POIs are fetched live from the Overpass API at game start rather than read from 
 
 - **Trigger:** `window.__refreshLivePoisForCurrentLocation()` called in `startNewGameFromMenuOrDebug()` after player location is set
 - **Radius:** matches the current game mode radius exactly (`getModeTargetRadiusM()`)
-- **Two-stage query:**
-  1. Primary — significant landmarks (stations, pubs, museums, parks, churches, historic)
-  2. If < 50 results — broader query added (restaurants, schools, hotels, sports centres, supermarkets) merged and deduped by OSM id
+- **Single combined query:** all relevant OSM tags in one round trip; in-memory cache (`__overpassCache`) reused for subsequent games at same location
 - **Endpoints:** tries `overpass-api.de` first, falls back to `overpass.kumi.systems` on 504/timeout
-- **Timeout:** 12s AbortController per endpoint
+- **Timeout:** 32s AbortController per endpoint (exceeds Overpass server [timeout:25])
 - **Skips:** if user has imported a custom POI pack (`window.__POI_PACK__.filename && !window.__POI_PACK__.live`)
 - **UI feedback:** `showToast` at start and on success/failure (not just debug log)
 - **Debug mode:** `positionPlayerForNewGame()` skips GPS and keeps the existing player location — live POI fetch still runs based on that location
+
+**Per-category landmark fetch** (`window.__fetchLandmarkPoisForKind`):
+- Fires when player taps a Landmark category (not at game start)
+- Radius: `max(modeCapM, 2500)`m — guarantees at least 2.5km search even in short mode
+- Targeted query per kind: `train_station`, `cathedral`, `bus_station`, `library`, `museum`
+- Novel results merged into `window.POIS` (deduped by OSM id) so fog Voronoi sees them
+- `__landmarkCategoryPoisFilter(kind, poisArray)` — shared filter used by both `01_pois.js` and `17_leaflet_fog.js`
 
 ---
 
