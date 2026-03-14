@@ -193,6 +193,17 @@ function exportPoisToFile(list, filenameBase = "POI_export") {
 }
 
 async function loadPois() {
+  // Always load POI.json into __allPois first so landmark queries always have
+  // the full reference dataset, even when a user import overrides POIS below.
+  try {
+    const r = await fetch("./POI.json", { cache: "default" });
+    if (r.ok) {
+      const d = await r.json();
+      const l = Array.isArray(d) ? d : (Array.isArray(d.pois) ? d.pois : null);
+      if (l && l.length) window.__allPois = l.slice();
+    }
+  } catch(e) {}
+
   // 1) Prefer last imported pack (persisted) if present.
   // Try localStorage first (works in some contexts where IndexedDB is blocked).
   try {
@@ -237,7 +248,7 @@ async function loadPois() {
     else if (data && Array.isArray(data.pois)) list = data.pois;
 
     if (Array.isArray(list) && list.length) {
-      window.__allPois = list.slice(); // master unfiltered set — used for radius filtering at game start
+      if (!window.__allPois) window.__allPois = list.slice(); // fallback if pre-load above failed
       POIS.length = 0;
       list.forEach(p => POIS.push(p));
       log(`📍 Loaded ${POIS.length} POIs from ${url}`);
