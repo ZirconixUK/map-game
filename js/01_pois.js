@@ -237,6 +237,7 @@ async function loadPois() {
     else if (data && Array.isArray(data.pois)) list = data.pois;
 
     if (Array.isArray(list) && list.length) {
+      window.__allPois = list.slice(); // master unfiltered set — used for radius filtering at game start
       POIS.length = 0;
       list.forEach(p => POIS.push(p));
       log(`📍 Loaded ${POIS.length} POIs from ${url}`);
@@ -367,46 +368,44 @@ async function fetchPoisAroundPlayer(lat, lon, radiusM) {
 }
 
 
-// Called at game start (after player location is set) to populate POIS and BBOX
-// from live Overpass data. Skips if a user-imported custom pack is loaded.
-window.__refreshLivePoisForCurrentLocation = async function() {
+// Called at game start (after player location is set) to filter POI.json data
+// to the current mode radius around the player. No network request.
+window.__refreshLivePoisForCurrentLocation = function() {
   if (!player || typeof player.lat !== 'number' || typeof player.lon !== 'number') return;
   // Don't overwrite a user-imported custom POI pack
   if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live) return;
 
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
-  const queryRadius = Math.max(modeCapM, 2500);
+  const lat = player.lat, lon = player.lon;
+  const cosLat = Math.cos(lat * Math.PI / 180);
 
-  const __toast = (typeof window.showToast === 'function') ? window.showToast : null;
-  try {
-    log(`🌍 Fetching live POIs (${Math.round(queryRadius / 1000)}km radius)…`);
-    if (__toast) __toast(`🌍 Finding nearby POIs…`, true);
-    const pois = await fetchPoisAroundPlayer(player.lat, player.lon, queryRadius);
-    if (!pois.length) {
-      log('⚠️ No POIs found from Overpass in this area. Using existing POIs.');
-      if (__toast) __toast('⚠️ No nearby POIs found — using defaults.', false);
-      return;
-    }
+  const source = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : POIS;
+  const filtered = source.filter(p => {
+    if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') return false;
+    const dx = (p.lat - lat) * 111320;
+    const dy = (p.lon - lon) * 111320 * cosLat;
+    return Math.sqrt(dx * dx + dy * dy) <= modeCapM;
+  });
 
-    // Expand BBOX to cover the live area so __insideBbox passes for local panos.
+  const count = filtered.length;
+  log(`📍 ${count} POIs within ${modeCapM}m of player.`);
+
+  if (count > 0) {
+    // Expand BBOX to cover the play area so __insideBbox passes for local panos.
     if (typeof BBOX !== 'undefined' && BBOX.nw && BBOX.se) {
-      const dLat = queryRadius / 111320;
-      const dLon = queryRadius / (111320 * Math.cos(player.lat * Math.PI / 180));
-      BBOX.nw.lat = player.lat + dLat;
-      BBOX.nw.lon = player.lon - dLon;
-      BBOX.se.lat = player.lat - dLat;
-      BBOX.se.lon = player.lon + dLon;
+      const dLat = modeCapM / 111320;
+      const dLon = modeCapM / (111320 * cosLat);
+      BBOX.nw.lat = lat + dLat;
+      BBOX.nw.lon = lon - dLon;
+      BBOX.se.lat = lat - dLat;
+      BBOX.se.lon = lon + dLon;
     }
-
-    setPoisFromList(pois, `Live (Overpass, ${pois.length} POIs)`);
-    window.__POI_PACK__ = { filename: 'overpass', live: true };
-    log(`✅ Live POIs loaded: ${pois.length} features near your location.`);
-    if (__toast) __toast(`✅ Loaded ${pois.length} nearby POIs.`, true);
-  } catch (e) {
-    const timedOut = e && e.name === 'AbortError';
-    const msg = timedOut ? 'Timed out — using defaults.' : `${e.message} — using defaults.`;
-    log(`⚠️ Live POI fetch failed: ${timedOut ? 'timeout' : e.message}. Using existing POIs.`);
-    if (__toast) __toast(`⚠️ POI fetch failed: ${msg}`, false);
+    setPoisFromList(filtered, `POI.json (${count} in range)`);
+    window.__POI_PACK__ = { filename: 'POI.json', live: false };
+    try { if (typeof window.showToast === 'function') window.showToast(`📍 ${count} POI${count !== 1 ? 's' : ''} in range.`, true); } catch(e) {}
+  } else {
+    log('⚠️ No POIs from POI.json within mode radius — POI data may not cover this area.');
+    try { if (typeof window.showToast === 'function') window.showToast('⚠️ No POIs found in range.', false); } catch(e) {}
   }
 };
 
@@ -432,52 +431,27 @@ function __landmarkCategoryPoisFilter(kind, poisArray) {
 window.__landmarkCategoryPoisFilter = __landmarkCategoryPoisFilter;
 
 window.__fetchLandmarkPoisForKind = async function(kind, lat, lon, radiusM) {
-  // Fast path: if the game-start fetch already covered this radius, filter
-  // window.POIS locally — no network call needed.
-  if (__overpassCache && __overpassCache.radiusM >= radiusM &&
-      Array.isArray(window.POIS) && window.POIS.length) {
-    log(`🏛️ Landmark "${kind}": using cached POIs (no Overpass query)`);
-    const pois = __landmarkCategoryPoisFilter(kind, window.POIS);
-    return { pois, error: null };
+  // Filter from the master POI.json set by radius and kind — no network request.
+  const r = Math.max(100, radiusM);
+  const cosLat = Math.cos(lat * Math.PI / 180);
+
+  const source = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : (window.POIS || []);
+  const inRadius = source.filter(p => {
+    if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') return false;
+    const dx = (p.lat - lat) * 111320;
+    const dy = (p.lon - lon) * 111320 * cosLat;
+    return Math.sqrt(dx * dx + dy * dy) <= r;
+  });
+
+  // Merge any novel POIs into window.POIS so fog Voronoi sees them.
+  const existingIds = new Set((window.POIS || []).map(p => p && p.id));
+  const novel = inRadius.filter(p => p && p.id && !existingIds.has(p.id));
+  if (novel.length) {
+    POIS.push(...novel);
+    window.POIS = POIS;
   }
 
-  const r = Math.max(100, Math.round(radiusM));
-  const kindLines = {
-    train_station: [
-      `nwr["name"]["railway"~"^(station|halt|tram_stop)$"](around:${r},${lat},${lon});`,
-      `nwr["name"]["station"~"^(subway|light_rail|monorail|rail)$"](around:${r},${lat},${lon});`,
-    ],
-    cathedral: [
-      `nwr["name"]["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
-      `nwr["name"]["amenity"="place_of_worship"]["name"](around:${r},${lat},${lon});`,
-    ],
-    bus_station: [`nwr["name"]["amenity"="bus_station"](around:${r},${lat},${lon});`],
-    library:     [`nwr["name"]["amenity"="library"](around:${r},${lat},${lon});`],
-    museum:      [
-      `nwr["name"]["tourism"="museum"](around:${r},${lat},${lon});`,
-      `nwr["name"]["amenity"="museum"](around:${r},${lat},${lon});`,
-    ],
-  };
-  const lines = kindLines[kind];
-  if (!lines) return { pois: [], error: `Unknown kind: ${kind}` };
-
-  const q = `[out:json][timeout:25];\n(\n  ${lines.join('\n  ')}\n);\nout center 200;`;
-  try {
-    const data = await __overpassFetch(q);
-    const newPois = __normaliseOverpassElements(data.elements);
-
-    // Merge into window.POIS (deduped by id) so fog Voronoi sees them.
-    const existingIds = new Set((window.POIS || []).map(p => p.id));
-    const novel = newPois.filter(p => !existingIds.has(p.id));
-    if (novel.length) {
-      POIS.push(...novel);
-      window.POIS = POIS;
-    }
-
-    // Return only the subset matching this kind.
-    const catPois = __landmarkCategoryPoisFilter(kind, window.POIS);
-    return { pois: catPois, error: null };
-  } catch (e) {
-    return { pois: [], error: e && e.name === 'AbortError' ? 'Timed out.' : (e.message || 'Query failed.') };
-  }
+  const pois = __landmarkCategoryPoisFilter(kind, inRadius);
+  log(`🏛️ Landmark "${kind}": ${pois.length} found within ${Math.round(r)}m (POI.json)`);
+  return { pois, error: null };
 };
