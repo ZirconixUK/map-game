@@ -31,7 +31,7 @@ GPS guess → get graded.
 - No monetisation, no ads, no coin economy, no paywalled fun
 - Systems-led — the game must work without lore scaffolding
 
-**Current proving ground:** Liverpool city centre (BBOX approx. 53.39–53.41°N, 2.96–3.00°W)
+**Current proving ground:** Liverpool city centre (BBOX approx. 53.39–53.41°N, 2.96–3.00°W). UK-wide POI dataset means the game is now playable anywhere in the UK.
 
 ---
 
@@ -43,7 +43,7 @@ GPS guess → get graded.
 ├── styles.css                      All UI styling (dark theme, mobile-first)
 ├── js/
 │   ├── 00_config.js                Master constants (BBOX, API keys, thresholds)
-│   ├── 01_pois.js                  POI loading + live Overpass fetch at game start; __fetchLandmarkPoisForKind + __landmarkCategoryPoisFilter
+│   ├── 01_pois.js                  POI loading (IDB-cached + Worker-parsed UK dataset); __fetchLandmarkPoisForKind + __landmarkCategoryPoisFilter
 │   ├── 02_dom.js                   DOM refs, toast queue, debug panel, logs; landmark live-query flow + cache
 │   ├── 03_map_image.js             Leaflet map init, fog canvas setup
 │   ├── 04_state.js                 MASTER STATE: round state, heat, timers, gameSetup
@@ -61,9 +61,9 @@ GPS guess → get graded.
 │   ├── 17_leaflet_fog.js           Fog-of-war (Martinez polygon clipping, EPSG:3857)
 │   ├── 18_streetview_glimpse.js    Google Street View API wrapper, photo caching
 │   ├── 19_curses.js                Curse system: loading, tick, isCurseActive(), all 5 tier effects live
-│   └── 20_guess.js                 Lock-in scoring: distance → grade → points
-├── POI.json                        Full POI dataset (~680KB, OSM-sourced)
-├── POI_curated.json                Curated POI subset (~161KB)
+│   ├── 20_guess.js                 Lock-in scoring: distance → grade → points
+│   └── poi_worker.js               Web Worker: fetches + parses POI_UK_runtime.json off main thread
+├── POI_UK_runtime.json             UK-wide POI dataset (175,672 POIs, ~31MB / ~6MB gzipped)
 ├── tools.json                      Tool definitions + heat costs
 ├── curses.json                     Curse tier definitions (effects still placeholder)
 └── huyton_*.json                   Alternate regional configs
@@ -82,7 +82,9 @@ All game state lives in module globals in `04_state.js`, exposed on `window.*`.
 - **Async tool system** — `tools.json` → JS objects → `updateCostBadgesFromConfig()` → UI badges
 - **Street View caching** — photos stored as `data:` URLs in localStorage under `mg_sv_img_{context}_{key}`
 - **Round persistence** — `saveRoundState()` / `loadRoundState()` via `localStorage["mapgame_round_v1"]`
-- **Landmark live-query** — on category tap, `__fetchLandmarkPoisForKind` fires a targeted Overpass query (radius = max(modeCapM, 2500)m), merges results into `window.POIS`, then shows a preview (nearest POI + distance + heat cost) before charging heat on Confirm. Results cached per kind in `__landmarkLiveCache` (cleared on new game). Stale-fetch guard (`__landmarkActiveFetchKind`) prevents race if user presses Back mid-request.
+- **UK POI dataset** — `POI_UK_runtime.json` (175,672 POIs) loaded at boot into `window.__allPois` via a Web Worker (`poi_worker.js`) to avoid main-thread freeze. Result cached in IndexedDB (`uk_pois_cache_v1`); repeat loads are instant. `window.__clearPoiCache()` busts the cache from the browser console.
+- **Two POI sets** — `window.__allPois` holds the full UK dataset (never rendered to map); `window.POIS` holds the mode-radius-filtered slice (~50–300 items, set at game start by `__refreshLivePoisForCurrentLocation()`). Map pins, target picking, and heat scoring all use `POIS`. Landmark Voronoi and `__fetchLandmarkPoisForKind` use `__allPois`.
+- **Landmark query** — `__fetchLandmarkPoisForKind(kind)` filters `__allPois` directly (no network request, no radius cap). Shows a preview before charging heat. `__landmarkCategoryPoisFilter(kind, poisArray)` is the shared filter used by both `01_pois.js` and `17_leaflet_fog.js`.
 
 ---
 
@@ -128,7 +130,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Starter photo (Street View) | Done | Core identity pillar |
 | Radar | Done | Map/fog interactions |
 | Thermometer | Done | Needs ongoing tuning |
-| Landmark clues | Done | Live Overpass query per category tap; preview before heat charge; per-round cache |
+| Landmark clues | Done | Searches full UK dataset (`__allPois`); preview before heat charge; Voronoi uses `__allPois` |
 | Extra photos (near100/near200) | Done | Caching + echo snapshots |
 | N/S and E/W split | Done | Unlock-gated at 50% round time; potentially overpowered |
 | Heat meter | Done | Visible accumulation and decay |
@@ -169,7 +171,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | **E — Remote mode** | Expand access without diluting identity | Structurally distinct remote mode (not just map-click substitution) |
 | **F — Optional expansion** | Long-tail depth once core is strong | Daily challenges; async comparison; lore; social features |
 
-**Current priority: Phase A** (late stage). Curses implemented, live POIs working, landmark live-query done. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails. Do not add breadth before the single-run loop is coherent.
+**Current priority: Phase A** (late stage). Curses implemented, UK-wide POI dataset live (175k POIs, IDB-cached, Worker-parsed), landmark Voronoi uses full dataset. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails. Do not add breadth before the single-run loop is coherent.
 
 ---
 
@@ -200,25 +202,31 @@ Mode timers:    short=30min | medium=45min | long=60min
 
 ---
 
-## Live POI system (01_pois.js)
+## POI system (01_pois.js + poi_worker.js)
 
-POIs are fetched live from the Overpass API at game start rather than read from a static JSON.
+The game uses a pre-built UK-wide dataset (`POI_UK_runtime.json`, 175,672 POIs). No Overpass API calls are made at runtime.
 
-- **Trigger:** `window.__refreshLivePoisForCurrentLocation()` called in `startNewGameFromMenuOrDebug()` after player location is set
-- **Radius:** matches the current game mode radius exactly (`getModeTargetRadiusM()`)
-- **Single combined query:** all relevant OSM tags in one round trip; in-memory cache (`__overpassCache`) reused for subsequent games at same location
-- **Endpoints:** tries `overpass-api.de` first, falls back to `overpass.kumi.systems` on 504/timeout
-- **Timeout:** 32s AbortController per endpoint (exceeds Overpass server [timeout:25])
-- **Skips:** if user has imported a custom POI pack (`window.__POI_PACK__.filename && !window.__POI_PACK__.live`)
-- **UI feedback:** `showToast` at start and on success/failure (not just debug log)
-- **Debug mode:** `positionPlayerForNewGame()` skips GPS and keeps the existing player location — live POI fetch still runs based on that location
+**Boot loading (`loadPois()`):**
+1. Check IndexedDB for `uk_pois_cache_v1` — if present and `pois.length > 1000`, use it immediately (instant)
+2. If no cache: spawn `poi_worker.js` to fetch + parse the 31MB JSON off the main thread; on success, write result to IDB cache
+3. If Worker unavailable: fall back to main-thread fetch (may freeze briefly)
+4. On first load (no cache): shows "Downloading map data… (first run only)" toast
+5. `window.__clearPoiCache()` — call from browser console to bust the IDB cache and force re-fetch
 
-**Per-category landmark fetch** (`window.__fetchLandmarkPoisForKind`):
-- Fires when player taps a Landmark category (not at game start)
-- Radius: `max(modeCapM, 2500)`m — guarantees at least 2.5km search even in short mode
-- Targeted query per kind: `train_station`, `cathedral`, `bus_station`, `library`, `museum`
-- Novel results merged into `window.POIS` (deduped by OSM id) so fog Voronoi sees them
+**At game start (`__refreshLivePoisForCurrentLocation()`):**
+- Called in `startNewGameFromMenuOrDebug()` after player location is set
+- Filters `window.__allPois` by mode radius → sets `window.POIS` (~50–300 items)
+- Skips if user has an active custom POI import (`window.__POI_PACK__.filename && !fromJson`)
+- Shows POI count toast; expands `BBOX` to cover the play area
+
+**Landmark queries (`__fetchLandmarkPoisForKind(kind)`):**
+- Fires when player taps a Landmark category button
+- Searches full `window.__allPois` — no radius cap, no network request
+- Kinds: `train_station`, `cathedral`, `bus_station`, `library`, `museum`
 - `__landmarkCategoryPoisFilter(kind, poisArray)` — shared filter used by both `01_pois.js` and `17_leaflet_fog.js`
+
+**Voronoi fog (`17_leaflet_fog.js`):**
+- `addFogNearestStation` and `addFogNearestLandmark` read from `window.__allPois` (not `POIS`) so Voronoi cells are correct even when no stations/landmarks fall within the mode radius
 
 ---
 
@@ -242,6 +250,7 @@ POIs are fetched live from the Overpass API at game start rather than read from 
 | `mapgame_round_v1` | localStorage | Full round state JSON |
 | `mapgame_last_real_geo_fix_v1` | localStorage | Last GPS fix (lat, lon, accuracy, ts) |
 | `mapgame_imported_pois_pack_v1` | IndexedDB / localStorage | POI pack (filename, label, pois) |
+| `uk_pois_cache_v1` | IndexedDB (`mapgame` db, `kv` store) | Parsed UK POI array + lastModified + savedAt; cleared by `window.__clearPoiCache()` |
 | `mg_sv_img_{snapshot\|glimpse}_{key}` | localStorage | Cached Street View data: URLs |
 
 ---
