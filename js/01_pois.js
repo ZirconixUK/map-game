@@ -430,13 +430,14 @@ function __landmarkCategoryPoisFilter(kind, poisArray) {
 }
 window.__landmarkCategoryPoisFilter = __landmarkCategoryPoisFilter;
 
-window.__fetchLandmarkPoisForKind = async function(kind, lat, lon, radiusM) {
-  // Filter from the master POI.json set by radius and kind — no network request.
-  const r = Math.max(100, radiusM);
-  const cosLat = Math.cos(lat * Math.PI / 180);
+window.__fetchLandmarkPoisForKind = async function(kind) {
+  // Return ALL POIs of this kind from the full POI.json dataset — no radius cap.
+  // The landmark clue works by comparing nearest-to-player vs nearest-to-target,
+  // which only makes sense over the complete dataset. A cathedral 3km away is still
+  // a valid reference point for deduction.
 
   // Safety net: if __allPois wasn't populated at boot (e.g. stale LS import path),
-  // fetch POI.json now. Browser cache means this is essentially free after first load.
+  // fetch POI.json now using browser cache — essentially free after first page load.
   if (!Array.isArray(window.__allPois) || !window.__allPois.length) {
     try {
       const res = await fetch('./POI.json', { cache: 'force-cache' });
@@ -449,22 +450,7 @@ window.__fetchLandmarkPoisForKind = async function(kind, lat, lon, radiusM) {
   }
 
   const source = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : (window.POIS || []);
-  const inRadius = source.filter(p => {
-    if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') return false;
-    const dx = (p.lat - lat) * 111320;
-    const dy = (p.lon - lon) * 111320 * cosLat;
-    return Math.sqrt(dx * dx + dy * dy) <= r;
-  });
-
-  // Merge any novel POIs into window.POIS so fog Voronoi sees them.
-  const existingIds = new Set((window.POIS || []).map(p => p && p.id));
-  const novel = inRadius.filter(p => p && p.id && !existingIds.has(p.id));
-  if (novel.length) {
-    POIS.push(...novel);
-    window.POIS = POIS;
-  }
-
-  const pois = __landmarkCategoryPoisFilter(kind, inRadius);
-  log(`🏛️ Landmark "${kind}": ${pois.length} found within ${Math.round(r)}m (POI.json)`);
+  const pois = __landmarkCategoryPoisFilter(kind, source);
+  log(`🏛️ Landmark "${kind}": ${pois.length} in full dataset`);
   return { pois, error: null };
 };

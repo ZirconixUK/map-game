@@ -1025,11 +1025,7 @@ if (debugMode) {
         if (cached) {
           categoryPois = cached.pois;
         } else {
-          const modeCapM = (typeof window.getModeTargetRadiusM === 'function')
-            ? window.getModeTargetRadiusM() : 500;
-          const result = await window.__fetchLandmarkPoisForKind(
-            kind, player.lat, player.lon, Math.max(modeCapM, 2500)
-          );
+          const result = await window.__fetchLandmarkPoisForKind(kind);
           if (__landmarkActiveFetchKind !== kind) return; // user pressed Back mid-fetch
           if (result.error && !result.pois.length) {
             __landmarkShowPreviewResult(kind, null, null, result.error); return;
