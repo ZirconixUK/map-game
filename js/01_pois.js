@@ -192,17 +192,59 @@ function exportPoisToFile(list, filenameBase = "POI_export") {
   log(`⬇️ Exported ${list.length} POIs → ${a.download}`);
 }
 
+// IDB cache key and URL for the UK POI dataset
+const UK_POI_URL = './POI_UK_runtime.json';
+const UK_POI_CACHE_KEY = 'uk_pois_cache_v1';
+
+// Expose so users can bust the IDB cache from the browser console.
+window.__clearPoiCache = () => __idbDel(UK_POI_CACHE_KEY);
+
 async function loadPois() {
-  // Always load POI.json into __allPois first so landmark queries always have
-  // the full reference dataset, even when a user import overrides POIS below.
+  // Load UK POI dataset into __allPois.
+  // IDB cache means repeat loads are instant; Worker parse keeps the first-load
+  // main thread free during the ~300–700ms JSON parse of 31MB.
   try {
-    const r = await fetch("./POI.json", { cache: "default" });
-    if (r.ok) {
-      const d = await r.json();
-      const l = Array.isArray(d) ? d : (Array.isArray(d.pois) ? d.pois : null);
-      if (l && l.length) window.__allPois = l.slice();
+    const cached = await __idbGet(UK_POI_CACHE_KEY);
+    if (cached && Array.isArray(cached.pois) && cached.pois.length > 1000) {
+      window.__allPois = cached.pois;
+      log(`📍 ${cached.pois.length} POIs from IDB cache (${cached.lastModified || 'unknown date'})`);
+    } else {
+      throw new Error('no cache');
     }
-  } catch(e) {}
+  } catch(_) {
+    // No cache — fetch via Worker so the main thread stays responsive.
+    try {
+      if (typeof window.showToast === 'function') window.showToast('Downloading map data… (first run only)', false);
+    } catch(e) {}
+    try {
+      const pois = await new Promise((resolve, reject) => {
+        let worker;
+        try { worker = new Worker('./js/poi_worker.js'); } catch(e) { reject(e); return; }
+        const tid = setTimeout(() => { worker.terminate(); reject(new Error('worker timeout')); }, 30000);
+        worker.onmessage = ev => {
+          clearTimeout(tid); worker.terminate();
+          if (ev.data.ok) {
+            __idbSet(UK_POI_CACHE_KEY, { pois: ev.data.pois, lastModified: ev.data.lastModified, savedAt: Date.now() })
+              .catch(() => {}); // cache failure is non-fatal
+            resolve(ev.data.pois);
+          } else reject(new Error(ev.data.error));
+        };
+        worker.onerror = ev => { clearTimeout(tid); worker.terminate(); reject(ev); };
+        worker.postMessage({ url: UK_POI_URL + '?cb=' + Date.now() });
+      });
+      window.__allPois = pois;
+      log(`📍 ${pois.length} POIs loaded from ${UK_POI_URL}`);
+    } catch(e) {
+      // Worker unavailable — fall back to main-thread fetch (may briefly freeze UI)
+      log(`⚠️ Worker unavailable, parsing on main thread: ${e.message}`);
+      try {
+        const r = await fetch(UK_POI_URL + '?cb=' + Date.now(), { cache: 'no-store' });
+        const d = await r.json();
+        const list = Array.isArray(d) ? d : (Array.isArray(d.pois) ? d.pois : null);
+        if (list && list.length) window.__allPois = list;
+      } catch(e2) {}
+    }
+  }
 
   // 1) Prefer last imported pack (persisted) if present.
   // Try localStorage first (works in some contexts where IndexedDB is blocked).
@@ -233,157 +275,21 @@ async function loadPois() {
       return;
     }
   } catch (e) {
-    // Ignore persistence failures and fall back to POI.json
+    // Ignore persistence failures and fall back to built-ins
   }
 
-  // 2) External POI file (case-sensitive on most hosts)
-  const url = "./POI.json";
-  try {
-    const res = await fetch(url + "?cb=" + Date.now(), { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    let list = null;
-    if (Array.isArray(data)) list = data;
-    else if (data && Array.isArray(data.pois)) list = data.pois;
-
-    if (Array.isArray(list) && list.length) {
-      if (!window.__allPois) window.__allPois = list.slice(); // fallback if pre-load above failed
-      POIS.length = 0;
-      list.forEach(p => POIS.push(p));
-      log(`📍 Loaded ${POIS.length} POIs from ${url}`);
-      setPoiSourceUI(url);
-      try { if (typeof window.refreshAllPoiPins === "function") window.refreshAllPoiPins(); } catch (e) {}
-      return;
-    }
-    throw new Error("Unexpected JSON format");
-  } catch (e) {
-    log(`⚠️ Could not load ${url}. Using built-in POIs (${POIS.length}).`);
-    setPoiSourceUI("built-in");
-  }
+  // 2) No import and no custom local file — use built-in DEFAULT_POIS.
+  // POIS will be re-filtered from __allPois (UK dataset) at game start by
+  // __refreshLivePoisForCurrentLocation(), so this is just the pre-game default.
+  log(`📍 No POI import found. Using built-in defaults; UK dataset will filter at game start.`);
+  setPoiSourceUI("built-in (UK dataset loads at game start)");
 }
 
-// ---- Live Overpass POI fetch ----
-// Fetches OSM POIs from the Overpass API for a given lat/lon/radius.
-// Returns a normalised array of POIs matching the game's expected format.
-
-// In-memory cache: stores the largest successful fetch so that subsequent
-// games at the same location with a smaller radius skip the API entirely.
-let __overpassCache = null; // { lat, lon, radiusM, pois, ts }
-
-function __overpassCacheHit(lat, lon, radiusM) {
-  if (!__overpassCache || !Array.isArray(__overpassCache.pois)) return null;
-  // Allow cache reuse if player is within 300m of the cached centre and the
-  // requested radius is covered by the cached radius.
-  const dx = (__overpassCache.lat - lat) * 111320;
-  const dy = (__overpassCache.lon - lon) * 111320 * Math.cos(lat * Math.PI / 180);
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist > 300) return null; // player moved too far
-  if (radiusM > __overpassCache.radiusM) return null; // need a larger area
-  // Filter the cached set down to the requested radius.
-  const pois = __overpassCache.pois.filter(p => {
-    const pdx = (p.lat - lat) * 111320;
-    const pdy = (p.lon - lon) * 111320 * Math.cos(lat * Math.PI / 180);
-    return Math.sqrt(pdx * pdx + pdy * pdy) <= radiusM;
-  });
-  return pois;
-}
-
-async function __overpassFetch(q) {
-  const __endpoints = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
-  ];
-  const __body = 'data=' + encodeURIComponent(q);
-  let res;
-  for (let __i = 0; __i < __endpoints.length; __i++) {
-    const controller = new AbortController();
-    // Client timeout must exceed the server [timeout:25] so we don't abort
-    // a running query before the server has a chance to respond.
-    const __timer = setTimeout(() => controller.abort(), 32000);
-    try {
-      res = await fetch(__endpoints[__i], {
-        method: 'POST',
-        body: __body,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        signal: controller.signal,
-      });
-      clearTimeout(__timer);
-      if (res.ok) break;
-    } catch (e) {
-      clearTimeout(__timer);
-      if (__i === __endpoints.length - 1) throw e;
-    }
-  }
-  if (!res || !res.ok) throw new Error(`Overpass HTTP ${res ? res.status : 'no response'}`);
-  return res.json();
-}
-
-function __normaliseOverpassElements(elements) {
-  return (elements || []).map(el => {
-    const elLat = el.type === 'node' ? el.lat : (el.center ? el.center.lat : null);
-    const elLon = el.type === 'node' ? el.lon : (el.center ? el.center.lon : null);
-    if (elLat == null || elLon == null) return null;
-    const tags = el.tags || {};
-    const name = tags.name || tags['name:en'] || null;
-    if (!name) return null;
-    return { id: `osm:${el.type}/${el.id}`, name, lat: elLat, lon: elLon, osm_tags: tags };
-  }).filter(Boolean);
-}
-
-async function fetchPoisAroundPlayer(lat, lon, radiusM) {
-  const r = Math.max(100, Math.round(radiusM));
-
-  // Return from in-memory cache when possible to avoid hammering Overpass.
-  const cached = __overpassCacheHit(lat, lon, radiusM);
-  if (cached) {
-    try { log(`📍 POIs from cache (${cached.length} within ${Math.round(r / 1000)}km).`); } catch(e) {}
-    return cached;
-  }
-
-  // Single combined query — one round trip instead of two.
-  const q = [
-    `[out:json][timeout:25];`,
-    `(`,
-    // Transport
-    `  nwr["name"]["railway"~"^(station|halt|tram_stop)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["station"~"^(subway|light_rail|monorail|rail)$"](around:${r},${lat},${lon});`,
-    // Religious / civic buildings
-    `  nwr["name"]["building"~"^(cathedral|church|chapel)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["office"~"^(government|civic)$"](around:${r},${lat},${lon});`,
-    // Amenities
-    `  nwr["name"]["amenity"~"^(bus_station|library|pub|bar|place_of_worship|theatre|cinema|arts_centre|restaurant|cafe|fast_food|school|college|university|hospital|clinic|pharmacy|bank|community_centre|social_centre|sports_centre|marketplace)$"](around:${r},${lat},${lon});`,
-    // Tourism
-    `  nwr["name"]["tourism"~"^(museum|gallery|attraction|viewpoint|hotel)$"](around:${r},${lat},${lon});`,
-    // Historic
-    `  nwr["name"]["historic"~"^(monument|memorial|castle|building|ruins)$"](around:${r},${lat},${lon});`,
-    // Leisure
-    `  nwr["name"]["leisure"~"^(park|garden|common|stadium|sports_centre|swimming_pool|golf_course|ice_rink)$"](around:${r},${lat},${lon});`,
-    // Man-made / shops
-    `  nwr["name"]["man_made"="pier"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["shop"~"^(supermarket|department_store|mall)$"](around:${r},${lat},${lon});`,
-    `  nwr["name"]["building"~"^(hotel|school|college|university|hospital)$"](around:${r},${lat},${lon});`,
-    `);`,
-    `out center 2000;`,
-  ].join('\n');
-
-  const data = await __overpassFetch(q);
-  const pois = __normaliseOverpassElements(data.elements);
-
-  // Store in cache (keyed to the larger radius so future smaller-radius games can reuse).
-  if (pois.length) {
-    __overpassCache = { lat, lon, radiusM: r, pois, ts: Date.now() };
-  }
-
-  return pois;
-}
-
-
-// Called at game start (after player location is set) to filter POI.json data
+// Called at game start (after player location is set) to filter POI_UK_runtime.json data
 // to the current mode radius around the player. No network request.
 window.__refreshLivePoisForCurrentLocation = function() {
   if (!player || typeof player.lat !== 'number' || typeof player.lon !== 'number') return;
-  // Don't overwrite a user-imported custom POI pack (but always allow re-filtering from POI.json)
+  // Don't overwrite a user-imported custom POI pack (but always allow re-filtering from UK dataset)
   if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live && !window.__POI_PACK__.fromJson) return;
 
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
@@ -411,11 +317,11 @@ window.__refreshLivePoisForCurrentLocation = function() {
       BBOX.se.lat = lat - dLat;
       BBOX.se.lon = lon + dLon;
     }
-    setPoisFromList(filtered, `POI.json (${count} in range)`);
-    window.__POI_PACK__ = { filename: 'POI.json', fromJson: true };
+    setPoisFromList(filtered, `UK POIs (${count} in range)`);
+    window.__POI_PACK__ = { filename: 'POI_UK_runtime.json', fromJson: true };
     try { if (typeof window.showToast === 'function') window.showToast(`📍 ${count} POI${count !== 1 ? 's' : ''} in range.`, true); } catch(e) {}
   } else {
-    log('⚠️ No POIs from POI.json within mode radius — POI data may not cover this area.');
+    log('⚠️ No POIs from UK dataset within mode radius — POI data may not cover this area.');
     try { if (typeof window.showToast === 'function') window.showToast('⚠️ No POIs found in range.', false); } catch(e) {}
   }
 };
@@ -442,16 +348,16 @@ function __landmarkCategoryPoisFilter(kind, poisArray) {
 window.__landmarkCategoryPoisFilter = __landmarkCategoryPoisFilter;
 
 window.__fetchLandmarkPoisForKind = async function(kind) {
-  // Return ALL POIs of this kind from the full POI.json dataset — no radius cap.
+  // Return ALL POIs of this kind from the full UK dataset — no radius cap.
   // The landmark clue works by comparing nearest-to-player vs nearest-to-target,
   // which only makes sense over the complete dataset. A cathedral 3km away is still
   // a valid reference point for deduction.
 
   // Safety net: if __allPois wasn't populated at boot (e.g. stale LS import path),
-  // fetch POI.json now using browser cache — essentially free after first page load.
+  // fetch the UK dataset now using browser cache — essentially free after first page load.
   if (!Array.isArray(window.__allPois) || !window.__allPois.length) {
     try {
-      const res = await fetch('./POI.json', { cache: 'force-cache' });
+      const res = await fetch(UK_POI_URL, { cache: 'force-cache' });
       if (res.ok) {
         const data = await res.json();
         const list = Array.isArray(data) ? data : (Array.isArray(data.pois) ? data.pois : null);

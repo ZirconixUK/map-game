@@ -412,7 +412,7 @@ function addFogNearestStation(key, ok, opts) {
 
   if (!(opts && opts._replay)) recordAction({ type:'nearest_station', key: String(key), ok: !!ok });
 
-  const stations = (Array.isArray(window.POIS) ? window.POIS : []).filter(p => {
+  const stations = (Array.isArray(window.__allPois) ? window.__allPois : (Array.isArray(window.POIS) ? window.POIS : [])).filter(p => {
     const t = p && p.osm_tags;
     if (!t) return false;
     const rw = String(t.railway || '').toLowerCase(), st = String(t.station || '').toLowerCase();
@@ -475,7 +475,7 @@ function addFogNearestLandmark(kind, key, ok, opts) {
   if (!(opts && opts._replay)) recordAction({ type:'nearest_landmark', kind: String(kind), key: String(key), ok: !!ok });
 
   const knd = String(kind).toLowerCase();
-  const pois = (Array.isArray(window.POIS) ? window.POIS : []);
+  const pois = (Array.isArray(window.__allPois) ? window.__allPois : (Array.isArray(window.POIS) ? window.POIS : []));
 
   const getTag = (p, k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
   const filtered = pois.filter(p => {
