@@ -372,8 +372,8 @@ async function fetchPoisAroundPlayer(lat, lon, radiusM) {
 // to the current mode radius around the player. No network request.
 window.__refreshLivePoisForCurrentLocation = function() {
   if (!player || typeof player.lat !== 'number' || typeof player.lon !== 'number') return;
-  // Don't overwrite a user-imported custom POI pack
-  if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live) return;
+  // Don't overwrite a user-imported custom POI pack (but always allow re-filtering from POI.json)
+  if (window.__POI_PACK__ && window.__POI_PACK__.filename && !window.__POI_PACK__.live && !window.__POI_PACK__.fromJson) return;
 
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
   const lat = player.lat, lon = player.lon;
@@ -401,7 +401,7 @@ window.__refreshLivePoisForCurrentLocation = function() {
       BBOX.se.lon = lon + dLon;
     }
     setPoisFromList(filtered, `POI.json (${count} in range)`);
-    window.__POI_PACK__ = { filename: 'POI.json', live: false };
+    window.__POI_PACK__ = { filename: 'POI.json', fromJson: true };
     try { if (typeof window.showToast === 'function') window.showToast(`📍 ${count} POI${count !== 1 ? 's' : ''} in range.`, true); } catch(e) {}
   } else {
     log('⚠️ No POIs from POI.json within mode radius — POI data may not cover this area.');
@@ -434,6 +434,19 @@ window.__fetchLandmarkPoisForKind = async function(kind, lat, lon, radiusM) {
   // Filter from the master POI.json set by radius and kind — no network request.
   const r = Math.max(100, radiusM);
   const cosLat = Math.cos(lat * Math.PI / 180);
+
+  // Safety net: if __allPois wasn't populated at boot (e.g. stale LS import path),
+  // fetch POI.json now. Browser cache means this is essentially free after first load.
+  if (!Array.isArray(window.__allPois) || !window.__allPois.length) {
+    try {
+      const res = await fetch('./POI.json', { cache: 'force-cache' });
+      if (res.ok) {
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (Array.isArray(data.pois) ? data.pois : null);
+        if (list && list.length) window.__allPois = list;
+      }
+    } catch(e) {}
+  }
 
   const source = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : (window.POIS || []);
   const inRadius = source.filter(p => {
