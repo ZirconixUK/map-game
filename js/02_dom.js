@@ -1006,48 +1006,49 @@ if (debugMode) {
     } catch(e) {}
   }
 
-  // Landmark menu
+  // Landmark menu — use event delegation so listeners survive innerHTML replacement
+  // when __landmarkRestoreCategoryList() swaps the category list back in.
   if (landmarkMenu) {
-    landmarkMenu.querySelectorAll('[data-landmark]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const kind = (btn.getAttribute('data-landmark') || '').toLowerCase();
-        if (!player || typeof player.lat !== 'number') {
-          showToast('Set your location before using Landmark.', false); return;
+    landmarkMenu.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-landmark]');
+      if (!btn) return;
+      const kind = (btn.getAttribute('data-landmark') || '').toLowerCase();
+      if (!player || typeof player.lat !== 'number') {
+        showToast('Set your location before using Landmark.', false); return;
+      }
+      if (!target || typeof target.lat !== 'number') {
+        showToast('No target set yet.', false); return;
+      }
+
+      __landmarkSaveCategoryHTML();
+      __landmarkActiveFetchKind = kind;
+      __landmarkShowLoading(kind);
+
+      let categoryPois;
+      const cached = __landmarkLiveCache[kind];
+      if (cached) {
+        categoryPois = cached.pois;
+      } else {
+        const result = await window.__fetchLandmarkPoisForKind(kind);
+        if (__landmarkActiveFetchKind !== kind) return; // user pressed Back mid-fetch
+        if (result.error && !result.pois.length) {
+          __landmarkShowPreviewResult(kind, null, null, result.error); return;
         }
-        if (!target || typeof target.lat !== 'number') {
-          showToast('No target set yet.', false); return;
-        }
+        __landmarkLiveCache[kind] = { pois: result.pois, ts: Date.now() };
+        categoryPois = result.pois;
+      }
 
-        __landmarkSaveCategoryHTML();
-        __landmarkActiveFetchKind = kind;
-        __landmarkShowLoading(kind);
+      let nearestPoi = null, nearestDist = Infinity;
+      for (const p of categoryPois) {
+        const d = haversineMeters(player.lat, player.lon, p.lat, p.lon);
+        if (d < nearestDist) { nearestDist = d; nearestPoi = p; }
+      }
 
-        let categoryPois;
-        const cached = __landmarkLiveCache[kind];
-        if (cached) {
-          categoryPois = cached.pois;
-        } else {
-          const result = await window.__fetchLandmarkPoisForKind(kind);
-          if (__landmarkActiveFetchKind !== kind) return; // user pressed Back mid-fetch
-          if (result.error && !result.pois.length) {
-            __landmarkShowPreviewResult(kind, null, null, result.error); return;
-          }
-          __landmarkLiveCache[kind] = { pois: result.pois, ts: Date.now() };
-          categoryPois = result.pois;
-        }
+      __landmarkShowPreviewResult(kind, nearestPoi, nearestDist, null);
 
-        let nearestPoi = null, nearestDist = Infinity;
-        for (const p of categoryPois) {
-          const d = haversineMeters(player.lat, player.lon, p.lat, p.lon);
-          if (d < nearestDist) { nearestDist = d; nearestPoi = p; }
-        }
-
-        __landmarkShowPreviewResult(kind, nearestPoi, nearestDist, null);
-
-        document.getElementById('lmConfirmBtn')?.addEventListener('click', () => {
-          __landmarkActiveFetchKind = null;
-          __landmarkConfirm(kind, categoryPois);
-        });
+      document.getElementById('lmConfirmBtn')?.addEventListener('click', () => {
+        __landmarkActiveFetchKind = null;
+        __landmarkConfirm(kind, categoryPois);
       });
     });
   }
