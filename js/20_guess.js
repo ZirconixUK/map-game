@@ -128,7 +128,7 @@
     return `${Math.round(n)} m`;
   }
 
-  async function lockInGuess(){
+  async function lockInGuess({ autoLock = false } = {}){
     const r = getRound();
     if (!r) { try { if (typeof showToast === 'function') showToast('No active round.', false); } catch(e) {} return; }
     if (r.hasGuessed) { try { if (typeof showToast === 'function') showToast('Guess already locked.', false); } catch(e) {} return; }
@@ -143,7 +143,8 @@
     if (dbg && pl && pl.manualOverride) {
       guess = { lat: +pl.lat, lon: +pl.lon, accuracy: num(pl.accuracy) ?? 0, ts: Date.now() };
     } else {
-      try { if (typeof showToast === 'function') showToast('Locking in guess…', true); } catch(e) {}
+      const lockMsg = autoLock ? "Time's up — sampling your position…" : 'Locking in guess…';
+      try { if (typeof showToast === 'function') showToast(lockMsg, !autoLock); } catch(e) {}
       guess = await sampleGpsBriefly();
     }
 
@@ -210,7 +211,15 @@
 
     const html = `
       <div class="resultHero">
-        <div class="resultGradeBadge" style="color:${gc};border-color:${gc};box-shadow:0 0 24px ${gc}33">${grade}</div>
+        <div class="resultGradeBadge">
+          <svg class="resultMedalSvg" viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="28" y="2" width="24" height="20" rx="4" fill="${gc}" opacity="0.85"/>
+            <rect x="36" y="18" width="8" height="8" fill="${gc}" opacity="0.7"/>
+            <circle cx="40" cy="62" r="28" fill="${gc}"/>
+            <circle cx="40" cy="62" r="21" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.2"/>
+          </svg>
+          <div class="resultGradeLabel" style="color:${gc}">${grade}</div>
+        </div>
         <div class="resultFlavor" style="color:${gc}">${flavor}</div>
         <div class="resultScore">${score.toLocaleString()}<span class="resultScoreLabel">pts</span></div>
         <div class="resultStats">

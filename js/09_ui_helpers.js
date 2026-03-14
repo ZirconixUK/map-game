@@ -185,6 +185,21 @@ function formatMMSS(ms) {
   return `${pad2(mm)}:${pad2(ss)}`;
 }
 
+// Timer phase tracking
+let __timerLastPhase = null;
+let __timerLastRoundStartMs = null;
+let __timerExpiredFired = false;
+
+function __getTimerPhase(remainingMs, limitMs) {
+  if (remainingMs <= 0) return 'expired';
+  const warnMs = (limitMs >= 60 * 60 * 1000) ? 10 * 60 * 1000 : 5 * 60 * 1000;
+  if (remainingMs <= warnMs) return 'red';
+  if (remainingMs <= limitMs / 2) return 'yellow';
+  return 'green';
+}
+
+const __timerPhaseColors = { green: '#4ade80', yellow: '#fbbf24', red: '#f87171', expired: '#f87171' };
+
 function updateHUD() {
   try { if (typeof applyHeatDecay === "function") applyHeatDecay(Date.now()); } catch (e) {}
   try { if (typeof tickCurses === 'function') tickCurses(Date.now()); } catch (e) {}
@@ -196,12 +211,44 @@ function updateHUD() {
       elTimerMain.textContent = formatMMSS(Math.max(0, r.guessRemainingMs));
       elTimerMain.style.color = '#fbbf24'; // amber — locked
     } else {
-      elTimerMain.style.color = '';
       const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
       const elapsed = start ? (Date.now() - start) : 0;
       const limit = (typeof window.getRoundTimeLimitMs === "function") ? window.getRoundTimeLimitMs() : (((typeof ROUND_TIME_LIMIT_MS === "number" && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000)));
       const remaining = Math.max(0, limit - elapsed);
       elTimerMain.textContent = formatMMSS(remaining);
+
+      // Reset phase tracking on new round
+      const curRoundStart = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
+      if (curRoundStart !== __timerLastRoundStartMs) {
+        __timerLastRoundStartMs = curRoundStart;
+        __timerLastPhase = null;
+        __timerExpiredFired = false;
+      }
+
+      const phase = __getTimerPhase(remaining, limit);
+      elTimerMain.style.color = __timerPhaseColors[phase] || '#4ade80';
+
+      if (phase !== __timerLastPhase) {
+        if (phase === 'yellow' || phase === 'red') {
+          // Pulse animation on transition
+          elTimerMain.classList.remove('timerPulse');
+          void elTimerMain.offsetWidth; // force reflow to restart animation
+          elTimerMain.classList.add('timerPulse');
+          elTimerMain.addEventListener('animationend', () => {
+            try { elTimerMain.classList.remove('timerPulse'); } catch(e) {}
+          }, { once: true });
+        }
+        if (phase === 'expired' && !__timerExpiredFired) {
+          __timerExpiredFired = true;
+          setTimeout(() => {
+            try { if (typeof showToast === 'function') showToast("Time's up — locking in your position…", false); } catch(e) {}
+            setTimeout(() => {
+              try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
+            }, 1200);
+          }, 100);
+        }
+        __timerLastPhase = phase;
+      }
     }
   }
   if (elTimerPenalty) {
