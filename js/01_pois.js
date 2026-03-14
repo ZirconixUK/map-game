@@ -460,12 +460,8 @@ window.__fetchLandmarkPoisForKind = async function(kind) {
     } catch(e) {}
   }
 
-  const allLen = Array.isArray(window.__allPois) ? window.__allPois.length : 0;
-  const poisLen = Array.isArray(window.POIS) ? window.POIS.length : 0;
-  const source = allLen ? window.__allPois : (window.POIS || []);
+  const source = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : (window.POIS || []);
   const pois = __landmarkCategoryPoisFilter(kind, source);
-  const msg = `Landmark ${kind}: ${pois.length} results (allPois=${allLen}, POIS=${poisLen})`;
-  log(`🏛️ ${msg}`);
-  try { if (typeof showToast === 'function') showToast(msg, pois.length > 0); } catch(e) {}
+  log(`🏛️ Landmark "${kind}": ${pois.length} in full dataset`);
   return { pois, error: null };
 };

@@ -648,16 +648,18 @@ if (debugMode) {
         return;
       }
 
-      const pois = (Array.isArray(POIS) ? POIS : []);
-      const tag = (p, k) => (p && p.osm_tags) ? String(p.osm_tags[k] || "").toLowerCase() : "";
+      // Use full dataset for labels — POIS is filtered to mode radius, __allPois is not.
+      const pois = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : (Array.isArray(POIS) ? POIS : []);
 
-      const pools = {
-        train_station: pois.filter(p => tag(p, "railway") === "station"),
-        cathedral: pois.filter(p => tag(p, "building") === "cathedral"),
-        bus_station: pois.filter(p => tag(p, "amenity") === "bus_station"),
-        library: pois.filter(p => tag(p, "amenity") === "library"),
-        museum: pois.filter(p => tag(p, "tourism") === "museum"),
-      };
+      const pools = (typeof window.__landmarkCategoryPoisFilter === 'function')
+        ? {
+            train_station: window.__landmarkCategoryPoisFilter('train_station', pois),
+            cathedral:     window.__landmarkCategoryPoisFilter('cathedral', pois),
+            bus_station:   window.__landmarkCategoryPoisFilter('bus_station', pois),
+            library:       window.__landmarkCategoryPoisFilter('library', pois),
+            museum:        window.__landmarkCategoryPoisFilter('museum', pois),
+          }
+        : {};
 
       function nearestFrom(list) {
         let best = null;
