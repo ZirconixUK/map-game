@@ -236,11 +236,15 @@ async function loadPois() {
       });
       window.__allPois = pois;
       log(`📍 ${pois.length} POIs loaded from ${UK_POI_URL}`);
+      try { if (typeof window.__dismissCurrentToast === 'function') window.__dismissCurrentToast(); } catch(e) {}
     } catch(e) {
       // Worker unavailable — fall back to main-thread fetch (may briefly freeze UI)
       log(`⚠️ Worker unavailable, parsing on main thread: ${e.message}`);
+      try { if (typeof window.__dismissCurrentToast === 'function') window.__dismissCurrentToast(); } catch(e) {}
       try {
-        const r = await fetch(UK_POI_URL + '?cb=' + Date.now(), { cache: 'no-store' });
+        const absUrl = new URL(UK_POI_URL, location.href);
+        absUrl.searchParams.set('cb', String(Date.now()));
+        const r = await fetch(absUrl.href, { cache: 'no-store' });
         const d = await r.json();
         const list = Array.isArray(d) ? d : (Array.isArray(d.pois) ? d.pois : null);
         if (list && list.length) window.__allPois = list;
@@ -321,7 +325,7 @@ window.__refreshLivePoisForCurrentLocation = function() {
     }
     setPoisFromList(filtered, `UK POIs (${count} in range)`);
     window.__POI_PACK__ = { filename: 'POI_UK_runtime.json', fromJson: true };
-    try { if (typeof window.showToast === 'function') window.showToast(`📍 ${count} POI${count !== 1 ? 's' : ''} in range.`, true); } catch(e) {}
+    try { if (typeof window.showToast === 'function') window.showToast(`📍 ${count} POI${count !== 1 ? 's' : ''} in range.`, true, { autoDismissMs: 3000 }); } catch(e) {}
   } else {
     log('⚠️ No POIs from UK dataset within mode radius — POI data may not cover this area.');
     try { if (typeof window.showToast === 'function') window.showToast('⚠️ No POIs found in range.', false); } catch(e) {}

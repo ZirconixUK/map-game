@@ -44,35 +44,40 @@ function __showNextToast(){
   const toast = document.getElementById("toast");
   if (!toast) { __toastQueue.length = 0; __toastShowing = false; return; }
   const item = __toastQueue.shift();
-  if (!item) { __toastShowing = false; return; }
+  if (!item) { __toastShowing = false; window.__dismissCurrentToast = null; return; }
 
   __toastShowing = true;
 
-  const { msg, ok, kind, resolve } = item;
+  const { msg, ok, kind, autoDismissMs, resolve } = item;
   const icon = (kind === "curse") ? "🟣" : (ok ? "✅" : "❌");
   toast.innerHTML = `<div class="toastIcon">${icon}</div><div>${msg}</div>`;
   toast.classList.remove("hidden","good","bad","curse");
   if (kind === "curse") toast.classList.add("curse");
   else toast.classList.add(ok ? "good" : "bad");
 
+  let autoDismissTimer = null;
   const dismiss = () => {
+    if (autoDismissTimer) { clearTimeout(autoDismissTimer); autoDismissTimer = null; }
+    window.__dismissCurrentToast = null;
     toast.classList.add("hidden");
     toast.classList.remove("good","bad","curse");
     window.removeEventListener("pointerdown", dismiss, true);
     window.removeEventListener("keydown", dismiss, true);
     try { resolve && resolve(); } catch(e) {}
-    // next
     __showNextToast();
   };
 
+  window.__dismissCurrentToast = dismiss;
   window.addEventListener("pointerdown", dismiss, true);
   window.addEventListener("keydown", dismiss, true);
+  if (autoDismissMs > 0) autoDismissTimer = setTimeout(dismiss, autoDismissMs);
 }
 
 function enqueueToast(msg, ok, opts = null){
   return new Promise((resolve) => {
     const kind = (opts && opts.kind) ? String(opts.kind) : "";
-    __toastQueue.push({ msg, ok: !!ok, kind, resolve });
+    const autoDismissMs = (opts && opts.autoDismissMs > 0) ? opts.autoDismissMs : 0;
+    __toastQueue.push({ msg, ok: !!ok, kind, autoDismissMs, resolve });
     if (!__toastShowing) __showNextToast();
   });
 }
