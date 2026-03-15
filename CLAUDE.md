@@ -59,7 +59,7 @@ GPS guess → get graded.
 │   ├── 15_tools_config.js          Load tools.json, update UI cost badges
 │   ├── 16_leaflet_markers.js       Player/target markers, accuracy circle, POI pins
 │   ├── 17_leaflet_fog.js           Fog-of-war (Martinez polygon clipping, EPSG:3857)
-│   ├── 18_streetview_glimpse.js    Google Street View API wrapper, photo caching
+│   ├── 18_streetview_glimpse.js    Google Street View API wrapper, photo caching; showStreetViewHorizonPhotoForTarget()
 │   ├── 19_curses.js                Curse system: loading, tick, isCurseActive(), all 5 tier effects live
 │   ├── 20_guess.js                 Lock-in scoring: grade-based points + bonuses; computeScore(grade, ctx) returns breakdown object; result modal with breakdown card + medal fan; HTML persisted to localStorage; reopenResultModal() for post-dismiss recovery
 │   └── poi_worker.js               Web Worker: fetches + parses POI_UK_runtime.json off main thread
@@ -80,7 +80,7 @@ All game state lives in module globals in `04_state.js`, exposed on `window.*`.
 - **Sequential script loading** — load order in `index.html` is intentional; don't change it without checking cross-module dependencies
 - **Geometry pipeline** — fog stored in EPSG:3857 via Martinez polygon clipping (`17_leaflet_fog.js`), rendered to Leaflet layer; canvas sits on top for interactive elements
 - **Async tool system** — `tools.json` → JS objects → `updateCostBadgesFromConfig()` → UI badges
-- **Street View caching** — photos stored as `data:` URLs in localStorage under `mg_sv_img_{context}_{key}`
+- **Street View caching** — photos stored as `data:` URLs in localStorage under `mg_sv_img_{context}_{key}`; contexts: `glimpse`, `snapshot`, `near100`, `near200`, `horizon`
 - **Round persistence** — `saveRoundState()` / `loadRoundState()` via `localStorage["mapgame_round_v1"]`
 - **UK POI dataset** — `POI_UK_runtime.json` (175,672 POIs) loaded at boot into `window.__allPois` via a Web Worker (`poi_worker.js`) to avoid main-thread freeze. Result cached in IndexedDB (`uk_pois_cache_v1`); repeat loads are instant. `window.__clearPoiCache()` busts the cache from the browser console.
 - **Two POI sets** — `window.__allPois` holds the full UK dataset (never rendered to map); `window.POIS` holds the mode-radius-filtered slice (~50–300 items, set at game start by `__refreshLivePoisForCurrentLocation()`). Map pins, target picking, and heat scoring all use `POIS`. Landmark Voronoi and `__fetchLandmarkPoisForKind` use `__allPois`.
@@ -147,6 +147,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Thermometer | Done | Needs ongoing tuning |
 | Landmark clues | Done | Searches full UK dataset (`__allPois`); preview before heat charge; Voronoi uses `__allPois` |
 | Extra photos (near100/near200) | Done | Caching + echo snapshots |
+| Horizon photo | Done | Target-pano skyline view facing player; `showStreetViewHorizonPhotoForTarget()`; free re-open after first purchase |
 | N/S and E/W split | Done | Unlock-gated at 50% round time; potentially overpowered |
 | Heat meter | Done | Visible accumulation and decay |
 | Curses | Done | All 5 tier effects live; heat1/2 cost surcharge, heat3 NSEW lock, heat4 radar cap, heat5 photo block + purple cursed UI |
