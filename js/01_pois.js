@@ -287,7 +287,6 @@ async function loadPois() {
   // 2) No import and no custom local file — use built-in DEFAULT_POIS.
   // POIS will be re-filtered from __allPois (UK dataset) at game start by
   // __refreshLivePoisForCurrentLocation(), so this is just the pre-game default.
-  log(`📍 No POI import found. Using built-in defaults; UK dataset will filter at game start.`);
   setPoiSourceUI("built-in (UK dataset loads at game start)");
 }
 
