@@ -714,127 +714,167 @@ if (debugMode) {
     return null;
   }
 
-  if (radarMenu) {
-    radarMenu.querySelectorAll("[data-radar]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const meters = parseFloat(btn.getAttribute("data-radar") || "0");
-        if (blockIfToolOptionAlreadyUsed('radar', String(meters), `${meters}m radar`)) return;
-        // Curse: heat4 caps radar at 250m
-        if (typeof window.isCurseActive === "function" && window.isCurseActive("heat4") && meters > 250) {
-          showToast("Radar is limited to 250m while cursed.", false);
-          return;
-        }
-        // Apply costs
-        const curseRoll = applyQuestionCosts("radar", String(meters));
-        if (curseRoll && curseRoll.blocked) return;
-        // Close overlay immediately
-        if (panelGameplay) panelGameplay.classList.remove("open");
-        showMenu("main");
-        try {
-          const res = (meters > 0) ? askRadar(meters) : askRadar();
-          if (res && typeof res.ok === "boolean") {
-            const m = res.meters;
-            const pretty = (m >= 1000)
-              ? (m/1000).toFixed(m%1000===0?0:1) + "km"
-              : m + "m";
-            const msg = res.ok
-              ? `Yes — the target is within ${pretty}.`
-              : `No — the target is not within ${pretty}.`;
-            showToast(msg, res.ok);
-            noteToolOptionUsed('radar', String(meters));
+  // ─── Generic tool confirmation helper ───────────────────────────────────────
+  // Replaces `menu.innerHTML` with a confirm/cancel view. Calls `onConfirm()`
+  // on confirmation or restores original HTML on cancel/back/close.
+  function __toolConfirmShow({ menu, title, accentClass, descHtml, cost, onConfirm }) {
+    if (!menu) return;
+    const savedHTML = menu.innerHTML;
+    const heatDisplay = (cost && typeof cost.heat_cost === 'number') ? Number(cost.heat_cost).toFixed(1) : null;
+    const costRow = heatDisplay
+      ? `<div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat.</div>`
+      : '';
+    const restore = () => { menu.innerHTML = savedHTML; };
+    menu.innerHTML = `
+      <div class="flex justify-between mb-3">
+        <button class="__tcBack px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
+        <button class="__tcClose px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Close ✕</button>
+      </div>
+      <div class="sectionLabel text-[11px] uppercase tracking-widest ${accentClass} mb-3">${title}</div>
+      <div class="flex flex-col gap-2 py-1">
+        ${descHtml || ''}
+        ${costRow}
+        <div class="flex gap-2 mt-2">
+          <button class="__tcConfirm flex-1 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm cursor-pointer hover:bg-emerald-500 active:scale-[.98]">Confirm</button>
+          <button class="__tcCancel px-4 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>
+        </div>
+      </div>`;
+    menu.querySelector('.__tcBack')?.addEventListener('click', restore);
+    menu.querySelector('.__tcCancel')?.addEventListener('click', restore);
+    menu.querySelector('.__tcClose')?.addEventListener('click', () => {
+      restore();
+      if (panelGameplay) panelGameplay.classList.remove('open');
+      showMenu('main');
+    });
+    menu.querySelector('.__tcConfirm')?.addEventListener('click', () => { restore(); onConfirm(); });
+  }
 
-            // If a curse triggered, queue a follow-up popup AFTER the answer toast is dismissed.
-            try {
-              if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
-                const c = curseRoll.applied.curse;
-                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-              }
-            } catch (e) {}
-          }
-        } catch (e) {
-          console.error(e);
+  // ─── Radar ───────────────────────────────────────────────────────────────────
+  if (radarMenu) {
+    radarMenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-radar]');
+      if (!btn) return;
+      const meters = parseFloat(btn.getAttribute('data-radar') || '0');
+      if (blockIfToolOptionAlreadyUsed('radar', String(meters), `${meters}m radar`)) return;
+      if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat4') && meters > 250) {
+        showToast('Radar is limited to 250m while cursed.', false); return;
+      }
+      const label = meters >= 1000 ? `${meters/1000}km` : `${meters}m`;
+      const cost = (typeof getToolCosts === 'function') ? getToolCosts('radar', String(meters)) : { heat_cost: 0.5 };
+      __toolConfirmShow({
+        menu: radarMenu,
+        title: `📡 Radar — ${label}`,
+        accentClass: 'text-blue-400',
+        cost,
+        onConfirm: () => {
+          const curseRoll = applyQuestionCosts('radar', String(meters));
+          if (curseRoll && curseRoll.blocked) return;
+          if (panelGameplay) panelGameplay.classList.remove('open');
+          showMenu('main');
+          try {
+            const res = meters > 0 ? askRadar(meters) : askRadar();
+            if (res && typeof res.ok === 'boolean') {
+              const m = res.meters;
+              const pretty = m >= 1000 ? (m/1000).toFixed(m%1000===0?0:1)+'km' : m+'m';
+              showToast(res.ok ? `Yes — the target is within ${pretty}.` : `No — the target is not within ${pretty}.`, res.ok);
+              noteToolOptionUsed('radar', String(meters));
+              try {
+                if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
+                  const c = curseRoll.applied.curse;
+                  showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+                }
+              } catch(e) {}
+            }
+          } catch(e) { console.error(e); }
         }
       });
     });
   }
 
-  // Thermometer menu (UI only for now)
+  // ─── Thermometer ─────────────────────────────────────────────────────────────
   if (thermoMenu) {
-    thermoMenu.querySelectorAll("[data-thermo]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const distM = parseFloat(btn.getAttribute("data-thermo") || "0");
-        if (blockIfToolOptionAlreadyUsed('thermometer', String(distM), `${distM}m thermometer`)) return;
-        if (panelGameplay) panelGameplay.classList.remove("open");
-        showMenu("main");
-        if (typeof showToast === "function") {
+    thermoMenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-thermo]');
+      if (!btn) return;
+      const distM = parseFloat(btn.getAttribute('data-thermo') || '0');
+      if (blockIfToolOptionAlreadyUsed('thermometer', String(distM), `${distM}m thermometer`)) return;
+      const label = distM >= 1000 ? `${distM/1000}km` : `${distM}m`;
+      const cost = (typeof getToolCosts === 'function') ? getToolCosts('thermometer', String(distM)) : { heat_cost: 0.5 };
+      __toolConfirmShow({
+        menu: thermoMenu,
+        title: `🌡️ Thermometer — ${label}`,
+        accentClass: 'text-orange-400',
+        descHtml: `<div class="text-slate-400 text-sm">Walk <span class="text-gray-100 font-semibold">${label}</span> — temperature rises as you approach the target.</div>`,
+        cost,
+        onConfirm: () => {
+          if (panelGameplay) panelGameplay.classList.remove('open');
+          showMenu('main');
           let started = false;
           try {
-            if (typeof startDistanceThermometer === "function") {
+            if (typeof startDistanceThermometer === 'function') {
               const r = startDistanceThermometer(distM);
               started = !!(r && r.ok);
             }
           } catch(e) { console.error(e); }
           if (started) {
-            const curseRoll = applyQuestionCosts("thermometer", String(distM));
+            const curseRoll = applyQuestionCosts('thermometer', String(distM));
             if (curseRoll && curseRoll.blocked) return;
-            showToast(`Thermometer active — walk ${distM}m.`, true);
+            showToast(`Thermometer active — walk ${label}.`, true);
             noteToolOptionUsed('thermometer', String(distM));
-
             try {
-              if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
+              if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
                 const c = curseRoll.applied.curse;
                 showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
               }
-            } catch (e) {}
+            } catch(e) {}
           } else {
-            showToast("Set your location first (geolocation) before using the thermometer.", false);
+            showToast('Set your location first (geolocation) before using the thermometer.', false);
           }
         }
       });
     });
   }
 
-
-  // N/S/E/W menu (UI only for now + location check)
+  // ─── N/S/E/W ─────────────────────────────────────────────────────────────────
   if (dirMenu) {
-    dirMenu.querySelectorAll("[data-dir]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const mode = btn.getAttribute("data-dir") || "";
-        try {
-          const info = (typeof window.getToolUnlockInfo === 'function') ? window.getToolUnlockInfo('nsew', String(mode)) : null;
-          if (info && info.locked) {
-            if (typeof showToast === "function") showToast(`This tool unlocks in ${formatMMSS(info.remainingMs)}.`, false);
-            return;
-          }
-        } catch (e) {}
-        if (blockIfToolOptionAlreadyUsed('nsew', String(mode), `${mode} split`)) return;
-        if (!player) {
-          if (typeof showToast === "function") showToast("Set your location first (geolocation) before using N/S/E/W.", false);
-          return;
+    dirMenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-dir]');
+      if (!btn) return;
+      const mode = btn.getAttribute('data-dir') || '';
+      try {
+        const info = (typeof window.getToolUnlockInfo === 'function') ? window.getToolUnlockInfo('nsew', String(mode)) : null;
+        if (info && info.locked) {
+          showToast(`This tool unlocks in ${formatMMSS(info.remainingMs)}.`, false); return;
         }
-        const curseRoll = applyQuestionCosts("nsew", String(mode));
-        if (curseRoll && curseRoll.blocked) return;
-        if (panelGameplay) panelGameplay.classList.remove("open");
-        showMenu("main");
-        try {
-          const res = (typeof askAxisDirection === "function") ? askAxisDirection(mode) : null;
-          if (res && typeof showToast === "function") {
-            const msg = (mode === "NS")
-              ? `The target is ${res.label} of you.`
-              : `The target is ${res.label} of you.`;
-            showToast(msg, true);
-            noteToolOptionUsed('nsew', String(mode));
-
-            try {
-              if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
-                const c = curseRoll.applied.curse;
-                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-              }
-            } catch (e) {}
-          }
-        } catch (e) {
-          console.error(e);
-          if (typeof showToast === "function") showToast("Couldn't run N/S/E/W right now.", false);
+      } catch(e) {}
+      if (blockIfToolOptionAlreadyUsed('nsew', String(mode), `${mode} split`)) return;
+      if (!player) { showToast('Set your location first (geolocation) before using N/S/E/W.', false); return; }
+      const label = mode === 'NS' ? 'North/South' : 'East/West';
+      const cost = (typeof getToolCosts === 'function') ? getToolCosts('nsew', String(mode)) : { heat_cost: 0.5 };
+      __toolConfirmShow({
+        menu: dirMenu,
+        title: `🧭 ${label} Split`,
+        accentClass: 'text-cyan-400',
+        descHtml: `<div class="text-slate-400 text-sm">Reveals whether the target is <span class="text-gray-100 font-semibold">${mode === 'NS' ? 'North or South' : 'East or West'}</span> of your current position.</div>`,
+        cost,
+        onConfirm: () => {
+          const curseRoll = applyQuestionCosts('nsew', String(mode));
+          if (curseRoll && curseRoll.blocked) return;
+          if (panelGameplay) panelGameplay.classList.remove('open');
+          showMenu('main');
+          try {
+            const res = typeof askAxisDirection === 'function' ? askAxisDirection(mode) : null;
+            if (res) {
+              showToast(`The target is ${res.label} of you.`, true);
+              noteToolOptionUsed('nsew', String(mode));
+              try {
+                if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
+                  const c = curseRoll.applied.curse;
+                  showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
+                }
+              } catch(e) {}
+            }
+          } catch(e) { console.error(e); showToast("Couldn't run N/S/E/W right now.", false); }
         }
       });
     });
@@ -992,94 +1032,129 @@ if (debugMode) {
   }
 
   // Photo menu
+  // Extracts the async execution logic so the confirm flow can call it after the menu HTML is restored.
+  async function __photoExec(mode) {
+    if (mode === 'starter') {
+      try {
+        if (typeof showStreetViewGlimpseForTarget === 'function') {
+          const res = await showStreetViewGlimpseForTarget({ context: 'snapshot' });
+          if (res && res.ok) { if (typeof window.setLast === 'function') window.setLast('REVIEW', true); }
+        } else {
+          showToast('Photo glimpse module not loaded.', false);
+        }
+      } catch(e) { console.error(e); showToast('Could not load the starter photo right now.', false); }
+      return;
+    }
+
+    if (mode === 'near100' || mode === 'near200') {
+      if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat5')) {
+        showToast('Extra photos are blocked while cursed.', false); return;
+      }
+      try {
+        if (typeof window.showStreetViewExtraPhotoForTarget === 'function') {
+          const res = await window.showStreetViewExtraPhotoForTarget({ tier: mode });
+          if (!res || !res.ok) {
+            showToast('No further photos available for this target.', false);
+          } else {
+            try {
+              if (!res.cached) {
+                const cost = (typeof getToolCosts === 'function') ? getToolCosts('photo', String(mode)) : null;
+                const h = (cost && typeof cost.heat_cost === 'number' && isFinite(cost.heat_cost))
+                  ? cost.heat_cost : (typeof QUESTION_HEAT_COST === 'number' ? QUESTION_HEAT_COST : 0.5);
+                if (typeof addHeat === 'function') addHeat(h);
+                else if (typeof setHeatLevel === 'function') setHeatLevel((heatLevel||0)+h);
+              }
+            } catch(e) {}
+          }
+          try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
+          try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
+        } else {
+          showToast('Extra photo module not loaded.', false);
+        }
+      } catch(e) { console.error(e); showToast('Could not fetch an extra photo right now.', false); }
+      return;
+    }
+
+    if (mode === 'uncorrupt') {
+      try {
+        const already = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+        if (already) { showToast('Photos are already uncorrupted for this round.', true); return; }
+        if (typeof window.__setPhotosUncorrupted === 'function') window.__setPhotosUncorrupted(true);
+        try {
+          document.querySelectorAll('.photo-glimpse-frame').forEach(el => el.classList.add('is-uncorrupted'));
+          const s = document.getElementById('photoGlitchSlices'); if (s) s.innerHTML = '';
+          const b = document.getElementById('photoCorruptBlocks'); if (b) b.innerHTML = '';
+        } catch(e) {}
+        try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
+        showToast('All photos uncorrupted for this round.', true);
+        noteToolOptionUsed('photo', 'uncorrupt');
+      } catch(e) { console.error(e); showToast('Could not uncorrupt photos right now.', false); }
+      return;
+    }
+    // Unknown mode — no-op
+  }
+
   if (photoMenu) {
-    photoMenu.querySelectorAll('[data-photo]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const mode = (btn.getAttribute('data-photo') || 'glimpse').toLowerCase();
+    photoMenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-photo]');
+      if (!btn) return;
+      const mode = (btn.getAttribute('data-photo') || '').toLowerCase();
+
+      // Starter photo is always free — no confirmation needed.
+      if (mode === 'starter') {
         if (panelGameplay) panelGameplay.classList.remove('open');
         showMenu('main');
+        __photoExec('starter');
+        return;
+      }
 
-        if (mode === 'starter') {
-          try {
-            if (typeof showStreetViewGlimpseForTarget === 'function') {
-              const res = await showStreetViewGlimpseForTarget({ context: 'snapshot' });
-              // Re-viewing the starter snapshot is always free.
-              if (res && res.ok) {
-                if (typeof window.setLast === 'function') window.setLast('REVIEW', true);
-              }
-            } else {
-              showToast('Photo glimpse module not loaded.', false);
-            }
-          } catch (e) {
-            console.error(e);
-            showToast('Could not load the starter photo right now.', false);
-          }
-          return;
-        }
-
-        if (mode === 'near100' || mode === 'near200') {
-          // Curse: heat5 blocks extra photos
-          if (typeof window.isCurseActive === "function" && window.isCurseActive("heat5")) {
-            showToast("Extra photos are blocked while cursed.", false);
+      // Extra photos: skip confirm if already owned (re-open is free).
+      if (mode === 'near100' || mode === 'near200') {
+        try {
+          const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+          const photos = (rs && Array.isArray(rs.photos)) ? rs.photos : [];
+          const owned = photos.some(p => p && String(p.kind) === mode && p.url);
+          if (owned) {
+            if (panelGameplay) panelGameplay.classList.remove('open');
+            showMenu('main');
+            __photoExec(mode);
             return;
           }
-          try {
-            if (typeof window.showStreetViewExtraPhotoForTarget === 'function') {
-              const res = await window.showStreetViewExtraPhotoForTarget({ tier: mode });
-              if (!res || !res.ok) {
-                showToast('No further photos available for this target.', false);
-              } else {
-                // First unlock adds heat; re-opening an already unlocked photo is free.
-                try {
-                  if (!res.cached) {
-                    const cost = (typeof getToolCosts === "function") ? getToolCosts("photo", String(mode)) : null;
-                    const h = (cost && typeof cost.heat_cost === "number" && isFinite(cost.heat_cost))
-                      ? cost.heat_cost
-                      : (typeof QUESTION_HEAT_COST === "number" ? QUESTION_HEAT_COST : 0.5);
-                    if (typeof addHeat === "function") addHeat(h);
-                    else if (typeof setHeatLevel === "function") setHeatLevel((heatLevel||0)+h);
-                  }
-                } catch(e) {}
-              }
-              try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
-              try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
-            } else {
-              showToast('Extra photo module not loaded.', false);
-            }
-          } catch(e) { console.error(e); showToast('Could not fetch an extra photo right now.', false); }
-          return;
-        }
-
-        if (mode === 'uncorrupt') {
-          if (blockIfToolOptionAlreadyUsed('photo', String(mode), 'Uncorrupt')) return;
-          try {
-            const already = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-            if (already) {
-              showToast('Photos are already uncorrupted for this round.', true);
-              return;
-            }
-            if (typeof window.__setPhotosUncorrupted === 'function') window.__setPhotosUncorrupted(true);
-
-            // If a photo is currently open, update its frame instantly.
-            try {
-              document.querySelectorAll('.photo-glimpse-frame').forEach(el => el.classList.add('is-uncorrupted'));
-              const s = document.getElementById('photoGlitchSlices');
-              if (s) s.innerHTML = '';
-              const b = document.getElementById('photoCorruptBlocks');
-              if (b) b.innerHTML = '';
-            } catch(e) {}
-
-            try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
-            showToast('All photos uncorrupted for this round.', true);
-            noteToolOptionUsed('photo', String(mode));
-          } catch(e) { console.error(e); showToast('Could not uncorrupt photos right now.', false); }
-          return;
-        }
-
-        // Unknown mode
+        } catch(e) {}
+        const tierLabel = mode === 'near100' ? '≤100m' : '≤200m';
+        const cost = (typeof getToolCosts === 'function') ? getToolCosts('photo', mode) : { heat_cost: 0.5 };
+        __toolConfirmShow({
+          menu: photoMenu,
+          title: `📸 Extra photo (${tierLabel})`,
+          accentClass: 'text-violet-400',
+          descHtml: `<div class="text-slate-400 text-sm">A Street View photo taken within <span class="text-gray-100 font-semibold">${tierLabel}</span> of the target.</div>`,
+          cost,
+          onConfirm: () => {
+            if (panelGameplay) panelGameplay.classList.remove('open');
+            showMenu('main');
+            __photoExec(mode);
+          }
+        });
         return;
+      }
 
-      });
+      if (mode === 'uncorrupt') {
+        if (blockIfToolOptionAlreadyUsed('photo', 'uncorrupt', 'Uncorrupt')) return;
+        const cost = (typeof getToolCosts === 'function') ? getToolCosts('photo', 'uncorrupt') : { heat_cost: 0.5 };
+        __toolConfirmShow({
+          menu: photoMenu,
+          title: `✨ Uncorrupt all photos`,
+          accentClass: 'text-violet-400',
+          descHtml: `<div class="text-slate-400 text-sm">Removes glitch corruption from all photos this round.</div>`,
+          cost,
+          onConfirm: () => {
+            if (panelGameplay) panelGameplay.classList.remove('open');
+            showMenu('main');
+            __photoExec('uncorrupt');
+          }
+        });
+        return;
+      }
     });
   }
 
@@ -1089,11 +1164,24 @@ if (debugMode) {
   // Phase 2: Lock In Guess + Start New Round
   try {
     const btnLock = document.getElementById('btnLockGuess');
-    if (btnLock) {
-      btnLock.addEventListener('click', async () => {
-        try {
-          if (typeof window.lockInGuess === 'function') await window.lockInGuess();
-        } catch(e) { console.error(e); }
+    const roundActions = document.getElementById('roundActions');
+    if (btnLock && roundActions) {
+      btnLock.addEventListener('click', () => {
+        const savedHTML = roundActions.innerHTML;
+        const restore = () => { roundActions.innerHTML = savedHTML; };
+        roundActions.innerHTML = `
+          <div class="text-sm text-gray-200 font-semibold text-center mb-2">Lock in your current location as your guess?</div>
+          <div class="flex gap-2">
+            <button id="__lockConfirm" class="flex-1 rounded-2xl bg-amber-500 border-0 flex items-center justify-center gap-1.5 py-3 font-bold text-white text-sm cursor-pointer hover:bg-amber-400 active:scale-95">🎯 Lock In</button>
+            <button id="__lockCancel" class="px-4 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-gray-300 text-sm cursor-pointer hover:bg-[#253550]">Cancel</button>
+          </div>`;
+        document.getElementById('__lockCancel')?.addEventListener('click', restore);
+        document.getElementById('__lockConfirm')?.addEventListener('click', async () => {
+          restore();
+          try {
+            if (typeof window.lockInGuess === 'function') await window.lockInGuess();
+          } catch(e) { console.error(e); }
+        });
       });
     }
     const btnNR = document.getElementById('btnNewRound');
