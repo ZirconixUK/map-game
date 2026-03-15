@@ -54,15 +54,28 @@
     return 'Copper';
   }
 
-  function computeScore(distM){
-    const d = Math.max(0, num(distM) ?? Infinity);
-    const maxPts = (typeof SCORE_MAX_POINTS !== 'undefined') ? num(SCORE_MAX_POINTS) : 5000;
-    const zeroAt = (typeof SCORE_ZERO_AT_M !== 'undefined') ? num(SCORE_ZERO_AT_M) : 2000;
-    if (!maxPts || !zeroAt) return 0;
-    // Smooth falloff: quadratic-ish clamp.
-    const x = Math.min(1, d / zeroAt);
-    const pts = Math.round(maxPts * Math.max(0, 1 - (x*x)));
-    return Math.max(0, pts);
+  function computeScore(grade, ctx) {
+    const bases = (typeof GRADE_BASE_SCORES !== 'undefined') ? GRADE_BASE_SCORES
+      : { Diamond:800, Emerald:650, Platinum:500, Gold:375, Silver:250, Bronze:125, Copper:50 };
+    const base = bases[grade] ?? 50;
+
+    const tLimit = ctx.timeLimitMs || 1;
+    const timeBonus = Math.round(
+      ((typeof SCORE_TIME_BONUS_MAX !== 'undefined') ? SCORE_TIME_BONUS_MAX : 150)
+      * (Math.max(0, ctx.remainingMs || 0) / tLimit)
+    );
+
+    const lb = (typeof SCORE_LENGTH_BONUS !== 'undefined') ? SCORE_LENGTH_BONUS : {short:0,medium:50,long:100};
+    const lengthBonus = lb[ctx.gameLength] ?? 0;
+
+    const db = (typeof SCORE_DIFFICULTY_BONUS !== 'undefined') ? SCORE_DIFFICULTY_BONUS : {easy:0,normal:50,hard:100};
+    const diffBonus = db[ctx.difficulty] ?? 0;
+
+    const eff = (typeof SCORE_TOOL_EFFICIENCY !== 'undefined') ? SCORE_TOOL_EFFICIENCY : [100,90,75,60,45,30,15,0];
+    const toolBonus = eff[Math.min(ctx.toolsUsed, eff.length - 1)] ?? 0;
+
+    return { base, timeBonus, lengthBonus, diffBonus, toolBonus,
+             total: base + timeBonus + lengthBonus + diffBonus + toolBonus };
   }
 
   async function sampleGpsBriefly(){
@@ -176,12 +189,29 @@
       ? Math.max(0, rawD - (useAdj && acc != null ? acc : 0))
       : null;
 
-    const score = computeScore(useAdj ? adjD : rawD);
-    const grade = computeGrade(useAdj ? adjD : rawD);
-
     const _tLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30*60*1000;
     const _tStart = (typeof roundStartMs === 'number' && isFinite(roundStartMs)) ? roundStartMs : Date.now();
     const guessRemainingMs = _tLimit - (Date.now() - _tStart);
+
+    // Count tool uses (exclude photo.starter — it's automatic)
+    const _usedOpts = (typeof window.getUsedToolOptionsThisRound === 'function')
+      ? window.getUsedToolOptionsThisRound() : {};
+    let _toolsUsed = 0;
+    for (const [tId, opts] of Object.entries(_usedOpts)) {
+      for (const [oId, used] of Object.entries(opts || {})) {
+        if (used && !(tId === 'photo' && oId === 'starter')) _toolsUsed++;
+      }
+    }
+
+    const grade = computeGrade(useAdj ? adjD : rawD);
+    const scoreResult = computeScore(grade, {
+      timeLimitMs: _tLimit,
+      remainingMs: guessRemainingMs,
+      gameLength:  (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short',
+      difficulty:  (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal',
+      toolsUsed:   _toolsUsed,
+    });
+    const score = scoreResult.total;
 
     setRound({
       hasGuessed: true,
@@ -191,6 +221,7 @@
       distanceToTargetM: rawD,
       adjustedDistanceM: adjD,
       scorePoints: score,
+      scoreBreakdown: scoreResult,
       gradeLabel: grade,
       guessRemainingMs,
     });
@@ -222,6 +253,16 @@
       ? `<div class="muted" style="font-size:0.7rem;text-align:center;margin-bottom:4px;">Adjusted ${fmtMeters(adjD)} · GPS ±${acc != null ? fmtMeters(acc) : '—'}</div>`
       : '';
 
+    const _bd = scoreResult;
+    const _bdTimeLabel = `Time (${timeStatVal} ${timeStatLabel.toLowerCase()})`;
+    const _bdLengthLabel = `Game length (${(typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short'})`;
+    const _bdDiffLabel = `Difficulty (${(typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal'})`;
+    function _bdRow(label, val) {
+      const cls = val === 0 ? ' zero' : '';
+      const sign = val > 0 ? '+' : '';
+      return `<div class="resultBreakdownRow${cls}"><span>${label}</span><span>${sign}${val} pts</span></div>`;
+    }
+
     const html = `
       <div class="resultHero">
         <div class="resultGradeBadge">
@@ -234,6 +275,14 @@
           <div class="resultGradeLabel" style="color:${gc}">${grade}</div>
         </div>
         <div class="resultFlavor" style="color:${gc}">${flavor}</div>
+        <div class="resultBreakdown">
+          ${_bdRow(`${grade} base`, _bd.base)}
+          ${_bdRow(_bdTimeLabel, _bd.timeBonus)}
+          ${_bdRow(_bdLengthLabel, _bd.lengthBonus)}
+          ${_bdRow(_bdDiffLabel, _bd.diffBonus)}
+          ${_bdRow(`Tool efficiency (${_toolsUsed} used)`, _bd.toolBonus)}
+          <div class="resultBreakdownRow resultBreakdownTotal"><span>Total</span><span>${score.toLocaleString()} pts</span></div>
+        </div>
         <div class="resultScore">${score.toLocaleString()}<span class="resultScoreLabel">pts</span></div>
         <div class="resultStats">
           <div class="resultStat">
@@ -243,6 +292,10 @@
           <div class="resultStat">
             <div class="resultStatVal" style="color:${timeStatColor}">${timeStatVal}</div>
             <div class="resultStatLabel">${timeStatLabel}</div>
+          </div>
+          <div class="resultStat">
+            <div class="resultStatVal">${_toolsUsed} used</div>
+            <div class="resultStatLabel">Tools</div>
           </div>
         </div>
         ${adjLine}

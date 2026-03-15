@@ -84,9 +84,15 @@ const GRADE_THRESHOLDS_FRAC = [
   { label: 'Copper',   frac: Infinity },
 ];
 
-// Points: a smooth-ish curve. 5,000 at 0m → ~0 by ~2,000m.
-const SCORE_MAX_POINTS = 5000;
-const SCORE_ZERO_AT_M = 2000;
+// ---- Scoring v2 (grade-based + bonuses) ----
+const GRADE_BASE_SCORES = {
+  Diamond: 800, Emerald: 650, Platinum: 500, Gold: 375,
+  Silver: 250, Bronze: 125, Copper: 50,
+};
+const SCORE_TIME_BONUS_MAX   = 150;
+const SCORE_LENGTH_BONUS     = { short: 0, medium: 50, long: 100 };
+const SCORE_DIFFICULTY_BONUS = { easy: 0, normal: 50, hard: 100 };
+const SCORE_TOOL_EFFICIENCY  = [100, 90, 75, 60, 45, 30, 15, 0]; // index = tools used (capped at 7)
 
 // Visual "corruption" overlay for the snapshot (CSS-only, no pixel access).
 // 0..1 (higher = more glitch blocks)

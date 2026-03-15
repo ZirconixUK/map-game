@@ -616,6 +616,37 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 .resultStatLabel{ font-family:var(--font-display); font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:3px; }
 .resultActions{ display:flex; gap:10px; width:100%; margin-top:14px; }
 
+.resultBreakdown {
+  width: 100%;
+  background: rgba(12,25,40,.8);
+  border: 1px solid var(--border-inner);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 10px 0 4px;
+}
+.resultBreakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.resultBreakdownRow span:last-child {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #fff;
+}
+.resultBreakdownRow.zero span:last-child { color: var(--muted); }
+.resultBreakdownTotal {
+  border-top: 1px solid var(--border-inner);
+  margin-top: 5px;
+  padding-top: 6px;
+  font-size: 0.9rem;
+}
+.resultBreakdownTotal span:first-child { color: #fff; font-weight: 700; }
+.resultBreakdownTotal span:last-child  { color: #fbbf24; font-size: 1.05rem; font-weight: 900; font-family: var(--font-mono); }
+
 /* Debug heat row narrow override */
 @media (max-width:520px){
   .dbgHeatRow .muted{ min-width:auto !important; }
