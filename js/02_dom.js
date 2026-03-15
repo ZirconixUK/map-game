@@ -1033,10 +1033,6 @@ if (debugMode) {
     }
 
     if (mode === 'near100' || mode === 'near200') {
-      const _diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
-      if (_diff === 'hard') {
-        showToast('Extra photos are unavailable on hard mode.', false); return;
-      }
       if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat5')) {
         showToast('Extra photos are blocked while cursed.', false); return;
       }
@@ -1100,6 +1096,10 @@ if (debugMode) {
 
       // Extra photos: skip confirm if already owned (re-open is free).
       if (mode === 'near100' || mode === 'near200') {
+        const _diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+        if (_diff === 'hard') {
+          showToast('Extra photos are unavailable on hard mode.', false); return;
+        }
         try {
           const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
           const photos = (rs && Array.isArray(rs.photos)) ? rs.photos : [];
