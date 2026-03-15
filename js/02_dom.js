@@ -1033,6 +1033,10 @@ if (debugMode) {
     }
 
     if (mode === 'near100' || mode === 'near200') {
+      const _diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+      if (_diff === 'hard') {
+        showToast('Extra photos are unavailable on hard mode.', false); return;
+      }
       if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat5')) {
         showToast('Extra photos are blocked while cursed.', false); return;
       }

@@ -9,13 +9,24 @@ window.__radarCostMap = {};
 // Keyed by String(meters) → heat cost for the current game mode.
 window.__thermoCostMap = {};
 
+function __difficultyHeatMult() {
+  try {
+    const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+    if (diff === 'easy') return 0.75;
+    if (diff === 'hard') return 1.5;
+  } catch(e) {}
+  return 1.0;
+}
+
 function getToolCosts(toolId, optionId) {
+  const mult = __difficultyHeatMult();
+
   // Radar costs are mode-dependent; use the live map when available.
   if (toolId === 'radar' && optionId != null) {
     const key = String(optionId);
     const map = window.__radarCostMap;
     if (map && typeof map[key] === 'number') {
-      return { heat_cost: map[key] };
+      return { heat_cost: map[key] * mult };
     }
   }
 
@@ -24,29 +35,26 @@ function getToolCosts(toolId, optionId) {
     const key = String(optionId);
     const map = window.__thermoCostMap;
     if (map && typeof map[key] === 'number') {
-      return { heat_cost: map[key] };
+      return { heat_cost: map[key] * mult };
     }
   }
 
   const cfg = window.TOOLS_CONFIG;
-  const fallback = {
-    heat_cost: (typeof QUESTION_HEAT_COST === "number" ? QUESTION_HEAT_COST : 0.5),
-  };
+  const fallbackRaw = (typeof QUESTION_HEAT_COST === "number" ? QUESTION_HEAT_COST : 0.5);
+  const fallback = { heat_cost: fallbackRaw * mult };
   if (!cfg || !cfg.tools || !cfg.tools[toolId]) return fallback;
   const t = cfg.tools[toolId];
-  const baseRaw = (t.default && typeof t.default === "object") ? t.default : fallback;
-  const base = {
-    heat_cost: (typeof baseRaw.heat_cost === 'number') ? baseRaw.heat_cost : fallback.heat_cost,
-  };
+  const baseRaw = (t.default && typeof t.default === "object") ? t.default : { heat_cost: fallbackRaw };
+  const baseHeat = (typeof baseRaw.heat_cost === 'number') ? baseRaw.heat_cost : fallbackRaw;
 
-  if (!optionId || !Array.isArray(t.options)) return base;
+  if (!optionId || !Array.isArray(t.options)) return { heat_cost: baseHeat * mult };
   const opt = t.options.find(o => String(o.id) === String(optionId));
   if (opt && opt.cost && typeof opt.cost === "object") {
     return {
-      heat_cost: (typeof opt.cost.heat_cost === "number") ? opt.cost.heat_cost : base.heat_cost,
+      heat_cost: (typeof opt.cost.heat_cost === "number") ? opt.cost.heat_cost * mult : baseHeat * mult,
     };
   }
-  return base;
+  return { heat_cost: baseHeat * mult };
 }
 
 // Rebuilds the 6 radar buttons to match the current game mode's distance options,
@@ -177,10 +185,24 @@ function updateCostBadgesFromConfig() {
             if (done) cost = { heat_cost: 0 };
           }
 
+          // hard mode blocks extra photos
+          const isHardBlocked = (id === 'near100' || id === 'near200') &&
+            (typeof window.getSelectedGameDifficulty === 'function' && window.getSelectedGameDifficulty() === 'hard');
           // heat5 curse blocks extra photos — mark button visually
           const isCurseBlocked = (id === 'near100' || id === 'near200') &&
             typeof window.isCurseActive === 'function' && window.isCurseActive('heat5');
           btn.classList.toggle('cursed', !!isCurseBlocked);
+          if (isHardBlocked) {
+            const _row = btn.querySelector('.costRow');
+            const _items = _row ? _row.querySelectorAll('.costItem') : [];
+            if (_items.length >= 1) {
+              _items[0].textContent = '🔒 Locked';
+              _items[0].style.color = '#94a3b8';
+              _items[0].style.backgroundColor = '';
+              _items[0].style.borderColor = '';
+            }
+            return;
+          }
         }
       } catch(e) {}
       // Apply active curse surcharges to the displayed cost.

@@ -204,8 +204,15 @@
       const level = (typeof lvl === 'number' && isFinite(lvl)) ? (lvl | 0) : 0;
       if (level <= 0) return { triggered: false, reason: 'heat0' };
 
-      const p = getTriggerChanceForHeatLevel(level);
+      let p = getTriggerChanceForHeatLevel(level);
       if (p <= 0) return { triggered: false, reason: 'p0', p, level };
+
+      // Scale curse probability by difficulty
+      try {
+        const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+        if (diff === 'easy') p *= 0.75;
+        else if (diff === 'hard') p = Math.min(1, p * 1.5);
+      } catch(e) {}
 
       const r = Math.random();
       const triggered = r < p;
