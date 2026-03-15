@@ -834,6 +834,11 @@ if (debugMode) {
         }
       } catch(e) {}
       if (blockIfToolOptionAlreadyUsed('nsew', String(mode), `${mode} split`)) return;
+      const _pairedMode = mode === 'NS' ? 'EW' : 'NS';
+      const _pairedLabel = _pairedMode === 'NS' ? 'N/S' : 'E/W';
+      if (isToolOptionAlreadyUsed('nsew', _pairedMode)) {
+        showToast(`${_pairedLabel} split already used — only one axis allowed per round.`, false); return;
+      }
       if (!player) { showToast('Set your location first (geolocation) before using N/S/E/W.', false); return; }
       const label = mode === 'NS' ? 'North/South' : 'East/West';
       const cost = (typeof getToolCosts === 'function') ? getToolCosts('nsew', String(mode)) : { heat_cost: 0.5 };
@@ -841,7 +846,8 @@ if (debugMode) {
         menu: dirMenu,
         title: `🧭 ${label} Split`,
         accentClass: 'text-cyan-400',
-        descHtml: `<div class="text-slate-400 text-sm">Reveals whether the target is <span class="text-gray-100 font-semibold">${mode === 'NS' ? 'North or South' : 'East or West'}</span> of your current position.</div>`,
+        descHtml: `<div class="text-slate-400 text-sm">Reveals whether the target is <span class="text-gray-100 font-semibold">${mode === 'NS' ? 'North or South' : 'East or West'}</span> of your current position.</div>
+          <div class="text-amber-400 text-xs mt-2">⚠ Using this locks out the ${_pairedLabel} split for this round.</div>`,
         cost,
         onConfirm: () => {
           const curseRoll = applyQuestionCosts('nsew', String(mode));
@@ -853,6 +859,7 @@ if (debugMode) {
             if (res) {
               showToast(`The target is ${res.label} of you.`, true);
               noteToolOptionUsed('nsew', String(mode));
+              noteToolOptionUsed('nsew', _pairedMode); // lock out the other axis
               try {
                 if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
                   const c = curseRoll.applied.curse;
