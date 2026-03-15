@@ -409,52 +409,16 @@ function showHeatToast() {
   const hv = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
   const L = Math.max(0, Math.min(5, heatLevel | 0));
 
-  // Decay model: dH/dt = -(base + perHeat*H)  =>
-  // H(t) = (H0 + b/a) * exp(-a t) - b/a
-  // Solve for t when H(t)=T: t = (1/a) * ln((H0 + b/a) / (T + b/a))
-  const base = (typeof HEAT_DECAY_BASE_PER_SEC === "number" && isFinite(HEAT_DECAY_BASE_PER_SEC)) ? HEAT_DECAY_BASE_PER_SEC : 0.0015;
-  const perHeat = (typeof HEAT_DECAY_PER_HEAT_PER_SEC === "number" && isFinite(HEAT_DECAY_PER_HEAT_PER_SEC)) ? HEAT_DECAY_PER_HEAT_PER_SEC : 0.0025;
-
-  function timeToHeatTargetSeconds(H0, T) {
-    const h0 = Math.max(0, Math.min(5, H0));
-    const t = Math.max(0, Math.min(5, T));
-    if (h0 <= t) return 0;
-    if (perHeat <= 0) {
-      // Linear fallback (shouldn't happen with our defaults)
-      const rate = Math.max(1e-9, base);
-      return (h0 - t) / rate;
-    }
-    const k = base / perHeat;
-    const num = (h0 + k);
-    const den = (t + k);
-    if (den <= 0 || num <= 0) return 0;
-    return (1 / perHeat) * Math.log(num / den);
-  }
-
-  const lines = [];
-  // Countdown to lower levels (hysteresis: level drops at (level-1).0)
-  if (L > 0 && hv > 0) {
-    const targets = [];
-    for (let lvl = L - 1; lvl >= 0; lvl--) targets.push(lvl);
-    for (const tgt of targets) {
-      const secs = timeToHeatTargetSeconds(hv, tgt);
-      lines.push(`↓ Level ${tgt} in <b>${formatMMSS(secs * 1000)}</b> (at ${tgt.toFixed(1)})`);
-    }
-  } else {
-    lines.push("No cooldown pending.");
-  }
-
   const msg = `
     <div style="display:flex; align-items:baseline; gap:10px;">
       <div style="font-weight:800; letter-spacing:.2px;">🔥 Heat Level ${L}/5</div>
-      <div class="muted" style="font-variant-numeric: tabular-nums;">${hv.toFixed(2)}/5</div>
+      <div class="muted" style="font-variant-numeric:tabular-nums;">${hv.toFixed(2)}/5</div>
     </div>
     <div class="muted" style="margin-top:6px;">${heatConsequencesText(L)}</div>
-    <div style="margin-top:8px; line-height:1.25;">${lines.map(s => `<div>${s}</div>`).join("")}</div>
+    <div style="margin-top:6px; font-size:0.8rem; opacity:0.65;">Heat builds every time you use a tool and resets at the start of a new round.</div>
   `;
 
-  // Neutral toast: use "good" styling so it doesn't look like an answer verdict.
-  if (typeof showToast === "function") showToast(msg, true);
+  if (typeof showToast === "function") showToast(msg, L === 0);
 }
 
 

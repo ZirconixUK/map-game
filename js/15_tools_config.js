@@ -5,11 +5,24 @@ window.TOOLS_CONFIG = null;
 // Keyed by String(meters) → heat cost for the current game mode.
 window.__radarCostMap = {};
 
+// Runtime thermometer cost map populated by updateThermoMenuForMode().
+// Keyed by String(meters) → heat cost for the current game mode.
+window.__thermoCostMap = {};
+
 function getToolCosts(toolId, optionId) {
   // Radar costs are mode-dependent; use the live map when available.
   if (toolId === 'radar' && optionId != null) {
     const key = String(optionId);
     const map = window.__radarCostMap;
+    if (map && typeof map[key] === 'number') {
+      return { heat_cost: map[key] };
+    }
+  }
+
+  // Thermometer costs are also mode-dependent.
+  if (toolId === 'thermometer' && optionId != null) {
+    const key = String(optionId);
+    const map = window.__thermoCostMap;
     if (map && typeof map[key] === 'number') {
       return { heat_cost: map[key] };
     }
@@ -82,6 +95,50 @@ function updateRadarMenuForMode() {
 }
 
 window.updateRadarMenuForMode = updateRadarMenuForMode;
+
+// Rebuilds the 3 thermometer buttons to match the current game mode's distance options.
+function updateThermoMenuForMode() {
+  try {
+    const mode = (typeof window.getSelectedGameLength === 'function')
+      ? window.getSelectedGameLength()
+      : 'short';
+
+    const opts = (typeof THERMO_OPTIONS_BY_MODE !== 'undefined' && THERMO_OPTIONS_BY_MODE[mode])
+      ? THERMO_OPTIONS_BY_MODE[mode]
+      : THERMO_OPTIONS_BY_MODE['short'];
+
+    // Rebuild cost map for this mode.
+    const costMap = {};
+    opts.forEach(o => { costMap[String(o.m)] = o.heat; });
+    window.__thermoCostMap = costMap;
+
+    // Update each button in the thermo submenu.
+    const btns = document.querySelectorAll('#thermoMenu [data-thermo]');
+    btns.forEach((btn, i) => {
+      const opt = opts[i];
+      if (!opt) return;
+      const label = opt.m >= 1000 ? `${opt.m / 1000}km` : `${opt.m}m`;
+      btn.setAttribute('data-thermo', String(opt.m));
+
+      // Update the label text node (first text child of the inner span).
+      const labelSpan = btn.querySelector('.flex-1');
+      if (labelSpan) {
+        const costRow = labelSpan.querySelector('.costRow');
+        Array.from(labelSpan.childNodes).forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE) node.remove();
+        });
+        labelSpan.insertBefore(document.createTextNode(label), costRow || null);
+      }
+    });
+
+    // Refresh cost badges now that data-thermo values have changed.
+    try { if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig(); } catch(e) {}
+  } catch(e) {
+    console.error('updateThermoMenuForMode error:', e);
+  }
+}
+
+window.updateThermoMenuForMode = updateThermoMenuForMode;
 
 function updateCostBadgesFromConfig() {
   const map = [

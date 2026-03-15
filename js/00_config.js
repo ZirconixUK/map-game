@@ -118,8 +118,11 @@ const RADAR_OPTIONS_BY_MODE = {
 const QUESTION_TIME_COST_MS = 5 * 60 * 1000; // 5 minutes
 const QUESTION_HEAT_COST = 0.5;
 
-// ---- Heat drain (placeholder tuning) ----
-// Heat drains continuously over time. Higher heat drains faster than lower heat.
-// Rates are in heat-units per second.
-const HEAT_DECAY_BASE_PER_SEC = 0.0015;     // base drain even at low heat
-const HEAT_DECAY_PER_HEAT_PER_SEC = 0.0025; // extra drain per current heat unit
+// ---- Thermometer options per game mode ----
+// Each entry is { m: distanceInMeters, heat: heatCost }.
+// Shorter distances are more precise clues → cost more heat.
+const THERMO_OPTIONS_BY_MODE = {
+  short:  [ {m:100, heat:0.4}, {m:140, heat:0.3}, {m:180, heat:0.2} ],
+  medium: [ {m:150, heat:0.4}, {m:220, heat:0.3}, {m:300, heat:0.2} ],
+  long:   [ {m:200, heat:0.4}, {m:350, heat:0.3}, {m:500, heat:0.2} ],
+};

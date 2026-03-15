@@ -184,6 +184,22 @@
 })();
 
 
+// ---- Timer widget tap — show info toast ----
+(() => {
+  const timerWidget = document.getElementById('timerWidget');
+  if (!timerWidget) return;
+  timerWidget.addEventListener('click', () => {
+    try {
+      if (typeof showToast === 'function') {
+        showToast(
+          'Find the target before the timer runs out — once this reaches zero, your location will be locked in for scoring.',
+          true
+        );
+      }
+    } catch(e) {}
+  });
+})();
+
 // ---- Back-compat (if older single panel ids exist) ----
 (() => {
   const btn = document.getElementById("btnPanel");

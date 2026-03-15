@@ -331,8 +331,9 @@ function bindUI() {
       try { if (typeof log === 'function') log(`🎮 Game setup: ${__formatGameSetupLabel()}`); } catch (e) {}
       __landmarkLiveCache = {};
       __landmarkCategoryHTML = null;
-      // Rebuild radar menu for the newly-selected mode before the round starts.
+      // Rebuild radar and thermometer menus for the newly-selected mode before the round starts.
       try { if (typeof window.updateRadarMenuForMode === 'function') window.updateRadarMenuForMode(); } catch(e) {}
+      try { if (typeof window.updateThermoMenuForMode === 'function') window.updateThermoMenuForMode(); } catch(e) {}
       await positionPlayerForNewGame();
       clearClues();
       // Refresh live POIs from Overpass based on player location + mode radius.
@@ -640,6 +641,9 @@ if (debugMode) {
     if (showLandmark) refreshLandmarkNearestLabels();
     if (showRadar) {
       try { if (typeof window.updateRadarMenuForMode === 'function') window.updateRadarMenuForMode(); } catch(e) {}
+    }
+    if (showThermo) {
+      try { if (typeof window.updateThermoMenuForMode === 'function') window.updateThermoMenuForMode(); } catch(e) {}
     }
 
     // Resize Gameplay panel to fit the active menu (main menu is compact).

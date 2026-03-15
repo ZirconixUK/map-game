@@ -434,44 +434,9 @@ function addHeat(delta) {
 }
 
 function applyHeatDecay(nowMs = Date.now()) {
-  // Uses elapsed time since last update; higher heat drains faster than lower heat.
-  const now = (typeof nowMs === "number" && isFinite(nowMs)) ? nowMs : Date.now();
-  const last = (typeof heatLastMs === "number" && isFinite(heatLastMs)) ? heatLastMs : now;
-
-  const dtMs = Math.max(0, now - last);
-  if (dtMs < 250) return; // avoid micro-updates (HUD ticks at 250ms)
-
-  // If no heat, just advance timestamp.
-  const hv = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
-  heatLastMs = now;
-  if (hv <= 0) return;
-
-  const base = (typeof HEAT_DECAY_BASE_PER_SEC === "number" && isFinite(HEAT_DECAY_BASE_PER_SEC)) ? HEAT_DECAY_BASE_PER_SEC : 0.0015;
-  const perHeat = (typeof HEAT_DECAY_PER_HEAT_PER_SEC === "number" && isFinite(HEAT_DECAY_PER_HEAT_PER_SEC)) ? HEAT_DECAY_PER_HEAT_PER_SEC : 0.0025;
-
-  const dtSec = dtMs / 1000;
-  const rate = base + (perHeat * hv);
-  const dec = rate * dtSec;
-
-  if (dec <= 0) return;
-
-  const next = Math.max(0, hv - dec);
-  // Only commit if it actually changes enough to matter visually
-  if (Math.abs(next - hv) >= 0.001) {
-    const prevLevel = heatLevel | 0;
-    heatValue = next;
-    __recomputeHeatLevelFromValue();
-    const newLevel = heatLevel | 0;
-    if (newLevel !== prevLevel) {
-      try { if (typeof window.onHeatLevelChanged === 'function') window.onHeatLevelChanged(prevLevel, newLevel, 'decay'); } catch (e) {}
-    }
-
-    // Throttle saves so we don't spam localStorage every tick
-    if (!__lastHeatSaveMs || (now - __lastHeatSaveMs) > 2000 || next === 0) {
-      __lastHeatSaveMs = now;
-      saveRoundState();
-    }
-  }
+  // Heat no longer decays — it only resets at round start.
+  // This function is kept as a no-op so callers in updateHUD() still work.
+  heatLastMs = (typeof nowMs === "number" && isFinite(nowMs)) ? nowMs : Date.now();
 }
 
 // Read-only accessors for other modules
