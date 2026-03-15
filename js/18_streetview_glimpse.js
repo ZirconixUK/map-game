@@ -676,9 +676,103 @@ async function showStreetViewExtraPhotoForTarget({ tier = 'near100' } = {}){
   if (typeof window.log === 'function') window.log(`📷 Extra photo: loaded (${kind}).`);
   return { ok:true, panoId: chosen.panoId, lat: chosen.lat, lon: chosen.lon };
 }
+async function showStreetViewHorizonPhotoForTarget() {
+  const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+
+  // Re-view for free if already purchased this round
+  const photos = (rs && Array.isArray(rs.photos)) ? rs.photos : [];
+  const existing = photos.find(p => p && String(p.kind) === 'horizon' && p.url);
+  if (existing) {
+    openModal();
+    setTitle('Horizon photo');
+    const tip = 'The skyline as seen from the target, facing toward you.';
+    setPhoto(existing.url, tip, 'glimpse');
+    const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+    if (!__unc) try { seedCorruption(0.55, existing.url, 'glimpse'); } catch(e) {}
+    if (typeof window.log === 'function') window.log('📷 Horizon photo: re-opened cached (no extra cost).');
+    return { ok: true, cached: true };
+  }
+
+  // Need target pano
+  const tgt = getTargetSafe();
+  if (!tgt || typeof tgt.lat !== 'number') {
+    if (typeof window.showToast === 'function') window.showToast('No target set yet.', false);
+    return { ok: false, reason: 'no_target' };
+  }
+
+  // Compute heading: target → player
+  let heading = 0;
+  try {
+    const pl = window.player;
+    if (pl && typeof pl.lat === 'number' && typeof pl.lon === 'number') {
+      const dLon = toRad(pl.lon - tgt.lon);
+      const lat1 = toRad(tgt.lat);
+      const lat2 = toRad(pl.lat);
+      const y = Math.sin(dLon) * Math.cos(lat2);
+      const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+      heading = (toDeg(Math.atan2(y, x)) + 360) % 360;
+    }
+  } catch(e) {}
+
+  const fov = 65;
+  const pitch = 58;
+
+  const urlObj = buildStreetViewUrl(tgt, { heading, pitch, fov });
+  if (!urlObj || !urlObj.ok || !urlObj.url) {
+    openModal();
+    setTitle('Horizon photo');
+    setNoKey();
+    return { ok: false, reason: 'no_key' };
+  }
+
+  openModal();
+  setTitle('Horizon photo');
+  setLoading();
+
+  const k = targetKey(tgt);
+  const persisted = __loadCachedDataUrl(k, 'horizon');
+  let dataUrl = persisted;
+  if (!dataUrl) {
+    try {
+      dataUrl = await __fetchAsDataUrl(urlObj.url);
+      __saveCachedDataUrl(k, 'horizon', dataUrl);
+    } catch(e) {
+      dataUrl = urlObj.url;
+    }
+  }
+
+  const tip = 'The skyline as seen from the target, facing toward you.';
+  setPhoto(dataUrl, tip, 'glimpse');
+  const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+  if (!__unc) try { seedCorruption(0.55, dataUrl, 'glimpse'); } catch(e) {}
+
+  // Register in round state so re-open is free
+  try {
+    if (typeof window.__onStreetViewPhotoCaptured === 'function') {
+      window.__onStreetViewPhotoCaptured({
+        context: 'horizon',
+        kind: 'horizon',
+        url: dataUrl,
+        sourceUrl: urlObj.url,
+        panoId: (tgt.pano_id || tgt.panoid || tgt.panoId) ? String(tgt.pano_id || tgt.panoid || tgt.panoId) : null,
+        lat: tgt.lat,
+        lon: tgt.lon,
+        heading,
+        pitch,
+        fov,
+      });
+    }
+  } catch(e) {}
+
+  try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
+  if (typeof window.log === 'function') window.log('📷 Horizon photo: loaded.');
+  return { ok: true, cached: !!persisted };
+}
+
 // Expose
   window.showStreetViewGlimpseForTarget = showStreetViewGlimpseForTarget;
   window.showStreetViewExtraPhotoForTarget = showStreetViewExtraPhotoForTarget;
+  window.showStreetViewHorizonPhotoForTarget = showStreetViewHorizonPhotoForTarget;
   window.bindPhotoModal = bindPhotoModal;
   window.clearStreetViewGlimpseCache = clearCache;
   window.isStreetViewGlimpseFreeForCurrentTarget = isStreetViewGlimpseFreeForCurrentTarget;

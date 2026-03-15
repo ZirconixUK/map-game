@@ -185,6 +185,11 @@ function updateCostBadgesFromConfig() {
             if (done) cost = { heat_cost: 0 };
           }
 
+          if (id === 'horizon') {
+            const owned = photos.some(p => p && String(p.kind) === 'horizon' && p.url);
+            if (owned) cost = { heat_cost: 0 };
+          }
+
           // hard mode blocks extra photos
           const isHardBlocked = (id === 'near100' || id === 'near200') &&
             (typeof window.getSelectedGameDifficulty === 'function' && window.getSelectedGameDifficulty() === 'hard');

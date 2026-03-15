@@ -121,6 +121,13 @@
           "cost": {
             "heat_cost": 0.8
           }
+        },
+        {
+          "id": "horizon",
+          "label": "Horizon photo",
+          "cost": {
+            "heat_cost": 1.0
+          }
         }
       ]
     }

@@ -1084,6 +1084,20 @@ if (debugMode) {
       } catch(e) { console.error(e); showToast('Could not uncorrupt photos right now.', false); }
       return;
     }
+    if (mode === 'horizon') {
+      try {
+        const res = await window.showStreetViewHorizonPhotoForTarget();
+        if (res && res.ok && !res.cached) {
+          const cost = (typeof getToolCosts === 'function') ? getToolCosts('photo', 'horizon') : { heat_cost: 1.0 };
+          const h = (cost && typeof cost.heat_cost === 'number') ? cost.heat_cost : 1.0;
+          if (typeof addHeat === 'function') addHeat(h);
+          if (typeof noteToolOptionUsed === 'function') noteToolOptionUsed('photo', 'horizon');
+          if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig();
+          if (typeof updateHUD === 'function') updateHUD();
+        }
+      } catch(e) { console.error(e); showToast('Could not load the horizon photo right now.', false); }
+      return;
+    }
     // Unknown mode — no-op
   }
 
@@ -1148,6 +1162,30 @@ if (debugMode) {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');
             __photoExec('uncorrupt');
+          }
+        });
+        return;
+      }
+
+      if (mode === 'horizon') {
+        const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+        const owned = !!(rs && Array.isArray(rs.photos) && rs.photos.some(p => p && String(p.kind) === 'horizon' && p.url));
+        if (owned) {
+          if (panelGameplay) panelGameplay.classList.remove('open');
+          showMenu('main');
+          __photoExec('horizon');
+          return;
+        }
+        __toolConfirmShow({
+          menu: photoMenu,
+          title: '🌅 Horizon photo',
+          accentClass: 'text-violet-400',
+          descHtml: '<div class="text-slate-400 text-sm">A skyline view from the target pano, facing toward your current position.</div>',
+          cost: (typeof getToolCosts === 'function') ? getToolCosts('photo', 'horizon') : { heat_cost: 1.0 },
+          onConfirm: () => {
+            if (panelGameplay) panelGameplay.classList.remove('open');
+            showMenu('main');
+            __photoExec('horizon');
           }
         });
         return;
