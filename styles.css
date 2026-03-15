@@ -616,6 +616,14 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 .resultStatLabel{ font-family:var(--font-display); font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:3px; }
 .resultActions{ display:flex; gap:10px; width:100%; margin-top:14px; }
 
+.resultMedalStrip { display:flex; gap:5px; width:100%; justify-content:center; align-items:flex-end; margin:6px 0 2px; }
+.resultMedalChip { display:flex; flex-direction:column; align-items:center; gap:3px; opacity:0.22; }
+.resultMedalChip.active { opacity:1; transform:scale(1.18); transform-origin:bottom center; }
+.resultMedalDot { width:13px; height:13px; border-radius:50%; }
+.resultMedalChip.active .resultMedalDot { box-shadow:0 0 0 2px rgba(255,255,255,.25); }
+.resultMedalChipLabel { font-size:0.52rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+.resultMedalChip.active .resultMedalChipLabel { color:#fff; }
+
 .resultBreakdown {
   width: 100%;
   background: rgba(12,25,40,.8);

@@ -253,6 +253,25 @@
       ? `<div class="muted" style="font-size:0.7rem;text-align:center;margin-bottom:4px;">Adjusted ${fmtMeters(adjD)} · GPS ±${acc != null ? fmtMeters(acc) : '—'}</div>`
       : '';
 
+    const _gradeOrder = [
+      { label:'Copper',   color:'#ef4444' },
+      { label:'Bronze',   color:'#f97316' },
+      { label:'Silver',   color:'#94a3b8' },
+      { label:'Gold',     color:'#fbbf24' },
+      { label:'Platinum', color:'#e2e8f0' },
+      { label:'Emerald',  color:'#34d399' },
+      { label:'Diamond',  color:'#a5f3fc' },
+    ];
+    const medalStripHtml = `<div class="resultMedalStrip">${
+      _gradeOrder.map(g => {
+        const active = g.label === grade;
+        return `<div class="resultMedalChip${active ? ' active' : ''}">` +
+          `<div class="resultMedalDot" style="background:${g.color}"></div>` +
+          `<div class="resultMedalChipLabel">${g.label}</div>` +
+          `</div>`;
+      }).join('')
+    }</div>`;
+
     const _bd = scoreResult;
     const _bdTimeLabel = `Time (${timeStatVal} ${timeStatLabel.toLowerCase()})`;
     const _bdLengthLabel = `Game length (${(typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short'})`;
@@ -274,6 +293,7 @@
           </svg>
           <div class="resultGradeLabel" style="color:${gc}">${grade}</div>
         </div>
+        ${medalStripHtml}
         <div class="resultFlavor" style="color:${gc}">${flavor}</div>
         <div class="resultBreakdown">
           ${_bdRow(`${grade} base`, _bd.base)}
