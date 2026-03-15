@@ -263,6 +263,11 @@
     return !(r && r.hasGuessed);
   }
 
+  function reopenResultModal(){
+    const m = document.getElementById('resultModal');
+    if (m) m.classList.remove('hidden');
+  }
+
   // Public API
   window.lockInGuess = lockInGuess;
   window.startNewRound = startNewRound;
@@ -272,5 +277,6 @@
   };
   window.canUseTools = canUseTools;
   window.closeResultModal = closeResultModal;
+  window.reopenResultModal = reopenResultModal;
 
 })();

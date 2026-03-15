@@ -190,14 +190,13 @@
   if (!timerWidget) return;
   timerWidget.addEventListener('click', () => {
     try {
-      if (typeof showToast === 'function') {
-        const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
-        showToast(
-          over
-            ? 'The current round has ended and the scores have been locked in.'
-            : 'Find the target before the timer runs out — once this reaches zero, your location will be locked in for scoring.',
-          true
-        );
+      const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
+      if (over) {
+        if (typeof window.reopenResultModal === 'function') window.reopenResultModal();
+      } else {
+        if (typeof showToast === 'function') {
+          showToast('Find the target before the timer runs out — once this reaches zero, your location will be locked in for scoring.', true);
+        }
       }
     } catch(e) {}
   });
