@@ -139,7 +139,9 @@ function updateUI() {
       }
 
       const shouldDisable = !!over || !!usedThisRound || !!timeLocked;
-      n.disabled = shouldDisable;
+      // Only block click events when round is over. Used/locked buttons stay clickable
+      // so delegation handlers can show feedback toasts ("already used", "unlocks in X:XX").
+      n.disabled = !!over;
       n.classList.toggle('disabled', !!over);
       n.classList.toggle('used', !!usedThisRound && !over);
       n.classList.toggle('locked', !!timeLocked && !over && !usedThisRound);
