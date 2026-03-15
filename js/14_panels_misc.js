@@ -5,13 +5,15 @@
   const panelCurses = document.getElementById("panelCurses");
   const panelNewGame = document.getElementById("panelNewGame");
   const panelSystem = document.getElementById("panelSystem");
+  const panelInfo = document.getElementById("panelInfo");
   const btnGameplay = document.getElementById("btnGameplay");
   const btnDebug = document.getElementById("btnDebug");
   const btnCurses = document.getElementById("btnCurses");
   const btnSystem = document.getElementById("btnSystem");
+  const btnInfo = document.getElementById("btnInfo");
   const backdrop = document.getElementById("panelBackdrop");
 
-  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame, panelSystem].filter(Boolean);
+  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame, panelSystem, panelInfo].filter(Boolean);
 
   function syncBackdrop() {
     if (!backdrop) return;
@@ -92,6 +94,7 @@
         setOpen(panelDebug, false);
         setOpen(panelCurses, false);
         setOpen(panelNewGame, false);
+        setOpen(panelInfo, false);
 
         // Reset gameplay menus when opening so we never land on an empty submenu state
         const gameMenu = document.getElementById("gameMenu");
@@ -132,6 +135,7 @@
         setOpen(panelDebug, false);
         setOpen(panelNewGame, false);
         setOpen(panelSystem, false);
+        setOpen(panelInfo, false);
         try { if (typeof updateCursesPanel === 'function') updateCursesPanel(); } catch (e) {}
       }
     });
@@ -147,6 +151,7 @@
         setOpen(panelDebug, false);
         setOpen(panelCurses, false);
         setOpen(panelNewGame, false);
+        setOpen(panelInfo, false);
       }
     });
   }
@@ -159,6 +164,7 @@
       setOpen(panelCurses, false);
       setOpen(panelNewGame, false);
       setOpen(panelSystem, false);
+      setOpen(panelInfo, false);
     });
   }
 
@@ -168,6 +174,22 @@
       setOpen(panelDebug, willOpen);
       if (willOpen) {
         setOpen(panelGameplay, false);
+        setOpen(panelCurses, false);
+        setOpen(panelNewGame, false);
+        setOpen(panelSystem, false);
+        setOpen(panelInfo, false);
+      }
+    });
+  }
+
+  // Info panel toggle
+  if (btnInfo && panelInfo) {
+    btnInfo.addEventListener("click", () => {
+      const willOpen = !panelInfo.classList.contains("open");
+      setOpen(panelInfo, willOpen);
+      if (willOpen) {
+        setOpen(panelGameplay, false);
+        setOpen(panelDebug, false);
         setOpen(panelCurses, false);
         setOpen(panelNewGame, false);
         setOpen(panelSystem, false);
@@ -181,6 +203,7 @@
   setOpen(panelCurses, false);
   setOpen(panelNewGame, false);
   setOpen(panelSystem, false);
+  setOpen(panelInfo, false);
 })();
 
 
