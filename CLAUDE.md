@@ -44,24 +44,24 @@ GPS guess → get graded.
 ├── js/
 │   ├── 00_config.js                Master constants (BBOX, API keys, thresholds)
 │   ├── 01_pois.js                  POI loading (IDB-cached + Worker-parsed UK dataset); __fetchLandmarkPoisForKind + __landmarkCategoryPoisFilter
-│   ├── 02_dom.js                   DOM refs, toast queue, debug panel, logs; landmark live-query flow + cache
+│   ├── 02_dom.js                   DOM refs, toast queue, debug panel, logs; landmark live-query flow + cache; __toolConfirmShow() confirmation panels; panelGameplay event delegation for all menu navigation
 │   ├── 03_map_image.js             Leaflet map init, fog canvas setup
 │   ├── 04_state.js                 MASTER STATE: round state, heat, timers, gameSetup
 │   ├── 05_view_transform.js        Canvas coordinate mapping
 │   ├── 06_mobile_gestures_pointer_events.js  Touch/pinch/drag handlers
 │   ├── 07_geolocation.js           GPS watchPosition, high→low accuracy fallback, last-known fix persistence
-│   ├── 08_clues_questions.js       Question engine: all 5 tools + target picking
+│   ├── 08_clues_questions.js       Question engine: all 5 tools + target picking; __randomPointInRadius() for sparse-POI free-roam targets
 │   ├── 09_ui_helpers.js            UI state, panel nav, cost badges, modals
 │   ├── 10_drawing.js               Canvas drawing (map overlay)
 │   ├── 12_geo_helpers.js           Haversine distance, geo utilities
 │   ├── 13_boot.js                  Initialisation: POIs, state restore, first target
-│   ├── 14_panels_misc.js           Panel width management, misc UI
+│   ├── 14_panels_misc.js           Panel width management, misc UI; timer tap handler (info toast or re-opens score panel if round over)
 │   ├── 15_tools_config.js          Load tools.json, update UI cost badges
 │   ├── 16_leaflet_markers.js       Player/target markers, accuracy circle, POI pins
 │   ├── 17_leaflet_fog.js           Fog-of-war (Martinez polygon clipping, EPSG:3857)
 │   ├── 18_streetview_glimpse.js    Google Street View API wrapper, photo caching
 │   ├── 19_curses.js                Curse system: loading, tick, isCurseActive(), all 5 tier effects live
-│   ├── 20_guess.js                 Lock-in scoring: distance → grade → points
+│   ├── 20_guess.js                 Lock-in scoring: distance → grade → points; result modal HTML persisted to localStorage; reopenResultModal() for post-dismiss recovery
 │   └── poi_worker.js               Web Worker: fetches + parses POI_UK_runtime.json off main thread
 ├── POI_UK_runtime.json             UK-wide POI dataset (175,672 POIs, ~31MB / ~6MB gzipped)
 ├── tools.json                      Tool definitions + heat costs
@@ -85,6 +85,10 @@ All game state lives in module globals in `04_state.js`, exposed on `window.*`.
 - **UK POI dataset** — `POI_UK_runtime.json` (175,672 POIs) loaded at boot into `window.__allPois` via a Web Worker (`poi_worker.js`) to avoid main-thread freeze. Result cached in IndexedDB (`uk_pois_cache_v1`); repeat loads are instant. `window.__clearPoiCache()` busts the cache from the browser console.
 - **Two POI sets** — `window.__allPois` holds the full UK dataset (never rendered to map); `window.POIS` holds the mode-radius-filtered slice (~50–300 items, set at game start by `__refreshLivePoisForCurrentLocation()`). Map pins, target picking, and heat scoring all use `POIS`. Landmark Voronoi and `__fetchLandmarkPoisForKind` use `__allPois`.
 - **Landmark query** — `__fetchLandmarkPoisForKind(kind)` filters `__allPois` directly (no network request, no radius cap). Shows a preview before charging heat. `__landmarkCategoryPoisFilter(kind, poisArray)` is the shared filter used by both `01_pois.js` and `17_leaflet_fog.js`.
+- **Tool confirmation panels** — `__toolConfirmShow({ menu, title, accentClass, descHtml, cost, onConfirm })` in `02_dom.js` replaces a menu's innerHTML with a confirm/cancel view, then restores on cancel. All 5 tools use this pattern.
+- **panelGameplay event delegation** — ALL menu navigation (qRadar/qThermo/qDir/qLandmark/qPhoto, all Back/Close buttons, Lock In confirm) is handled via a single delegated listener on `#panelGameplay`. Never use direct `on()` binds for buttons inside `gameMenu` or sub-menus — they are destroyed and recreated by `__toolConfirmShow` restores and the lock-in confirm flow.
+- **Sparse-POI free-roam** — `LOW_POI_THRESHOLD = 50` in `08_clues_questions.js`. If `POIS.length < 50`, `__pickStreetViewPanoTarget()` samples random points within the mode radius (uniform-area distribution via `__randomPointInRadius()`) instead of POI seeds. Falls back to bbox random if no player location.
+- **Result modal persistence** — `lockInGuess` saves the result modal HTML to `localStorage['mapgame_result_html_v1']`. `reopenResultModal()` restores from storage if the body is empty (e.g. after page refresh). `startNewRound()` clears the key.
 
 ---
 
@@ -135,7 +139,9 @@ Mode timers:    short=30min | medium=45min | long=60min
 | N/S and E/W split | Done | Unlock-gated at 50% round time; potentially overpowered |
 | Heat meter | Done | Visible accumulation and decay |
 | Curses | Done | All 5 tier effects live; heat1/2 cost surcharge, heat3 NSEW lock, heat4 radar cap, heat5 photo block + purple cursed UI |
-| Lock-in guess + scoring | Done | Distance-based grade + points |
+| Lock-in guess + scoring | Done | Distance-based grade + points; result modal persists across refresh; re-openable via timer tap |
+| Tool confirmation panels | Done | All 5 tools (radar, thermo, NSEW, landmark, photo) show confirm/cancel before executing |
+| Used/locked tool feedback | Done | Tapping a used option shows "already used" toast; tapping time-locked NSEW shows "unlocks in X:XX" |
 | Difficulty selector | **Stub** | Visible in setup UI but not yet a real rules layer |
 | Chain mode | **Not started** | Roadmap item (Phase D) |
 | Remote mode | **Not started** | Future optional mode (Phase E) |
@@ -171,7 +177,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | **E — Remote mode** | Expand access without diluting identity | Structurally distinct remote mode (not just map-click substitution) |
 | **F — Optional expansion** | Long-tail depth once core is strong | Daily challenges; async comparison; lore; social features |
 
-**Current priority: Phase A** (late stage). Curses implemented, UK-wide POI dataset live (175k POIs, IDB-cached, Worker-parsed), landmark Voronoi uses full dataset. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails. Do not add breadth before the single-run loop is coherent.
+**Current priority: Phase A** (late stage). Curses implemented, UK-wide POI dataset live (175k POIs, IDB-cached, Worker-parsed), landmark Voronoi uses full dataset. Tool confirmation panels, used/locked feedback toasts, score panel persistence, and sparse-POI free-roam all done. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails. Do not add breadth before the single-run loop is coherent.
 
 ---
 
@@ -252,6 +258,7 @@ The game uses a pre-built UK-wide dataset (`POI_UK_runtime.json`, 175,672 POIs).
 | `mapgame_imported_pois_pack_v1` | IndexedDB / localStorage | POI pack (filename, label, pois) |
 | `uk_pois_cache_v1` | IndexedDB (`mapgame` db, `kv` store) | Parsed UK POI array + lastModified + savedAt; cleared by `window.__clearPoiCache()` |
 | `mg_sv_img_{snapshot\|glimpse}_{key}` | localStorage | Cached Street View data: URLs |
+| `mapgame_result_html_v1` | localStorage | Result modal HTML from last lock-in; cleared by `startNewRound()`; used by `reopenResultModal()` to restore after refresh |
 
 ---
 
