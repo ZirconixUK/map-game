@@ -26,7 +26,7 @@ let __didRestoreOverlays = false;
 
 function __tryRestoreFog(saved) {
   try {
-    const fogActions = saved && saved.fogActions ? saved.fogActions : null;
+    const fogActions = saved && Array.isArray(saved.fogActions) && saved.fogActions.length > 0 ? saved.fogActions : null;
     if (!fogActions) return false;
     if (!window.leafletMap || !window.martinez) return false;
     if (typeof rebuildFogFromActions !== "function") return false;
@@ -182,13 +182,21 @@ function __tryRestoreFog(saved) {
     window.__needsNewGameSetup = true;
   }
 
+  // Attempt fog restore SYNCHRONOUSLY before startHUDTicker/updateHUD.
+  // updateHUD → applyHeatDecay → saveRoundState reads getFogActions(), which is [] until the
+  // fog module's state is restored. If saveRoundState fires first it overwrites fogActions in
+  // localStorage with [], so a second refresh sees an empty array and never rebuilds the fog.
+  // Restoring now (leafletMap + martinez are already set by the time 13_boot.js runs) fixes that.
+  try { __tryRestoreFog(__saved); } catch(e) {}
+
   try { startHUDTicker(); } catch (e) {}
   try { updateHUD(); } catch (e) {}
   try { if (typeof scheduleThermoCompletion === "function") scheduleThermoCompletion(); } catch (e) {}
-  // Restore fog overlay from saved tool usage (requires Leaflet + martinez ready)
+  // Polling fallback — handles the rare case where leafletMap or martinez wasn't ready yet above
   (function(){
     const saved = (typeof __saved !== "undefined") ? __saved : null;
-    if (!saved || !saved.fogActions) return;
+    if (!saved || !saved.fogActions || !Array.isArray(saved.fogActions) || saved.fogActions.length === 0) return;
+    if (__didRestoreOverlays) return; // already succeeded synchronously above
     let tries = 0;
     const maxTries = 200; // ~10s
     const t = setInterval(() => {
