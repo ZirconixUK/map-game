@@ -650,21 +650,7 @@ if (debugMode) {
     try { if (typeof updateGameplayPanelWidth === "function") updateGameplayPanelWidth(); } catch (e) {}
   }
 
-  on("qRadar", "click", () => showMenu("radar"));
-  on("qThermo", "click", () => showMenu("thermo"));
-  on("qDir", "click", () => showMenu("dir"));
-  on("qLandmark", "click", () => showMenu("landmark"));
-  on("qPhoto", "click", () => showMenu("photo"));
-  on("radarBack", "click", () => showMenu("main"));
-  on("gameClose", "click", () => { if (panelGameplay) panelGameplay.classList.remove("open"); showMenu("main"); });
-  on("thermoBack", "click", () => showMenu("main"));
-  on("thermoClose", "click", () => { if (panelGameplay) panelGameplay.classList.remove("open"); showMenu("main"); });
-  on("dirBack", "click", () => showMenu("main"));
-  on("dirClose", "click", () => { if (panelGameplay) panelGameplay.classList.remove("open"); showMenu("main"); });
-  on("landmarkBack", "click", () => showMenu("main"));
-  on("landmarkClose", "click", () => { if (panelGameplay) panelGameplay.classList.remove("open"); showMenu("main"); });
-  on("photoBack", "click", () => showMenu("main"));
-  on("photoClose", "click", () => { if (panelGameplay) panelGameplay.classList.remove("open"); showMenu("main"); });
+  // Menu navigation is handled via panelGameplay delegation below (survives innerHTML restores).
 
 
   function isToolOptionAlreadyUsed(toolId, optionId) {
@@ -1161,14 +1147,31 @@ if (debugMode) {
   // Ensure modal handlers are wired (safe to call multiple times)
   try { if (typeof bindPhotoModal === 'function') bindPhotoModal(); } catch(e) {}
 
-  // Phase 2: Lock In Guess + Start New Round
+  // Phase 2: Panel navigation + Lock In + Start New Round
+  // All navigation uses delegation on panelGameplay so listeners survive innerHTML swaps
+  // on gameMenu (lock-in confirm) and sub-menus (__toolConfirmShow restores).
   try {
-    // Lock-in uses delegation on panelGameplay so the listener survives any innerHTML swaps
-    // inside gameMenu/roundActions. Confirmation replaces gameMenu content (tools hidden),
-    // matching the landmark preview panel pattern.
     if (panelGameplay) {
       panelGameplay.addEventListener('click', (e) => {
-        if (!e.target.closest('#btnLockGuess')) return;
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const id = btn.id;
+
+        // ── Tool navigation ──────────────────────────────────────────────────
+        if (id === 'qRadar')    { showMenu('radar');    return; }
+        if (id === 'qThermo')   { showMenu('thermo');   return; }
+        if (id === 'qDir')      { showMenu('dir');      return; }
+        if (id === 'qLandmark') { showMenu('landmark'); return; }
+        if (id === 'qPhoto')    { showMenu('photo');    return; }
+        if (id === 'radarBack' || id === 'thermoBack' || id === 'dirBack' || id === 'landmarkBack' || id === 'photoBack') {
+          showMenu('main'); return;
+        }
+        if (id === 'gameClose' || id === 'thermoClose' || id === 'dirClose' || id === 'landmarkClose' || id === 'photoClose') {
+          panelGameplay.classList.remove('open'); showMenu('main'); return;
+        }
+
+        // ── Lock-in confirmation ─────────────────────────────────────────────
+        if (id !== 'btnLockGuess') return;
         const gm = document.getElementById('gameMenu');
         if (!gm) return;
         const savedHTML = gm.innerHTML;
@@ -1189,7 +1192,7 @@ if (debugMode) {
         gm.querySelector('.__lcCancel')?.addEventListener('click', restore);
         gm.querySelector('.__lcConfirm')?.addEventListener('click', async () => {
           restore();
-          if (panelGameplay) panelGameplay.classList.remove('open');
+          panelGameplay.classList.remove('open');
           showMenu('main');
           try { if (typeof window.lockInGuess === 'function') await window.lockInGuess(); } catch(e) { console.error(e); }
         });
