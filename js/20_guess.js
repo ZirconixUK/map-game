@@ -110,11 +110,24 @@
     return { lat, lon, accuracy: bestAcc, ts: Date.now() };
   }
 
+  const RESULT_MODAL_KEY = 'mapgame_result_html_v1';
+
+  function __wireResultModalButtons(){
+    try {
+      const b1 = document.getElementById('btnResultNewRound');
+      if (b1) b1.onclick = () => { try { closeResultModal(); } catch(e) {} try { if (typeof window.startNewRound === 'function') window.startNewRound(); } catch(e) {} };
+      const b2 = document.getElementById('btnResultClose');
+      if (b2) b2.onclick = () => closeResultModal();
+    } catch(e) {}
+  }
+
   function openResultModal(html){
     const m = document.getElementById('resultModal');
     const b = document.getElementById('resultModalBody');
     if (b) b.innerHTML = html;
     if (m) m.classList.remove('hidden');
+    try { localStorage.setItem(RESULT_MODAL_KEY, html); } catch(e) {}
+    __wireResultModalButtons();
   }
   function closeResultModal(){
     const m = document.getElementById('resultModal');
@@ -241,16 +254,11 @@
     `;
     openResultModal(html);
 
-    // Wire modal buttons
-    try {
-      const b1 = document.getElementById('btnResultNewRound');
-      if (b1) b1.onclick = () => { try { closeResultModal(); } catch(e) {} try { if (typeof window.startNewRound === 'function') window.startNewRound(); } catch(e) {} };
-      const b2 = document.getElementById('btnResultClose');
-      if (b2) b2.onclick = () => closeResultModal();
-    } catch(e) {}
   }
 
   function startNewRound(){
+    try { localStorage.removeItem(RESULT_MODAL_KEY); } catch(e) {}
+    try { const b = document.getElementById('resultModalBody'); if (b) b.innerHTML = ''; } catch(e) {}
     // Open the New Game setup panel so the player can choose length and difficulty.
     try {
       const p = document.getElementById('panelNewGame');
@@ -265,7 +273,16 @@
 
   function reopenResultModal(){
     const m = document.getElementById('resultModal');
-    if (m) m.classList.remove('hidden');
+    const b = document.getElementById('resultModalBody');
+    if (!m) return;
+    // Restore HTML from storage if body is empty (e.g. after a page refresh).
+    if (b && !b.innerHTML.trim()) {
+      try {
+        const saved = localStorage.getItem(RESULT_MODAL_KEY);
+        if (saved) { b.innerHTML = saved; __wireResultModalButtons(); }
+      } catch(e) {}
+    }
+    m.classList.remove('hidden');
   }
 
   // Public API
