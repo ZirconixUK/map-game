@@ -32,8 +32,10 @@
   }
 
   // ---- Swipe-down-to-dismiss ----
-  // Attached to the .panelHandle element (touch-action:none) so the browser
-  // never competes with a scroll gesture.
+  // Primary: attached to .panelHandle (touch-action:none) so the browser
+  // never competes with scroll.
+  // Secondary: attached to the panel body — only activates when the panel
+  // is scrolled to the top, so normal content scrolling is unaffected.
   function addSwipeDismiss(panel) {
     const handle = panel.querySelector('.panelHandle');
     if (!handle) return;
@@ -41,18 +43,20 @@
     let startY = 0, pointerId = null;
     let lastY = 0, lastT = 0, velocity = 0;
 
-    handle.addEventListener('pointerdown', (e) => {
+    function onDown(e, source) {
       if (!e.isPrimary) return;
+      // Body drags only engage when panel is scrolled to the top
+      if (source === 'body' && panel.scrollTop > 2) return;
       startY = e.clientY;
       lastY = e.clientY;
       lastT = e.timeStamp;
       velocity = 0;
       pointerId = e.pointerId;
-      handle.setPointerCapture(e.pointerId);
+      source === 'handle' ? handle.setPointerCapture(e.pointerId) : panel.setPointerCapture(e.pointerId);
       panel.style.transition = 'none';
-    });
+    }
 
-    handle.addEventListener('pointermove', (e) => {
+    function onMove(e) {
       if (e.pointerId !== pointerId) return;
       const dy = e.clientY - startY;
       const dt = e.timeStamp - lastT;
@@ -60,9 +64,9 @@
       lastY = e.clientY;
       lastT = e.timeStamp;
       if (dy > 0) panel.style.transform = `translateX(-50%) translateY(${dy}px)`;
-    });
+    }
 
-    handle.addEventListener('pointerup', (e) => {
+    function onUp(e) {
       if (e.pointerId !== pointerId) return;
       pointerId = null;
       const dy = e.clientY - startY;
@@ -73,14 +77,24 @@
       } else {
         panel.style.transform = '';
       }
-    });
+    }
 
-    handle.addEventListener('pointercancel', (e) => {
+    function onCancel(e) {
       if (e.pointerId !== pointerId) return;
       pointerId = null;
       panel.style.transform = '';
       panel.style.transition = '';
-    });
+    }
+
+    handle.addEventListener('pointerdown', (e) => onDown(e, 'handle'));
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onCancel);
+
+    panel.addEventListener('pointerdown', (e) => onDown(e, 'body'));
+    panel.addEventListener('pointermove', onMove);
+    panel.addEventListener('pointerup', onUp);
+    panel.addEventListener('pointercancel', onCancel);
   }
 
   allPanels.forEach(addSwipeDismiss);
