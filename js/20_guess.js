@@ -262,15 +262,20 @@
       { label:'Emerald',  color:'#34d399' },
       { label:'Diamond',  color:'#a5f3fc' },
     ];
-    const medalStripHtml = `<div class="resultMedalStrip">${
-      _gradeOrder.map(g => {
-        const active = g.label === grade;
-        return `<div class="resultMedalChip${active ? ' active' : ''}">` +
-          `<div class="resultMedalDot" style="background:${g.color}"></div>` +
-          `<div class="resultMedalChipLabel">${g.label}</div>` +
-          `</div>`;
-      }).join('')
-    }</div>`;
+    function _flankMedal(color, side, rank) {
+      return `<div class="resultFlankMedal ${side} rank-${rank}">` +
+        `<svg viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">` +
+        `<rect x="28" y="2" width="24" height="20" rx="4" fill="${color}" opacity="0.85"/>` +
+        `<rect x="36" y="18" width="8" height="8" fill="${color}" opacity="0.7"/>` +
+        `<circle cx="40" cy="62" r="28" fill="${color}"/>` +
+        `<circle cx="40" cy="62" r="21" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.2"/>` +
+        `</svg></div>`;
+    }
+    const _earnedIdx = _gradeOrder.findIndex(g => g.label === grade);
+    const _leftHtml = _gradeOrder.slice(Math.max(0, _earnedIdx - 2), _earnedIdx)
+      .map((g, i, arr) => _flankMedal(g.color, 'left', arr.length - i)).join('');
+    const _rightHtml = _gradeOrder.slice(_earnedIdx + 1, Math.min(_gradeOrder.length, _earnedIdx + 3))
+      .map((g, i) => _flankMedal(g.color, 'right', i + 1)).join('');
 
     const _bd = scoreResult;
     const _bdTimeLabel = `Time (${timeStatVal} ${timeStatLabel.toLowerCase()})`;
@@ -285,15 +290,18 @@
     const html = `
       <div class="resultHero">
         <div class="resultGradeBadge">
-          <svg class="resultMedalSvg" viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="28" y="2" width="24" height="20" rx="4" fill="${gc}" opacity="0.85"/>
-            <rect x="36" y="18" width="8" height="8" fill="${gc}" opacity="0.7"/>
-            <circle cx="40" cy="62" r="28" fill="${gc}"/>
-            <circle cx="40" cy="62" r="21" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.2"/>
-          </svg>
+          <div class="resultMedalScene">
+            ${_leftHtml}
+            <svg class="resultMedalSvg" viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="28" y="2" width="24" height="20" rx="4" fill="${gc}" opacity="0.85"/>
+              <rect x="36" y="18" width="8" height="8" fill="${gc}" opacity="0.7"/>
+              <circle cx="40" cy="62" r="28" fill="${gc}"/>
+              <circle cx="40" cy="62" r="21" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.2"/>
+            </svg>
+            ${_rightHtml}
+          </div>
           <div class="resultGradeLabel" style="color:${gc}">${grade}</div>
         </div>
-        ${medalStripHtml}
         <div class="resultFlavor" style="color:${gc}">${flavor}</div>
         <div class="resultBreakdown">
           ${_bdRow(`${grade} base`, _bd.base)}
