@@ -395,27 +395,26 @@ function startHUDTicker() {
 }
 
 function heatConsequencesText(level) {
-  // Placeholder consequences for now (we'll refine once tools/curses are locked).
   const L = Math.max(0, Math.min(5, Math.floor((typeof level === "number" && isFinite(level)) ? level : 0)));
-  if (L === 0) return "All good — nothing is tracking you yet.";
-  if (L === 1) return "Mild attention — expect slightly pricier questions.";
-  if (L === 2) return "Warm — penalties start to bite and some tools may get riskier.";
-  if (L === 3) return "Hot — increased penalty pressure and higher chance of a bad draw.";
-  if (L === 4) return "Very hot — mistakes get punished; cheap options dry up.";
-  return "MAX HEAT — you're basically glowing. Expect the harsh stuff.";
+  if (L === 0) return "No heat — use tools freely.";
+  if (L === 1) return "Warming up — tool costs tick up slightly.";
+  if (L === 2) return "Noticeable — penalties start to bite.";
+  if (L === 3) return "Hot — curses become more likely.";
+  if (L === 4) return "Very hot — cheap options are drying up.";
+  return "Max heat — expect the worst.";
 }
 
 function showHeatToast() {
-  const hv = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
   const L = Math.max(0, Math.min(5, heatLevel | 0));
+  const labels = ['COLD', 'WARM', 'WARM', 'HOT', 'HOT', 'MAX'];
+  const label = labels[L] || '';
 
   const msg = `
-    <div style="display:flex; align-items:baseline; gap:10px;">
-      <div style="font-weight:800; letter-spacing:.2px;">🔥 Heat Level ${L}/5</div>
-      <div class="muted" style="font-variant-numeric:tabular-nums;">${hv.toFixed(2)}/5</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-weight:800; letter-spacing:.05em;">🔥 Heat ${L}/5</span>
+      <span style="font-size:.7rem; font-weight:700; letter-spacing:.12em; opacity:.55; text-transform:uppercase;">${label}</span>
     </div>
-    <div class="muted" style="margin-top:6px;">${heatConsequencesText(L)}</div>
-    <div style="margin-top:6px; font-size:0.8rem; opacity:0.65;">Heat builds every time you use a tool and resets at the start of a new round.</div>
+    <div class="muted" style="margin-top:5px;">${heatConsequencesText(L)}</div>
   `;
 
   if (typeof showToast === "function") showToast(msg, L === 0);

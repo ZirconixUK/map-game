@@ -251,14 +251,14 @@ body{
   z-index:31;
 }
 .heatWidget--vertical{
-  width:42px;
-  height:156px;
-  padding:10px 8px;
+  width:44px;
+  height:172px;
+  padding:14px 9px;
 }
 .heatWidget--vertical .heatBoxes{
   display:flex;
   flex-direction:column-reverse;
-  gap:6px;
+  gap:7px;
 }
 .heatWidget--vertical .heatBox{
   width:18px;
