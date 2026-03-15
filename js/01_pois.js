@@ -230,7 +230,9 @@ async function loadPois() {
           } else reject(new Error(ev.data.error));
         };
         worker.onerror = ev => { clearTimeout(tid); worker.terminate(); reject(ev); };
-        worker.postMessage({ url: UK_POI_URL + '?cb=' + Date.now() });
+        const absUrl = new URL(UK_POI_URL, location.href);
+        absUrl.searchParams.set('cb', String(Date.now()));
+        worker.postMessage({ url: absUrl.href });
       });
       window.__allPois = pois;
       log(`📍 ${pois.length} POIs loaded from ${UK_POI_URL}`);
