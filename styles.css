@@ -101,7 +101,7 @@ body{
   z-index:31;
   pointer-events:none;
 }
-.hudTopCenter .timerWidget{ pointer-events:auto; }
+.hudTopCenter #timerWidget{ pointer-events:auto; }
 
 /* ─── Timer widget ───────────────────────────────────────────────── */
 #timerWidget{
