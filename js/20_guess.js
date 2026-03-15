@@ -281,7 +281,6 @@
           ${_bdRow(_bdLengthLabel, _bd.lengthBonus)}
           ${_bdRow(_bdDiffLabel, _bd.diffBonus)}
           ${_bdRow(`Tool efficiency (${_toolsUsed} used)`, _bd.toolBonus)}
-          <div class="resultBreakdownRow resultBreakdownTotal"><span>Total</span><span>${score.toLocaleString()} pts</span></div>
         </div>
         <div class="resultScore">${score.toLocaleString()}<span class="resultScoreLabel">pts</span></div>
         <div class="resultStats">
