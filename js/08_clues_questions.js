@@ -14,6 +14,16 @@ function __randomPointInBbox() {
   return { lat, lon };
 }
 
+// Generate a uniformly random point within radiusM metres of (lat, lon).
+function __randomPointInRadius(lat, lon, radiusM) {
+  const R = 6371000;
+  const r = radiusM * Math.sqrt(Math.random()); // sqrt for uniform area distribution
+  const theta = Math.random() * 2 * Math.PI;
+  const dLat = (r * Math.cos(theta)) / R * (180 / Math.PI);
+  const dLon = (r * Math.sin(theta)) / (R * Math.cos(lat * Math.PI / 180)) * (180 / Math.PI);
+  return { lat: lat + dLat, lon: lon + dLon };
+}
+
 function __insideBbox(lat, lon) {
   const nw = (typeof BBOX !== 'undefined' && BBOX && BBOX.nw) ? BBOX.nw : null;
   const se = (typeof BBOX !== 'undefined' && BBOX && BBOX.se) ? BBOX.se : null;
@@ -111,17 +121,28 @@ async function __pickStreetViewPanoTarget(startLatLng) {
   }
 
   // Seed pool: POIs within mode cap of startRef give locally-relevant pano candidates.
-  // Falls back to random bbox points when no in-range POIs exist (e.g. static Liverpool pack + player elsewhere).
+  // In sparse areas (<50 POIs in range), fall back to random points within the mode radius so the
+  // game remains playable anywhere in the UK — Street View panos are still preferred outdoors.
+  const LOW_POI_THRESHOLD = 50;
   const __poisInRange = (hasStart && Array.isArray(POIS) && POIS.length > 0 && typeof haversineMeters === 'function')
     ? POIS.filter(p => typeof p.lat === 'number' && typeof p.lon === 'number' &&
         haversineMeters(startLatLng.lat, startLatLng.lon, p.lat, p.lon) <= modeCapM)
     : [];
-  const __usePoiSeeds = __poisInRange.length > 0;
+  const __usePoiSeeds = __poisInRange.length >= LOW_POI_THRESHOLD;
+  const __useFreeRoam = !__usePoiSeeds && hasStart; // radius-based random seeding
+  if (debugMode) {
+    try { log(`🗺️ POIs in range: ${__poisInRange.length} — ${__usePoiSeeds ? 'POI-seeded' : __useFreeRoam ? 'free-roam (sparse area)' : 'bbox random'}`); } catch(e) {}
+  }
 
   for (let i = 0; i < maxAttempts; i++) {
-    const p = __usePoiSeeds
-      ? __poisInRange[Math.floor(Math.random() * __poisInRange.length)]
-      : __randomPointInBbox();
+    let p;
+    if (__usePoiSeeds) {
+      p = __poisInRange[Math.floor(Math.random() * __poisInRange.length)];
+    } else if (__useFreeRoam) {
+      p = __randomPointInRadius(startLatLng.lat, startLatLng.lon, modeCapM);
+    } else {
+      p = __randomPointInBbox();
+    }
     if (!p) break;
     let meta = null;
     try {
@@ -130,8 +151,8 @@ async function __pickStreetViewPanoTarget(startLatLng) {
       continue;
     }
     if (!meta || !meta.ok || !meta.location) continue;
-    // Skip bbox check when using POI seeds — the seed was already confirmed in-range.
-    if (!__usePoiSeeds && !__insideBbox(meta.location.lat, meta.location.lon)) continue;
+    // Bbox check only needed for pure bbox fallback — radius/POI seeds are already bounded.
+    if (!__usePoiSeeds && !__useFreeRoam && !__insideBbox(meta.location.lat, meta.location.lon)) continue;
 
     // Enforce mode distance cap using the final snapped pano location, not the seed point.
     let distFromStartM = null;
