@@ -61,7 +61,7 @@ GPS guess → get graded.
 │   ├── 17_leaflet_fog.js           Fog-of-war (Martinez polygon clipping, EPSG:3857)
 │   ├── 18_streetview_glimpse.js    Google Street View API wrapper, photo caching
 │   ├── 19_curses.js                Curse system: loading, tick, isCurseActive(), all 5 tier effects live
-│   ├── 20_guess.js                 Lock-in scoring: distance → grade → points; result modal HTML persisted to localStorage; reopenResultModal() for post-dismiss recovery
+│   ├── 20_guess.js                 Lock-in scoring: grade-based points + bonuses; computeScore(grade, ctx) returns breakdown object; result modal with breakdown card + medal fan; HTML persisted to localStorage; reopenResultModal() for post-dismiss recovery
 │   └── poi_worker.js               Web Worker: fetches + parses POI_UK_runtime.json off main thread
 ├── POI_UK_runtime.json             UK-wide POI dataset (175,672 POIs, ~31MB / ~6MB gzipped)
 ├── tools.json                      Tool definitions + heat costs
@@ -88,7 +88,8 @@ All game state lives in module globals in `04_state.js`, exposed on `window.*`.
 - **Tool confirmation panels** — `__toolConfirmShow({ menu, title, accentClass, descHtml, cost, onConfirm })` in `02_dom.js` replaces a menu's innerHTML with a confirm/cancel view, then restores on cancel. All 5 tools use this pattern.
 - **panelGameplay event delegation** — ALL menu navigation (qRadar/qThermo/qDir/qLandmark/qPhoto, all Back/Close buttons, Lock In confirm) is handled via a single delegated listener on `#panelGameplay`. Never use direct `on()` binds for buttons inside `gameMenu` or sub-menus — they are destroyed and recreated by `__toolConfirmShow` restores and the lock-in confirm flow.
 - **Sparse-POI free-roam** — `LOW_POI_THRESHOLD = 50` in `08_clues_questions.js`. If `POIS.length < 50`, `__pickStreetViewPanoTarget()` samples random points within the mode radius (uniform-area distribution via `__randomPointInRadius()`) instead of POI seeds. Falls back to bbox random if no player location.
-- **Result modal persistence** — `lockInGuess` saves the result modal HTML to `localStorage['mapgame_result_html_v1']`. `reopenResultModal()` restores from storage if the body is empty (e.g. after page refresh). `startNewRound()` clears the key.
+- **Result modal persistence** — `lockInGuess` saves the result modal HTML to `localStorage['mapgame_result_html_v1']`. `reopenResultModal()` restores from storage if the body is empty (e.g. after page refresh). `startNewRound()` clears the key. Modal includes: medal fan (`.resultMedalScene` with absolutely positioned `.resultFlankMedal left/right rank-1/2`), score breakdown card (`.resultBreakdown`), 3-stat grid (distance / time / tools used).
+- **Scoring v2** — `computeScore(grade, ctx)` in `20_guess.js` returns `{ base, timeBonus, lengthBonus, diffBonus, toolBonus, total }`. `scoreBreakdown` is persisted in round state alongside `scorePoints`. Constants in `00_config.js`: `GRADE_BASE_SCORES`, `SCORE_TIME_BONUS_MAX`, `SCORE_LENGTH_BONUS`, `SCORE_DIFFICULTY_BONUS`, `SCORE_TOOL_EFFICIENCY`.
 
 ---
 
@@ -101,8 +102,18 @@ DEFAULT_START: 53.40744°N, 2.97785°W (Lime Street Station area)
 Heat decay:     HEAT_DECAY_BASE_PER_SEC = 0.0015
                 HEAT_DECAY_PER_HEAT_PER_SEC = 0.0025
 
-Scoring:        SCORE_MAX_POINTS = 5000
-                SCORE_ZERO_AT_M = 2000
+Scoring v2:     Grade-based + bonuses (no flat curve)
+                GRADE_BASE_SCORES: Diamond=800, Emerald=650, Platinum=500, Gold=375,
+                                   Silver=250, Bronze=125, Copper=50
+                SCORE_TIME_BONUS_MAX = 150   (proportional to time remaining / limit)
+                SCORE_LENGTH_BONUS: short=0, medium=50, long=100
+                SCORE_DIFFICULTY_BONUS: easy=0, normal=50, hard=100
+                SCORE_TOOL_EFFICIENCY: [100,90,75,60,45,30,15,0] (index = tools used, capped at 7)
+                  — excludes photo.starter (automatic, not a choice)
+                Max possible: 1,250 pts (Diamond + all bonuses)
+                Typical Gold/normal/short/3 tools/50% time: ~560 pts
+                computeScore(grade, ctx) → { base, timeBonus, lengthBonus, diffBonus, toolBonus, total }
+                scoreBreakdown persisted in round state alongside scorePoints
 
 Grade bands:    7 medal tiers, scaled to getModeTargetRadiusM() (short=500m, medium=1000m, long=1500m)
                 Diamond ≤4% | Emerald ≤12% | Platinum ≤24% | Gold ≤44% | Silver ≤68% | Bronze ≤92% | Copper >92%
@@ -139,16 +150,17 @@ Mode timers:    short=30min | medium=45min | long=60min
 | N/S and E/W split | Done | Unlock-gated at 50% round time; potentially overpowered |
 | Heat meter | Done | Visible accumulation and decay |
 | Curses | Done | All 5 tier effects live; heat1/2 cost surcharge, heat3 NSEW lock, heat4 radar cap, heat5 photo block + purple cursed UI |
-| Lock-in guess + scoring | Done | Distance-based grade + points; result modal persists across refresh; re-openable via timer tap |
+| Lock-in guess + scoring | Done | Grade-based score + time/length/difficulty/tool-efficiency bonuses (v2); breakdown card in result modal; modal persists across refresh; re-openable via timer tap |
+| Result modal | Done | 3-stat grid (Distance / Time / Tools); score breakdown card; medal fan (up to 2 flanking grades each side, same SVG shape, absolutely positioned overlapping behind earned medal) |
 | Tool confirmation panels | Done | All 5 tools (radar, thermo, NSEW, landmark, photo) show confirm/cancel before executing |
 | Used/locked tool feedback | Done | Tapping a used option shows "already used" toast; tapping time-locked NSEW shows "unlocks in X:XX" |
-| Difficulty selector | **Stub** | Visible in setup UI but not yet a real rules layer |
+| Difficulty selector | **Partial** | Wired into score bonus (`SCORE_DIFFICULTY_BONUS`); still no rules-layer effect (tool costs, time limit, etc.) |
 | Chain mode | **Not started** | Roadmap item (Phase D) |
 | Remote mode | **Not started** | Future optional mode (Phase E) |
 
 **Known mismatches (build vs. intent):**
 - `coin_cost` fields removed from `tools.json` and JS — coin economy fully removed
-- `difficulty` field is wired to setup UI but has no downstream effect on rules
+- `difficulty` affects score bonus but has no effect on actual rules (tool costs, timers, etc.)
 - Roadmap-era comments and historical design directions still visible in the codebase
 
 ---
@@ -177,7 +189,7 @@ Mode timers:    short=30min | medium=45min | long=60min
 | **E — Remote mode** | Expand access without diluting identity | Structurally distinct remote mode (not just map-click substitution) |
 | **F — Optional expansion** | Long-tail depth once core is strong | Daily challenges; async comparison; lore; social features |
 
-**Current priority: Phase A** (late stage). Curses implemented, UK-wide POI dataset live (175k POIs, IDB-cached, Worker-parsed), landmark Voronoi uses full dataset. Tool confirmation panels, used/locked feedback toasts, score panel persistence, and sparse-POI free-roam all done. Remaining Phase A items: timer expiry behaviour, difficulty rules layer, photo guardrails. Do not add breadth before the single-run loop is coherent.
+**Current priority: Phase A** (late stage). Curses implemented, UK-wide POI dataset live (175k POIs, IDB-cached, Worker-parsed), landmark Voronoi uses full dataset. Tool confirmation panels, used/locked feedback toasts, score panel persistence, sparse-POI free-roam, and scoring v2 all done. Remaining Phase A items: timer expiry behaviour, difficulty rules layer (currently only affects score bonus), photo guardrails. Do not add breadth before the single-run loop is coherent.
 
 ---
 
