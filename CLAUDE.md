@@ -154,13 +154,14 @@ Mode timers:    short=30min | medium=45min | long=60min
 | Result modal | Done | 3-stat grid (Distance / Time / Tools); score breakdown card; medal fan (up to 2 flanking grades each side, same SVG shape, absolutely positioned overlapping behind earned medal) |
 | Tool confirmation panels | Done | All 5 tools (radar, thermo, NSEW, landmark, photo) show confirm/cancel before executing |
 | Used/locked tool feedback | Done | Tapping a used option shows "already used" toast; tapping time-locked NSEW shows "unlocks in X:XX" |
-| Difficulty selector | **Partial** | Wired into score bonus (`SCORE_DIFFICULTY_BONUS`); still no rules-layer effect (tool costs, time limit, etc.) |
+| Difficulty selector | Done | Wired into score bonus; hard mode photo block + heat cost multiplier + curse probability scaling already live |
+| Timer expiry | Done | Auto-locks at current position when round timer runs out |
+| Photo guardrails | Done | Street View eligibility / imagery-unavailable handling in place |
 | Chain mode | **Not started** | Roadmap item (Phase D) |
 | Remote mode | **Not started** | Future optional mode (Phase E) |
 
 **Known mismatches (build vs. intent):**
 - `coin_cost` fields removed from `tools.json` and JS — coin economy fully removed
-- `difficulty` affects score bonus but has no effect on actual rules (tool costs, timers, etc.)
 - Roadmap-era comments and historical design directions still visible in the codebase
 
 ---
@@ -182,26 +183,23 @@ Mode timers:    short=30min | medium=45min | long=60min
 
 | Phase | Goal | Key work |
 |-------|------|----------|
-| **A — Stabilise the loop** | Single run coherent photo-to-lock-in | Remove coin-economy remnants; implement real curse effects; finalise timer expiry; tighten photo guardrails; clean config mismatches |
+| **A — Stabilise the loop** | Single run coherent photo-to-lock-in | ✅ Complete |
 | **B — Strengthen mid-run** | Stop the middle of runs going flat | Tune clue usefulness; revisit N/S/E/W strength; improve landmark usefulness; make heat/curses meaningfully alter play |
-| **C — Define mastery** | Separate length from difficulty; make skilled play legible | Implement meaningful difficulty rules; late-game power tools; clearer strategic tradeoffs |
+| **C — Define mastery** | Separate length from difficulty; make skilled play legible | ✅ Complete — difficulty rules, score bonuses, hard-mode mechanics live |
 | **D — Chain mode** | Higher-commitment advanced format | Chain scoring; clue reset logic; fatigue pacing |
 | **E — Remote mode** | Expand access without diluting identity | Structurally distinct remote mode (not just map-click substitution) |
 | **F — Optional expansion** | Long-tail depth once core is strong | Daily challenges; async comparison; lore; social features |
 
-**Current priority: Phase A** (late stage). Curses implemented, UK-wide POI dataset live (175k POIs, IDB-cached, Worker-parsed), landmark Voronoi uses full dataset. Tool confirmation panels, used/locked feedback toasts, score panel persistence, sparse-POI free-roam, and scoring v2 all done. Remaining Phase A items: timer expiry behaviour, difficulty rules layer (currently only affects score bonus), photo guardrails. Do not add breadth before the single-run loop is coherent.
+**Current priority: Phase B** — the single-run loop is coherent; now focus on stopping mid-run dead air. Key areas: clue usefulness tuning, N/S/E/W balance, landmark quality, heat/curse strategic legibility.
 
 ---
 
 ## Open design decisions (not yet resolved)
 
-- Exact timer-expiry behaviour (likely auto-lock at current position)
 - Whether clue tools are fully one-use per run or a mixed model
-- First real curse set and exact mechanical effects
-- What easy / normal / hard concretely change in rules terms
+- Exact curse mechanical effects beyond the current 5 tiers
 - Eligibility thresholds for areas with weak POI density or poor Street View coverage
 - Whether N/S and E/W remain default or move to late-game / hard-mode only
-- Score presentation language: points, grades, medals, judgement text, or a combination
 
 ---
 
