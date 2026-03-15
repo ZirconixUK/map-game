@@ -1163,24 +1163,35 @@ if (debugMode) {
 
   // Phase 2: Lock In Guess + Start New Round
   try {
-    const btnLock = document.getElementById('btnLockGuess');
-    const roundActions = document.getElementById('roundActions');
-    if (btnLock && roundActions) {
-      btnLock.addEventListener('click', () => {
-        const savedHTML = roundActions.innerHTML;
-        const restore = () => { roundActions.innerHTML = savedHTML; };
-        roundActions.innerHTML = `
-          <div class="text-sm text-gray-200 font-semibold text-center mb-2">Lock in your current location as your guess?</div>
-          <div class="flex gap-2">
-            <button id="__lockConfirm" class="flex-1 rounded-2xl bg-amber-500 border-0 flex items-center justify-center gap-1.5 py-3 font-bold text-white text-sm cursor-pointer hover:bg-amber-400 active:scale-95">🎯 Lock In</button>
-            <button id="__lockCancel" class="px-4 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-gray-300 text-sm cursor-pointer hover:bg-[#253550]">Cancel</button>
+    // Lock-in uses delegation on panelGameplay so the listener survives any innerHTML swaps
+    // inside gameMenu/roundActions. Confirmation replaces gameMenu content (tools hidden),
+    // matching the landmark preview panel pattern.
+    if (panelGameplay) {
+      panelGameplay.addEventListener('click', (e) => {
+        if (!e.target.closest('#btnLockGuess')) return;
+        const gm = document.getElementById('gameMenu');
+        if (!gm) return;
+        const savedHTML = gm.innerHTML;
+        const restore = () => { gm.innerHTML = savedHTML; };
+        gm.innerHTML = `
+          <div class="flex justify-between mb-3">
+            <button class="__lcBack px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
+          </div>
+          <div class="sectionLabel text-[11px] uppercase tracking-widest text-amber-400 mb-3">🎯 Lock In Guess</div>
+          <div class="flex flex-col gap-3 py-1">
+            <div class="text-slate-400 text-sm">Lock in your current position as your final guess for this round.</div>
+            <div class="flex gap-2 mt-1">
+              <button class="__lcConfirm flex-1 px-4 py-3 rounded-2xl bg-amber-500 text-white font-bold text-sm cursor-pointer hover:bg-amber-400 active:scale-[.98]">🎯 Lock In</button>
+              <button class="__lcCancel px-4 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>
+            </div>
           </div>`;
-        document.getElementById('__lockCancel')?.addEventListener('click', restore);
-        document.getElementById('__lockConfirm')?.addEventListener('click', async () => {
+        gm.querySelector('.__lcBack')?.addEventListener('click', restore);
+        gm.querySelector('.__lcCancel')?.addEventListener('click', restore);
+        gm.querySelector('.__lcConfirm')?.addEventListener('click', async () => {
           restore();
-          try {
-            if (typeof window.lockInGuess === 'function') await window.lockInGuess();
-          } catch(e) { console.error(e); }
+          if (panelGameplay) panelGameplay.classList.remove('open');
+          showMenu('main');
+          try { if (typeof window.lockInGuess === 'function') await window.lockInGuess(); } catch(e) { console.error(e); }
         });
       });
     }
