@@ -1,0 +1,98 @@
+# UI style reference
+
+## Visual identity
+The UI uses a dark, bold, mobile-first look inspired by the feel of Jet Lag: The Game’s app presentation:
+- deep navy surfaces
+- strong accent fills
+- clear hierarchy
+- no glassmorphism
+- no frosted panels
+- low clutter on top of the map
+
+The map remains the star. Panels and FABs should support play without overwhelming the screen.
+
+## Visual principles
+- Mobile-first readability
+- Strong contrast
+- Bold solid accent colors
+- Minimal chrome over the map
+- Clear touch targets
+- Fast-to-scan hierarchy
+- Keep panels purposeful rather than decorative
+
+## Core color tokens
+- Ambient background: `#080c14`
+- Main panel background: `#0f1729`
+- Surface/card: `#1e2d44`
+- Surface hover: `#253550`
+- Outer border: `#1e3a5f`
+- Inner card border: `#2a3f60`
+- Primary text: near-white / `text-gray-100`
+- Muted text: slate-muted / `text-slate-400`
+
+## Tool color mapping
+Use strong, full-fill accent colors by tool:
+- Radar: blue
+- Thermometer: orange
+- N/S/E/W: cyan
+- Landmark: emerald
+- Photo: violet
+
+Submenu icon boxes should use tinted wells rather than full fills.
+Section labels in submenus should echo the tool accent color.
+
+## FAB guidance
+### Right-side FABs
+- Recenter: dark neutral base with cyan icon
+- Gameplay: strong blue
+- Curses: dark purple base; glow when active
+- Heat widget: dark neutral base
+
+### Left-side FABs
+- Debug uses dark neutral styling and should not visually overpower gameplay controls.
+
+## Action buttons
+Use bold, high-clarity action styling:
+- New Game: amber
+- Lock In Guess: cyan
+- Start / confirm progression actions: emerald
+
+Selected state for mode/difficulty choice buttons should be visibly distinct and consistent.
+
+## Panel and modal guidance
+- Panels should use dark navy backgrounds with crisp borders.
+- Avoid translucent/glassy treatment.
+- Modals should feel clean and legible, not ornamental.
+- Keep spacing comfortable for thumb use.
+- Prefer fewer, clearer sections over dense option walls.
+
+## Toast guidance
+- Toasts should be legible at a glance.
+- Visual language should communicate status clearly.
+- Avoid overloading the player with stacked or overly verbose transient messaging.
+
+## Curse styling
+- Active curse UI should be visibly distinct and a bit threatening, but still readable.
+- Purple miasma/glow treatment is appropriate.
+- The curse FAB should clearly indicate inactive vs active states.
+
+## Result modal guidance
+The result modal should feel rewarding and easy to parse:
+- earned medal is the hero element
+- flanking medals add flair without clutter
+- score breakdown should be easy to scan
+- distance, time, and tools-used stats should be immediately readable
+
+## Interaction guidance
+- Outside-tap to close should work predictably.
+- Closing a panel should never leave invisible blockers over the map.
+- Map panning must remain comfortable when overlays are present.
+- Avoid requiring precision taps on mobile.
+
+## Things to avoid
+- Glassmorphism or blurred acrylic styling
+- Tiny tap targets
+- Overly dense nested menus
+- Decorative animation that harms readability or responsiveness
+- Inconsistent tool color semantics
+- Panels that visually compete with the map instead of supporting it
