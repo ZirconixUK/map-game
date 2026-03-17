@@ -45,7 +45,7 @@ window.markToolOptionUsedThisRound = (toolId, optionId) => {
   if (!usedToolOptions[t] || typeof usedToolOptions[t] !== 'object') usedToolOptions[t] = {};
   if (usedToolOptions[t][o]) return false;
   usedToolOptions[t][o] = true;
-  try { saveRoundState(); } catch(e) {}
+  try { saveRoundStateDebounced(); } catch(e) {}
   return true;
 };
 
@@ -93,7 +93,7 @@ window.debugAdvanceRoundElapsedByMs = (ms) => {
   if (!delta) return false;
   if (!(typeof roundStartMs === 'number' && isFinite(roundStartMs))) roundStartMs = Date.now();
   roundStartMs -= delta;
-  try { saveRoundState(); } catch (e) {}
+  try { saveRoundStateDebounced(); } catch (e) {}
   return true;
 };
 
@@ -173,7 +173,7 @@ window.getSelectedGameDifficulty = () => __normalizeGameSetup(gameSetup).difficu
 window.setGameSetupSelection = (patch) => {
   const next = __normalizeGameSetup({ ...gameSetup, ...(patch || {}) });
   gameSetup = next;
-  try { saveRoundState(); } catch (e) {}
+  try { saveRoundStateDebounced(); } catch (e) {}
   return next;
 };
 window.__restoreGameSetupSelection = (src) => {
@@ -324,6 +324,14 @@ function safeParseJSON(s) {
   try { return JSON.parse(s); } catch (e) { return null; }
 }
 
+// Debounced variant — coalesces rapid-fire saves (tool use, heat changes, penalties).
+// Immediate saves (round reset, photo capture, lock-in) call saveRoundState() directly.
+let __saveRoundStateTimer = null;
+function saveRoundStateDebounced() {
+  if (__saveRoundStateTimer) clearTimeout(__saveRoundStateTimer);
+  __saveRoundStateTimer = setTimeout(() => { __saveRoundStateTimer = null; saveRoundState(); }, 300);
+}
+
 function saveRoundState() {
   try {
     // Persist non-POI targets explicitly so refresh keeps the same hunt.
@@ -374,6 +382,7 @@ function loadRoundState() {
 }
 
 function resetRound({ keepTarget = false } = {}) {
+  if (__saveRoundStateTimer) { clearTimeout(__saveRoundStateTimer); __saveRoundStateTimer = null; }
   roundStartMs = Date.now();
   penaltyMs = 0;
   heatValue = 0;
@@ -392,7 +401,7 @@ function resetRound({ keepTarget = false } = {}) {
 
 function setPenaltyMs(ms) {
   penaltyMs = Math.max(0, ms | 0);
-  saveRoundState();
+  saveRoundStateDebounced();
   try { if (typeof updateHUD === "function") updateHUD(); } catch (e) {}
 }
 
@@ -423,7 +432,7 @@ function setHeatValue(v, reason = 'set') {
     try { if (typeof window.onHeatLevelChanged === 'function') window.onHeatLevelChanged(prevLevel, newLevel, reason); } catch (e) {}
   }
   heatLastMs = Date.now();
-  saveRoundState();
+  saveRoundStateDebounced();
   try { if (typeof updateHUD === "function") updateHUD(); } catch (e) {}
 }
 
@@ -445,12 +454,12 @@ window.getHeatLevel = () => heatLevel;
 
 function setThermoRun(run) {
   thermoRun = run;
-  saveRoundState();
+  saveRoundStateDebounced();
   try { if (typeof updateHUD === "function") updateHUD(); } catch (e) {}
 }
 function clearThermoRun() {
   thermoRun = null;
-  saveRoundState();
+  saveRoundStateDebounced();
   try { if (typeof updateHUD === "function") updateHUD(); } catch (e) {}
 }
 

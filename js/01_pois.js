@@ -19,15 +19,18 @@ const __POI_STORE__ = "kv";
 const __POI_KEY__ = "imported_pois_pack_v1";
 const __POI_LS_KEY__ = "mapgame_imported_pois_pack_v1";
 
+let __lsAvailable = null;
 function __canUseLocalStorage() {
+  if (__lsAvailable !== null) return __lsAvailable;
   try {
     const k = "__mg_test__";
     localStorage.setItem(k, "1");
     localStorage.removeItem(k);
-    return true;
+    __lsAvailable = true;
   } catch (e) {
-    return false;
+    __lsAvailable = false;
   }
+  return __lsAvailable;
 }
 
 function __lsGet(key) {
@@ -61,8 +64,10 @@ function __lsDel(key) {
   }
 }
 
+let __poiDbPromise = null;
 function __openPoiDb() {
-  return new Promise((resolve, reject) => {
+  if (__poiDbPromise) return __poiDbPromise;
+  __poiDbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(__POI_DB_NAME__, 1);
     req.onupgradeneeded = () => {
       const db = req.result;
@@ -70,9 +75,18 @@ function __openPoiDb() {
         db.createObjectStore(__POI_STORE__);
       }
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error || new Error("IndexedDB open failed"));
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onclose = () => { __poiDbPromise = null; };
+      db.onversionchange = () => { db.close(); __poiDbPromise = null; };
+      resolve(db);
+    };
+    req.onerror = () => {
+      __poiDbPromise = null;
+      reject(req.error || new Error("IndexedDB open failed"));
+    };
   });
+  return __poiDbPromise;
 }
 
 async function __idbGet(key) {
@@ -230,9 +244,7 @@ async function loadPois() {
           } else reject(new Error(ev.data.error));
         };
         worker.onerror = ev => { clearTimeout(tid); worker.terminate(); reject(ev); };
-        const absUrl = new URL(UK_POI_URL, location.href);
-        absUrl.searchParams.set('cb', String(Date.now()));
-        worker.postMessage({ url: absUrl.href });
+        worker.postMessage({ url: new URL(UK_POI_URL, location.href).href });
       });
       window.__allPois = pois;
       log(`📍 ${pois.length} POIs loaded from ${UK_POI_URL}`);
@@ -242,9 +254,7 @@ async function loadPois() {
       log(`⚠️ Worker unavailable, parsing on main thread: ${e.message}`);
       try { if (typeof window.__dismissCurrentToast === 'function') window.__dismissCurrentToast(); } catch(e) {}
       try {
-        const absUrl = new URL(UK_POI_URL, location.href);
-        absUrl.searchParams.set('cb', String(Date.now()));
-        const r = await fetch(absUrl.href, { cache: 'no-store' });
+        const r = await fetch(new URL(UK_POI_URL, location.href).href, { cache: 'no-cache' });
         const d = await r.json();
         const list = Array.isArray(d) ? d : (Array.isArray(d.pois) ? d.pois : null);
         if (list && list.length) window.__allPois = list;
@@ -292,6 +302,8 @@ async function loadPois() {
 
 // Called at game start (after player location is set) to filter POI_UK_runtime.json data
 // to the current mode radius around the player. No network request.
+let __lastPoiRefreshState = null; // { lat, lon, radiusM } — used to skip redundant full scans
+window.__invalidatePoiRefreshCache = () => { __lastPoiRefreshState = null; };
 window.__refreshLivePoisForCurrentLocation = function() {
   if (!player || typeof player.lat !== 'number' || typeof player.lon !== 'number') return;
   // Don't overwrite a user-imported custom POI pack (but always allow re-filtering from UK dataset)
@@ -300,6 +312,17 @@ window.__refreshLivePoisForCurrentLocation = function() {
   const modeCapM = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
   const lat = player.lat, lon = player.lon;
   const cosLat = Math.cos(lat * Math.PI / 180);
+
+  // Skip full scan if player hasn't moved >50m and mode radius is unchanged.
+  if (__lastPoiRefreshState && __lastPoiRefreshState.radiusM === modeCapM && window.POIS && window.POIS.length > 0) {
+    const dlat = (lat - __lastPoiRefreshState.lat) * 111320;
+    const dlon = (lon - __lastPoiRefreshState.lon) * 111320 * cosLat;
+    if (Math.sqrt(dlat * dlat + dlon * dlon) < 50) {
+      log('📍 POI slice unchanged (player position stable).');
+      return;
+    }
+  }
+  __lastPoiRefreshState = { lat, lon, radiusM: modeCapM };
 
   const source = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : POIS;
   const filtered = source.filter(p => {
