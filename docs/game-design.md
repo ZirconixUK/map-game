@@ -61,10 +61,17 @@ Tools should support that decision, not replace it.
 - Extra photo tools add visual confirmation and pacing variety.
 
 ### Ongoing balance questions
-- Thermometer usefulness still needs tuning.
+- Thermometer usefulness still needs tuning. Tight radius currently costs *less* heat than wide — inversion bug, tracked in v3 plan.
 - N/S and E/W split may be too strong if available too early or too often.
 - Landmark clue quality depends on POI richness and category usefulness.
 - Mid-run dead air remains a major design risk.
+- Timer is currently irrelevant — no tool has a time cost, and the time bonus is too small to change strategy. V3 plan addresses this (see `docs/plan-v3-timer-rebalance.md`).
+
+## Timer principles
+- The timer should create genuine pressure, not be a formality.
+- Tool use should cost time, making tool selection a real trade-off between information gain and time remaining.
+- The time bonus should be large enough that a fast, confident run is meaningfully rewarded over a slow, tool-heavy one.
+- Wall-clock expiry is enforced: closing the page does not pause the timer. A player cannot bank time by reopening the page in a better position.
 
 ## Heat and curses principles
 - Heat should create tension the player can feel and plan around.

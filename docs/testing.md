@@ -40,6 +40,12 @@ Whenever a non-trivial change lands, manually check the systems most likely to d
 - Curse effects actually apply and are understandable.
 - Hard mode interactions still make sense.
 
+### Timer and wall-clock expiry
+- Timer does not show overtime (cannot go negative).
+- Refreshing the page with time expired auto-locks immediately without a repositioning window.
+- Refreshing the page with >30 min past expiry discards the game and opens new-game panel with toast.
+- `penaltyMs` is correctly preserved across refreshes.
+
 ### Scoring and results
 - Lock-in guess produces the correct grade and score breakdown.
 - Adjusted distance behavior still feels fair under GPS accuracy.

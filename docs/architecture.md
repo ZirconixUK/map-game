@@ -95,6 +95,7 @@ Use the right set for the right job:
 - `startNewRound()` must clear persisted result modal HTML.
 - Refresh recovery should preserve round state and allow result modal restoration when appropriate.
 - Cached photo behavior must stay aligned with gameplay rules for free reopen vs first purchase.
+- Wall-clock timer is enforced on restore (since 2026-03-18): `roundStartMs` + `getRoundTimeLimitMs()` are compared against `Date.now()` in `js/13_boot.js`. Games expired >30 min are discarded; games already expired on load fire immediate auto-lock via `window.__roundExpiredOnLoad`.
 
 ## Result modal and scoring integration
 `20_guess.js` owns lock-in, grade calculation, score breakdown, and result modal persistence.

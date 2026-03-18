@@ -37,6 +37,11 @@ That means focusing on:
 ## Known mismatches or cleanup notes
 - Coin economy has been removed and should stay removed unless intentionally revisited.
 - Some roadmap-era comments and historical design directions may still exist in the codebase.
+- `addPenaltyMs()` in `js/04_state.js` exists but is never called — dead code left for v3 activation.
+- `QUESTION_TIME_COST_MS` in `js/00_config.js` is defined but unused — left as dead code (Q&A mechanic removed).
+- Thermometer heat cost inversion: tight radius currently costs *less* heat than wide — backwards. Not yet fixed; tracked in v3 plan.
+- Timer exploit fix landed 2026-03-18: wall-clock expiry enforced on page restore, overtime display removed.
+- V3 balance plan ready (see `docs/plan-v3-timer-rebalance.md`): time costs on tools, thermo inversion fix, time bonus increase. Not yet implemented.
 
 ## Key constants and rules snapshot
 ### Mode radii
@@ -73,7 +78,7 @@ Scoring v2 is grade-based with bonuses.
 - Copper: 50
 
 ### Bonuses
-- time bonus up to 150
+- time bonus up to 150 (proposed v3: 300)
 - length bonus: short 0, medium 50, long 100
 - difficulty bonus: easy 0, normal 50, hard 100
 - tool efficiency bonus depends on tools used, excluding the starter photo
@@ -106,5 +111,6 @@ Later ideas such as daily challenges, async comparison, lore, and social feature
 - N/S/E/W overpowered and collapsing too much search space
 - Solved-meta opener sequences
 - Dead air in the middle of runs
+- Timer irrelevance — tools have no time cost, time bonus is small (v3 plan addresses this)
 - Street View API cost/availability concerns
 - Any regression that breaks adjusted-distance fairness at lock-in
