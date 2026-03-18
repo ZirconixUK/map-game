@@ -62,8 +62,24 @@ function __tryRestoreFog(saved) {
         if (!Array.isArray(roundStateV1.photos)) roundStateV1.photos = [];
       }
     } catch(e) {}
+
+    // Check wall-clock expiry before restoring any in-progress game.
+    // gameSetup is already restored above so getRoundTimeLimitMs() returns the right value.
+    const _savedHasGuessed = !!(saved && saved.roundStateV1 && saved.roundStateV1.hasGuessed);
+    const _savedRoundStartMs = (saved && typeof saved.roundStartMs === 'number') ? saved.roundStartMs : null;
+    const _savedLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30 * 60 * 1000;
+    const _savedElapsedMs = _savedRoundStartMs ? (Date.now() - _savedRoundStartMs) : 0;
+    // If expired more than 30 min ago (and no guess already made), discard the round entirely.
+    const _savedTimedOutCompletely = !_savedHasGuessed && _savedElapsedMs > _savedLimit + 30 * 60 * 1000;
+    // If already past the deadline (but not yet 30 min over), flag for immediate auto-lock on first tick.
+    const _savedExpiredOnLoad = !_savedHasGuessed && _savedElapsedMs > _savedLimit;
+
     // Prefer restoring custom (non-POI) targets first.
-    if (saved && saved.targetCustom && typeof saved.targetCustom.lat === 'number' && typeof saved.targetCustom.lon === 'number') {
+    if (_savedTimedOutCompletely) {
+      // Discard the stale game — go straight to new game panel with a message.
+      window.__needsNewGameSetup = true;
+      window.__timedOutPreviousGame = true;
+    } else if (saved && saved.targetCustom && typeof saved.targetCustom.lat === 'number' && typeof saved.targetCustom.lon === 'number') {
       targetIdx = null;
       target = {
         kind: saved.targetCustom.kind || 'pano',
@@ -129,6 +145,8 @@ function __tryRestoreFog(saved) {
           }
         } catch (e) {}
       }
+      // Flag for immediate auto-lock if the deadline already passed before this page load.
+      if (_savedExpiredOnLoad) window.__roundExpiredOnLoad = true;
     } else if (saved && typeof saved.targetIdx === "number" && POIS && POIS[saved.targetIdx]) {
       targetIdx = saved.targetIdx;
       target = POIS[targetIdx];
@@ -173,6 +191,8 @@ function __tryRestoreFog(saved) {
           }
         } catch (e) {}
       }
+      // Flag for immediate auto-lock if the deadline already passed before this page load.
+      if (_savedExpiredOnLoad) window.__roundExpiredOnLoad = true;
     } else {
       // No saved game — flag so startup flow opens the New Game panel
       window.__needsNewGameSetup = true;
@@ -254,6 +274,10 @@ setTimeout(async function __autoStartup() {
       const p = document.getElementById('panelNewGame');
       if (p) p.classList.add('open');
     } catch (e) {}
+    if (window.__timedOutPreviousGame) {
+      try { if (typeof showToast === 'function') showToast("Previous game timed out — start a new one.", false); } catch(e) {}
+      window.__timedOutPreviousGame = false;
+    }
     window.__needsNewGameSetup = false;
   }
 }, 400);

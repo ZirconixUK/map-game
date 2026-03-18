@@ -242,25 +242,28 @@ function updateHUD() {
         }
         if (phase === 'expired' && !__timerExpiredFired) {
           __timerExpiredFired = true;
-          setTimeout(() => {
-            try { if (typeof showToast === 'function') showToast("Time's up — locking in your position…", false); } catch(e) {}
+          if (window.__roundExpiredOnLoad) {
+            // Round was already over when the page loaded — lock immediately, no delay.
+            // Prevents the exploit of closing the page and reopening in position.
+            window.__roundExpiredOnLoad = false;
+            try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
+          } else {
             setTimeout(() => {
-              try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
-            }, 1200);
-          }, 100);
+              try { if (typeof showToast === 'function') showToast("Time's up — locking in your position…", false); } catch(e) {}
+              setTimeout(() => {
+                try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
+              }, 1200);
+            }, 100);
+          }
         }
         __timerLastPhase = phase;
       }
     }
   }
   if (elTimerPenalty) {
-    const elapsed = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? (Date.now() - roundStartMs) : 0;
-    const limit = (typeof window.getRoundTimeLimitMs === "function") ? window.getRoundTimeLimitMs() : (((typeof ROUND_TIME_LIMIT_MS === "number" && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000)));
-    const overtime = Math.max(0, elapsed - limit);
     const p = (typeof penaltyMs === "number" && isFinite(penaltyMs)) ? penaltyMs : 0;
-    const extra = overtime + p;
-    elTimerPenalty.textContent = extra > 0 ? `OT ${formatMMSS(extra)}` : '';
-    elTimerPenalty.style.display = extra > 0 ? '' : 'none';
+    elTimerPenalty.textContent = p > 0 ? `+${formatMMSS(p)}` : '';
+    elTimerPenalty.style.display = p > 0 ? '' : 'none';
   }
 
   // Heat

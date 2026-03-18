@@ -191,7 +191,7 @@
 
     const _tLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30*60*1000;
     const _tStart = (typeof roundStartMs === 'number' && isFinite(roundStartMs)) ? roundStartMs : Date.now();
-    const guessRemainingMs = _tLimit - (Date.now() - _tStart);
+    const guessRemainingMs = Math.max(0, _tLimit - (Date.now() - _tStart));
 
     // Count tool uses (exclude photo.starter — it's automatic)
     const _usedOpts = (typeof window.getUsedToolOptionsThisRound === 'function')
@@ -243,11 +243,9 @@
     const gc = gradeInfo.color;
     const flavor = gradeInfo.flavor;
 
-    const timeStatVal = guessRemainingMs >= 0
-      ? formatMMSS(guessRemainingMs)
-      : `OT ${formatMMSS(Math.abs(guessRemainingMs))}`;
-    const timeStatColor = guessRemainingMs >= 0 ? '#fff' : '#ef4444';
-    const timeStatLabel = guessRemainingMs >= 0 ? 'Remaining' : 'Overtime';
+    const timeStatVal = formatMMSS(guessRemainingMs);
+    const timeStatColor = '#fff';
+    const timeStatLabel = 'Remaining';
 
     const adjLine = (useAdj && rawD != null && adjD != null && rawD !== adjD)
       ? `<div class="muted" style="font-size:0.7rem;text-align:center;margin-bottom:4px;">Adjusted ${fmtMeters(adjD)} · GPS ±${acc != null ? fmtMeters(acc) : '—'}</div>`
