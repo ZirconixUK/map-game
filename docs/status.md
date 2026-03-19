@@ -37,11 +37,10 @@ That means focusing on:
 ## Known mismatches or cleanup notes
 - Coin economy has been removed and should stay removed unless intentionally revisited.
 - Some roadmap-era comments and historical design directions may still exist in the codebase.
-- `addPenaltyMs()` in `js/04_state.js` exists but is never called — dead code left for v3 activation.
+- `addPenaltyMs()` in `js/04_state.js` is now called by all tool delivery points (v3 time costs).
 - `QUESTION_TIME_COST_MS` in `js/00_config.js` is defined but unused — left as dead code (Q&A mechanic removed).
-- Thermometer heat cost inversion: tight radius currently costs *less* heat than wide — backwards. Not yet fixed; tracked in v3 plan.
 - Timer exploit fix landed 2026-03-18: wall-clock expiry enforced on page restore, overtime display removed.
-- V3 balance plan ready (see `docs/plan-v3-timer-rebalance.md`): time costs on tools, thermo inversion fix, time bonus increase. Not yet implemented.
+- V3 timer rebalance landed 2026-03-19: time costs on all tools, thermometer inversion fixed in tools.json, time bonus doubled to 300, heat costs rebalanced. See `docs/plan-v3-timer-rebalance.md` for details.
 
 ## Key constants and rules snapshot
 ### Mode radii
@@ -78,7 +77,7 @@ Scoring v2 is grade-based with bonuses.
 - Copper: 50
 
 ### Bonuses
-- time bonus up to 150 (proposed v3: 300)
+- time bonus up to 300 (doubled in v3)
 - length bonus: short 0, medium 50, long 100
 - difficulty bonus: easy 0, normal 50, hard 100
 - tool efficiency bonus depends on tools used, excluding the starter photo
@@ -111,6 +110,6 @@ Later ideas such as daily challenges, async comparison, lore, and social feature
 - N/S/E/W overpowered and collapsing too much search space
 - Solved-meta opener sequences
 - Dead air in the middle of runs
-- Timer irrelevance — tools have no time cost, time bonus is small (v3 plan addresses this)
+- Timer pressure tuning — v3 time costs active; monitor for too-harsh timeout rates on short/hard
 - Street View API cost/availability concerns
 - Any regression that breaks adjusted-distance fairness at lock-in

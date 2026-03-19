@@ -89,7 +89,7 @@ const GRADE_BASE_SCORES = {
   Diamond: 800, Emerald: 650, Platinum: 500, Gold: 375,
   Silver: 250, Bronze: 125, Copper: 50,
 };
-const SCORE_TIME_BONUS_MAX   = 150;
+const SCORE_TIME_BONUS_MAX   = 300;
 const SCORE_LENGTH_BONUS     = { short: 0, medium: 50, long: 100 };
 const SCORE_DIFFICULTY_BONUS = { easy: 0, normal: 50, hard: 100 };
 const SCORE_TOOL_EFFICIENCY  = [100, 90, 75, 60, 45, 30, 15, 0]; // index = tools used (capped at 7)
@@ -123,6 +123,17 @@ const RADAR_OPTIONS_BY_MODE = {
 // ---- Question costs (placeholder; can be individualized later) ----
 const QUESTION_TIME_COST_MS = 5 * 60 * 1000; // 5 minutes
 const QUESTION_HEAT_COST = 0.5;
+
+// ---- V3: Per-tool time costs (seconds deducted from remaining time) ----
+// Starter photo is free. All other tools cost time via addPenaltyMs().
+const TOOL_TIME_COST_S = {
+  radar:       { '50': 180, '100': 180, '150': 150, '250': 150, '350': 120, '400': 90,
+                 '500': 90, '650': 120, '800': 120, '900': 120, '1200': 90 },
+  thermometer: { tight: 120, medium: 120, wide: 150 },
+  nsew:        { NS: 180, EW: 180 },
+  landmark:    { _default: 120 },
+  photo:       { near100: 120, near200: 120, uncorrupt: 90, horizon: 90 },
+};
 
 // ---- Thermometer options per game mode ----
 // Each entry is { m: distanceInMeters, heat: heatCost }.

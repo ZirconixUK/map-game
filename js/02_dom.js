@@ -703,12 +703,17 @@ if (debugMode) {
   // ─── Generic tool confirmation helper ───────────────────────────────────────
   // Replaces `menu.innerHTML` with a confirm/cancel view. Calls `onConfirm()`
   // on confirmation or restores original HTML on cancel/back/close.
-  function __toolConfirmShow({ menu, title, accentClass, descHtml, cost, onConfirm }) {
+  function __toolConfirmShow({ menu, title, accentClass, descHtml, cost, timeCostMs, onConfirm }) {
     if (!menu) return;
     const savedHTML = menu.innerHTML;
     const heatDisplay = (cost && typeof cost.heat_cost === 'number') ? Number(cost.heat_cost).toFixed(1) : null;
-    const costRow = heatDisplay
-      ? `<div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat.</div>`
+    const timeSec = (typeof timeCostMs === 'number' && timeCostMs > 0) ? Math.round(timeCostMs / 1000) : 0;
+    const timeDisplay = timeSec > 0 ? (timeSec >= 60 ? `${Math.floor(timeSec/60)}m ${timeSec%60?timeSec%60+'s':''}`.trim() : `${timeSec}s`) : null;
+    let costParts = [];
+    if (heatDisplay) costParts.push(`<span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat`);
+    if (timeDisplay) costParts.push(`<span class="text-red-400 font-semibold">⏱ ${timeDisplay}</span>`);
+    const costRow = costParts.length
+      ? `<div class="text-slate-400 text-xs">Costs ${costParts.join(' + ')}.</div>`
       : '';
     const restore = () => { menu.innerHTML = savedHTML; };
     menu.innerHTML = `
@@ -752,6 +757,7 @@ if (debugMode) {
         title: `📡 Radar — ${label}`,
         accentClass: 'text-blue-400',
         cost,
+        timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('radar', String(meters)) : 0,
         onConfirm: () => {
           const curseRoll = applyQuestionCosts('radar', String(meters));
           if (curseRoll && curseRoll.blocked) return;
@@ -764,6 +770,7 @@ if (debugMode) {
               const pretty = m >= 1000 ? (m/1000).toFixed(m%1000===0?0:1)+'km' : m+'m';
               showToast(res.ok ? `Yes — the target is within ${pretty}.` : `No — the target is not within ${pretty}.`, res.ok);
               noteToolOptionUsed('radar', String(meters));
+              try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('radar', String(meters))); } catch(e) {}
               try {
                 if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
                   const c = curseRoll.applied.curse;
@@ -792,6 +799,7 @@ if (debugMode) {
         accentClass: 'text-orange-400',
         descHtml: `<div class="text-slate-400 text-sm">Walk <span class="text-gray-100 font-semibold">${label}</span> — temperature rises as you approach the target.</div>`,
         cost,
+        timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('thermometer', String(distM)) : 0,
         onConfirm: () => {
           if (panelGameplay) panelGameplay.classList.remove('open');
           showMenu('main');
@@ -807,6 +815,7 @@ if (debugMode) {
             if (curseRoll && curseRoll.blocked) return;
             showToast(`Thermometer active — walk ${label}.`, true);
             noteToolOptionUsed('thermometer', String(distM));
+            try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('thermometer', String(distM))); } catch(e) {}
             try {
               if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
                 const c = curseRoll.applied.curse;
@@ -849,6 +858,7 @@ if (debugMode) {
         descHtml: `<div class="text-slate-400 text-sm">Reveals whether the target is <span class="text-gray-100 font-semibold">${mode === 'NS' ? 'North or South' : 'East or West'}</span> of your current position.</div>
           <div class="text-amber-400 text-xs mt-2">⚠ Using this locks out the ${_pairedLabel} split for this round.</div>`,
         cost,
+        timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('nsew', String(mode)) : 0,
         onConfirm: () => {
           const curseRoll = applyQuestionCosts('nsew', String(mode));
           if (curseRoll && curseRoll.blocked) return;
@@ -860,6 +870,7 @@ if (debugMode) {
               showToast(`The target is ${res.label} of you.`, true);
               noteToolOptionUsed('nsew', String(mode));
               noteToolOptionUsed('nsew', _pairedMode); // lock out the other axis
+              try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('nsew', String(mode))); } catch(e) {}
               try {
                 if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
                   const c = curseRoll.applied.curse;
@@ -912,6 +923,9 @@ if (debugMode) {
     if (!body) return;
     const cost = (typeof getToolCosts === 'function') ? getToolCosts('landmark', kind) : { heat_cost: 0.5 };
     const heatDisplay = Number(cost && cost.heat_cost != null ? cost.heat_cost : 0.5).toFixed(1);
+    const _timeSec = (typeof getToolTimeCostMs === 'function') ? Math.round(getToolTimeCostMs('landmark', kind) / 1000) : 0;
+    const _timeLabel = _timeSec > 0 ? (_timeSec >= 60 ? `${Math.floor(_timeSec/60)}m${_timeSec%60?' '+_timeSec%60+'s':''}` : `${_timeSec}s`) : '';
+    const _timePart = _timeLabel ? ` + <span class="text-red-400 font-semibold">⏱ ${_timeLabel}</span>` : '';
     if (error || !nearestPoi) {
       body.innerHTML = `
         <div class="text-slate-400 text-sm">${error || 'Nothing found nearby.'}</div>
@@ -920,7 +934,7 @@ if (debugMode) {
       const dist = nearestMeters < 1000 ? `${Math.round(nearestMeters)}m` : `${(nearestMeters/1000).toFixed(1)}km`;
       body.innerHTML = `
         <div class="text-gray-100 text-sm">Your nearest: <b>${nearestPoi.name}</b><span class="text-slate-400"> (${dist})</span></div>
-        <div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat to confirm.</div>
+        <div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span>${_timePart} to confirm.</div>
         <div class="flex gap-2 mt-1">
           <button id="lmConfirmBtn" class="flex-1 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm cursor-pointer hover:bg-emerald-500 active:scale-[.98]">Confirm</button>
           <button id="lmCancelBtn" class="px-4 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>
@@ -968,6 +982,7 @@ if (debugMode) {
     );
 
     noteToolOptionUsed('landmark', kind);
+    try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('landmark', kind)); } catch(e) {}
 
     try {
       if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
@@ -1056,6 +1071,7 @@ if (debugMode) {
                   ? cost.heat_cost : (typeof QUESTION_HEAT_COST === 'number' ? QUESTION_HEAT_COST : 0.5);
                 if (typeof addHeat === 'function') addHeat(h);
                 else if (typeof setHeatLevel === 'function') setHeatLevel((heatLevel||0)+h);
+                try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', String(mode))); } catch(e) {}
               }
             } catch(e) {}
           }
@@ -1081,6 +1097,7 @@ if (debugMode) {
         try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
         showToast('All photos uncorrupted for this round.', true);
         noteToolOptionUsed('photo', 'uncorrupt');
+        try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', 'uncorrupt')); } catch(e) {}
       } catch(e) { console.error(e); showToast('Could not uncorrupt photos right now.', false); }
       return;
     }
@@ -1092,6 +1109,7 @@ if (debugMode) {
           const h = (cost && typeof cost.heat_cost === 'number') ? cost.heat_cost : 1.0;
           if (typeof addHeat === 'function') addHeat(h);
           if (typeof noteToolOptionUsed === 'function') noteToolOptionUsed('photo', 'horizon');
+          try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', 'horizon')); } catch(e) {}
           if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig();
           if (typeof updateHUD === 'function') updateHUD();
         }
@@ -1140,6 +1158,7 @@ if (debugMode) {
           accentClass: 'text-violet-400',
           descHtml: `<div class="text-slate-400 text-sm">A Street View photo taken within <span class="text-gray-100 font-semibold">${tierLabel}</span> of the target.</div>`,
           cost,
+          timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('photo', mode) : 0,
           onConfirm: () => {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');
@@ -1158,6 +1177,7 @@ if (debugMode) {
           accentClass: 'text-violet-400',
           descHtml: `<div class="text-slate-400 text-sm">Removes glitch corruption from all photos this round.</div>`,
           cost,
+          timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('photo', 'uncorrupt') : 0,
           onConfirm: () => {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');
@@ -1182,6 +1202,7 @@ if (debugMode) {
           accentClass: 'text-violet-400',
           descHtml: '<div class="text-slate-400 text-sm">A skyline view from the target pano, facing toward your current position.</div>',
           cost: (typeof getToolCosts === 'function') ? getToolCosts('photo', 'horizon') : { heat_cost: 1.0 },
+          timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('photo', 'horizon') : 0,
           onConfirm: () => {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "tools": {
     "radar": {
       "label": "Radar",
@@ -30,7 +30,7 @@
           "id": "100",
           "value_m": 100,
           "cost": {
-            "heat_cost": 0.2
+            "heat_cost": 0.4
           }
         },
         {
@@ -44,7 +44,7 @@
           "id": "300",
           "value_m": 300,
           "cost": {
-            "heat_cost": 0.4
+            "heat_cost": 0.2
           }
         }
       ]
@@ -52,7 +52,7 @@
     "nsew": {
       "label": "N/S/E/W",
       "default": {
-        "heat_cost": 0.4
+        "heat_cost": 0.5
       },
       "options": [
         {
@@ -68,7 +68,7 @@
     "landmark": {
       "label": "Landmark",
       "default": {
-        "heat_cost": 0.5
+        "heat_cost": 0.4
       },
       "options": [
         {
@@ -105,28 +105,28 @@
           "id": "near100",
           "label": "Extra photo (\u2264100m)",
           "cost": {
-            "heat_cost": 1.5
+            "heat_cost": 1.2
           }
         },
         {
           "id": "near200",
           "label": "Extra photo (\u2264200m)",
           "cost": {
-            "heat_cost": 1.2
+            "heat_cost": 1.0
           }
         },
         {
           "id": "uncorrupt",
           "label": "Uncorrupt all photos",
           "cost": {
-            "heat_cost": 0.8
+            "heat_cost": 0.6
           }
         },
         {
           "id": "horizon",
           "label": "Horizon photo",
           "cost": {
-            "heat_cost": 1.0
+            "heat_cost": 0.8
           }
         }
       ]

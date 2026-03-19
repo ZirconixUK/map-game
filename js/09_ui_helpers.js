@@ -216,7 +216,8 @@ function updateHUD() {
       const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
       const elapsed = start ? (Date.now() - start) : 0;
       const limit = (typeof window.getRoundTimeLimitMs === "function") ? window.getRoundTimeLimitMs() : (((typeof ROUND_TIME_LIMIT_MS === "number" && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000)));
-      const remaining = Math.max(0, limit - elapsed);
+      const penalty = (typeof penaltyMs === 'number' && isFinite(penaltyMs)) ? penaltyMs : 0;
+      const remaining = Math.max(0, limit - elapsed - penalty);
       elTimerMain.textContent = formatMMSS(remaining);
 
       // Reset phase tracking on new round

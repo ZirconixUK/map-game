@@ -257,3 +257,29 @@ async function loadToolsConfig() {
 loadToolsConfig();
 window.updateCostBadgesFromConfig = updateCostBadgesFromConfig;
 window.getToolCosts = getToolCosts;
+
+// ---- V3: Time cost helper ----
+// Returns the time penalty in ms for a tool use, or 0 if none.
+function getToolTimeCostMs(toolId, optionId) {
+  if (typeof TOOL_TIME_COST_S === 'undefined') return 0;
+  const table = TOOL_TIME_COST_S[toolId];
+  if (!table) return 0;
+
+  // Thermometer: options are positional (tight/medium/wide = index 0/1/2).
+  if (toolId === 'thermometer') {
+    const mode = (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short';
+    const opts = (typeof THERMO_OPTIONS_BY_MODE !== 'undefined' && THERMO_OPTIONS_BY_MODE[mode])
+      ? THERMO_OPTIONS_BY_MODE[mode] : [];
+    const idx = opts.findIndex(o => String(o.m) === String(optionId));
+    const keys = ['tight', 'medium', 'wide'];
+    const key = (idx >= 0 && idx < keys.length) ? keys[idx] : 'medium';
+    return (typeof table[key] === 'number' ? table[key] : 0) * 1000;
+  }
+
+  // Direct key lookup (radar by meter, nsew by axis, photo by mode, landmark by kind).
+  const key = String(optionId || '');
+  if (typeof table[key] === 'number') return table[key] * 1000;
+  if (typeof table._default === 'number') return table._default * 1000;
+  return 0;
+}
+window.getToolTimeCostMs = getToolTimeCostMs;

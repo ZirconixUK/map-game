@@ -69,10 +69,12 @@ function __tryRestoreFog(saved) {
     const _savedRoundStartMs = (saved && typeof saved.roundStartMs === 'number') ? saved.roundStartMs : null;
     const _savedLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30 * 60 * 1000;
     const _savedElapsedMs = _savedRoundStartMs ? (Date.now() - _savedRoundStartMs) : 0;
+    const _savedPenaltyMs = (saved && typeof saved.penaltyMs === 'number' && isFinite(saved.penaltyMs)) ? saved.penaltyMs : 0;
+    const _savedEffectiveElapsed = _savedElapsedMs + _savedPenaltyMs;
     // If expired more than 30 min ago (and no guess already made), discard the round entirely.
-    const _savedTimedOutCompletely = !_savedHasGuessed && _savedElapsedMs > _savedLimit + 30 * 60 * 1000;
+    const _savedTimedOutCompletely = !_savedHasGuessed && _savedEffectiveElapsed > _savedLimit + 30 * 60 * 1000;
     // If already past the deadline (but not yet 30 min over), flag for immediate auto-lock on first tick.
-    const _savedExpiredOnLoad = !_savedHasGuessed && _savedElapsedMs > _savedLimit;
+    const _savedExpiredOnLoad = !_savedHasGuessed && _savedEffectiveElapsed > _savedLimit;
 
     // Prefer restoring custom (non-POI) targets first.
     if (_savedTimedOutCompletely) {

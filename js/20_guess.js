@@ -191,7 +191,8 @@
 
     const _tLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30*60*1000;
     const _tStart = (typeof roundStartMs === 'number' && isFinite(roundStartMs)) ? roundStartMs : Date.now();
-    const guessRemainingMs = Math.max(0, _tLimit - (Date.now() - _tStart));
+    const _penalty = (typeof penaltyMs === 'number' && isFinite(penaltyMs)) ? penaltyMs : 0;
+    const guessRemainingMs = Math.max(0, _tLimit - (Date.now() - _tStart) - _penalty);
 
     // Count tool uses (exclude photo.starter — it's automatic)
     const _usedOpts = (typeof window.getUsedToolOptionsThisRound === 'function')

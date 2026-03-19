@@ -41,10 +41,9 @@
 - Confusing target seed POIs with final snapped Street View pano positions.
 - Breaking mobile map panning or tap-to-close behavior while editing menus/modals.
 - Quietly reintroducing roadmap-era systems that were intentionally removed.
-- Calling `addPenaltyMs()` for purposes other than time costs — it is currently dead code, reserved for v3 time-cost activation. Do not repurpose it for UI or other systems.
+- Calling `addPenaltyMs()` for purposes other than tool time costs — it is now active (v3). Do not repurpose it for UI or other systems.
 
 ## Known intentional dead code
-- `addPenaltyMs()` in `js/04_state.js` — exists but never called. Reserved for v3 timer rebalance (see `docs/plan-v3-timer-rebalance.md`).
 - `QUESTION_TIME_COST_MS` in `js/00_config.js` — defined but unused. Relates to a removed Q&A mechanic. Leave it unless explicitly revisiting.
 
 ## What to verify after changes
