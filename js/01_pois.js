@@ -219,7 +219,9 @@ async function loadPois() {
   // main thread free during the ~300–700ms JSON parse of 31MB.
   try {
     const cached = await __idbGet(UK_POI_CACHE_KEY);
-    if (cached && Array.isArray(cached.pois) && cached.pois.length > 1000) {
+    const POI_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const cacheAge = cached && cached.savedAt ? Date.now() - cached.savedAt : Infinity;
+    if (cached && Array.isArray(cached.pois) && cached.pois.length > 1000 && cacheAge < POI_CACHE_TTL_MS) {
       window.__allPois = cached.pois;
       log(`📍 ${cached.pois.length} POIs from IDB cache (${cached.lastModified || 'unknown date'})`);
     } else {

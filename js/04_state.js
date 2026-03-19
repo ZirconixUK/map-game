@@ -383,6 +383,7 @@ function loadRoundState() {
 
 function resetRound({ keepTarget = false } = {}) {
   if (__saveRoundStateTimer) { clearTimeout(__saveRoundStateTimer); __saveRoundStateTimer = null; }
+  window.__roundExpiredOnLoad = false;
   roundStartMs = Date.now();
   penaltyMs = 0;
   heatValue = 0;
