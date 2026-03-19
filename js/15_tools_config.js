@@ -238,7 +238,19 @@ function updateCostBadgesFromConfig() {
           items[0].style.borderColor = '';
         }
       }
-      if (items.length >= 2) items[1].style.display = 'none';
+      // Time cost badge (only shown when overcharged curse is active)
+      if (items.length >= 2) {
+        const _tcMs = (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs(toolId, optId) : 0;
+        if (_tcMs > 0 && cost.heat_cost > 0) {
+          const _s = Math.round(_tcMs / 1000);
+          const _label = _s >= 60 ? `⏱ ${Math.floor(_s/60)}m${_s%60?' '+_s%60+'s':''}`.trim() : `⏱ ${_s}s`;
+          items[1].textContent = _label;
+          items[1].style.display = '';
+          items[1].style.color = '#f87171';
+        } else {
+          items[1].style.display = 'none';
+        }
+      }
     });
   });
 }
@@ -258,28 +270,13 @@ loadToolsConfig();
 window.updateCostBadgesFromConfig = updateCostBadgesFromConfig;
 window.getToolCosts = getToolCosts;
 
-// ---- V3: Time cost helper ----
-// Returns the time penalty in ms for a tool use, or 0 if none.
+// ---- V3: Curse-gated time cost helper ----
+// Returns the time penalty in ms for a tool use, or 0 if no time-penalty curse is active.
+// Cost = OVERCHARGED_COST_PER_STACK_S × stacks × 1000 (flat per tool use).
 function getToolTimeCostMs(toolId, optionId) {
-  if (typeof TOOL_TIME_COST_S === 'undefined') return 0;
-  const table = TOOL_TIME_COST_S[toolId];
-  if (!table) return 0;
-
-  // Thermometer: options are positional (tight/medium/wide = index 0/1/2).
-  if (toolId === 'thermometer') {
-    const mode = (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short';
-    const opts = (typeof THERMO_OPTIONS_BY_MODE !== 'undefined' && THERMO_OPTIONS_BY_MODE[mode])
-      ? THERMO_OPTIONS_BY_MODE[mode] : [];
-    const idx = opts.findIndex(o => String(o.m) === String(optionId));
-    const keys = ['tight', 'medium', 'wide'];
-    const key = (idx >= 0 && idx < keys.length) ? keys[idx] : 'medium';
-    return (typeof table[key] === 'number' ? table[key] : 0) * 1000;
-  }
-
-  // Direct key lookup (radar by meter, nsew by axis, photo by mode, landmark by kind).
-  const key = String(optionId || '');
-  if (typeof table[key] === 'number') return table[key] * 1000;
-  if (typeof table._default === 'number') return table._default * 1000;
-  return 0;
+  const stacks = (typeof window.getOverchargedStacks === 'function') ? window.getOverchargedStacks() : 0;
+  if (stacks <= 0) return 0;
+  const costPerStack = (typeof OVERCHARGED_COST_PER_STACK_S === 'number') ? OVERCHARGED_COST_PER_STACK_S : 90;
+  return stacks * costPerStack * 1000;
 }
 window.getToolTimeCostMs = getToolTimeCostMs;

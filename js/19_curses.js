@@ -38,10 +38,18 @@
   }
 
   function getCurseDefById(id) {
-    if (!CURSES_CONFIG || !CURSES_CONFIG.tiers) return null;
-    const tiers = CURSES_CONFIG.tiers;
-    for (const k of Object.keys(tiers)) {
-      if (tiers[k] && tiers[k].id === id) return { tier: parseInt(k, 10), ...tiers[k] };
+    if (!CURSES_CONFIG) return null;
+    if (CURSES_CONFIG.tiers) {
+      const tiers = CURSES_CONFIG.tiers;
+      for (const k of Object.keys(tiers)) {
+        if (tiers[k] && tiers[k].id === id) return { tier: parseInt(k, 10), ...tiers[k] };
+      }
+    }
+    if (CURSES_CONFIG.special) {
+      const special = CURSES_CONFIG.special;
+      for (const k of Object.keys(special)) {
+        if (special[k] && special[k].id === id) return { tier: null, ...special[k] };
+      }
     }
     return null;
   }
@@ -112,8 +120,14 @@
     const now = nowMs();
 
     if (existing) {
+      const maxStacks = (def && typeof def.maxStacks === 'number') ? def.maxStacks : 1;
+      if (maxStacks > 1 && existing.stacks < maxStacks) {
+        existing.stacks++;
+        existing.expiresAt = Math.max(existing.expiresAt, now) + dur; // extend
+      } else {
+        existing.expiresAt = now + dur; // refresh
+      }
       existing.appliedAt = now;
-      existing.expiresAt = now + dur; // refresh
       refreshUI();
       saveIfPossible();
       return { curse: { ...existing }, isNew: false };
@@ -218,7 +232,30 @@
       const triggered = r < p;
       let applied = null;
       if (triggered) applied = applyTierCurse(level);
-      return { triggered, p, r, level, meta, applied };
+
+      // Second independent roll: Overcharged (time-penalty curse)
+      let overchargedResult = null;
+      try {
+        let op = 0;
+        if (CURSES_CONFIG && CURSES_CONFIG.overchargedChanceByHeatLevel) {
+          const ov = CURSES_CONFIG.overchargedChanceByHeatLevel[String(level)];
+          op = (typeof ov === 'number' && isFinite(ov)) ? Math.max(0, Math.min(1, ov)) : 0;
+        }
+        // Difficulty scaling
+        try {
+          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+          if (diff === 'easy') op *= 0.75;
+          else if (diff === 'hard') op = Math.min(1, op * 1.5);
+        } catch(e) {}
+        if (op > 0) {
+          const or2 = Math.random();
+          if (or2 < op) {
+            overchargedResult = applyCurse('overcharged');
+          }
+        }
+      } catch(e) {}
+
+      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult };
     } catch (e) {
       console.error(e);
       return { triggered: false, reason: 'error' };
@@ -239,6 +276,12 @@
     return active.some(c => c.id === id && c.expiresAt > now);
   }
 
+  function getOverchargedStacks() {
+    const now = nowMs();
+    const c = active.find(c => c.id === 'overcharged' && c.expiresAt > now);
+    return c ? (c.stacks || 1) : 0;
+  }
+
   // Expose
   window.loadCursesConfig = loadCursesConfig;
   window.getActiveCurses = getActiveCurses;
@@ -253,6 +296,7 @@
   window.__restoreCursesFromSave = restoreCursesFromSave;
   window.onHeatLevelChanged = onHeatLevelChanged;
   window.debugSimulateCurse = debugSimulateCurse;
+  window.getOverchargedStacks = getOverchargedStacks;
   window.__msLeftOnCurse = msLeft;
 
   // Kick off config load ASAP (non-blocking).

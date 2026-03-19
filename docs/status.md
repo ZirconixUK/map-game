@@ -37,10 +37,10 @@ That means focusing on:
 ## Known mismatches or cleanup notes
 - Coin economy has been removed and should stay removed unless intentionally revisited.
 - Some roadmap-era comments and historical design directions may still exist in the codebase.
-- `addPenaltyMs()` in `js/04_state.js` is now called by all tool delivery points (v3 time costs).
+- `addPenaltyMs()` in `js/04_state.js` is called by tool delivery points when the "overcharged" curse is active (curse-gated time costs).
 - `QUESTION_TIME_COST_MS` in `js/00_config.js` is defined but unused — left as dead code (Q&A mechanic removed).
 - Timer exploit fix landed 2026-03-18: wall-clock expiry enforced on page restore, overtime display removed.
-- V3 timer rebalance landed 2026-03-19: time costs on all tools, thermometer inversion fixed in tools.json, time bonus doubled to 300, heat costs rebalanced. See `docs/plan-v3-timer-rebalance.md` for details.
+- V3 timer rebalance landed 2026-03-19: curse-gated time costs ("Overcharged" curse), thermometer inversion fixed in tools.json, time bonus doubled to 300, heat costs rebalanced. Tools are free (time-wise) when uncursed. See `docs/plan-v3-timer-rebalance.md` for details.
 
 ## Key constants and rules snapshot
 ### Mode radii

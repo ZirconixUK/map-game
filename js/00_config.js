@@ -124,16 +124,10 @@ const RADAR_OPTIONS_BY_MODE = {
 const QUESTION_TIME_COST_MS = 5 * 60 * 1000; // 5 minutes
 const QUESTION_HEAT_COST = 0.5;
 
-// ---- V3: Per-tool time costs (seconds deducted from remaining time) ----
-// Starter photo is free. All other tools cost time via addPenaltyMs().
-const TOOL_TIME_COST_S = {
-  radar:       { '50': 180, '100': 180, '150': 150, '250': 150, '350': 120, '400': 90,
-                 '500': 90, '650': 120, '800': 120, '900': 120, '1200': 90 },
-  thermometer: { tight: 120, medium: 120, wide: 150 },
-  nsew:        { NS: 180, EW: 180 },
-  landmark:    { _default: 120 },
-  photo:       { near100: 120, near200: 120, uncorrupt: 90, horizon: 90 },
-};
+// ---- V3: Overcharged curse time cost ----
+// When the "overcharged" curse is active, each tool use costs 90s × stacks.
+// No time cost when uncursed. See curses.json for trigger probabilities.
+const OVERCHARGED_COST_PER_STACK_S = 90;
 
 // ---- Thermometer options per game mode ----
 // Each entry is { m: distanceInMeters, heat: heatCost }.

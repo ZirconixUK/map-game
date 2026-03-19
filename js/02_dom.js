@@ -703,18 +703,46 @@ if (debugMode) {
   // ─── Generic tool confirmation helper ───────────────────────────────────────
   // Replaces `menu.innerHTML` with a confirm/cancel view. Calls `onConfirm()`
   // on confirmation or restores original HTML on cancel/back/close.
-  function __toolConfirmShow({ menu, title, accentClass, descHtml, cost, timeCostMs, onConfirm }) {
+  function __formatTimeCost(ms) {
+    const s = Math.round(ms / 1000);
+    if (s <= 0) return '';
+    return s >= 60 ? `${Math.floor(s/60)}m${s%60?' '+s%60+'s':''}`.trim() : `${s}s`;
+  }
+
+  function __showCurseToasts(curseRoll) {
+    try {
+      if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
+        const c = curseRoll.applied.curse;
+        const dur = c.expiresAt && c.appliedAt ? Math.round((c.expiresAt - c.appliedAt) / 60000) : 5;
+        showToast(`You've been cursed: <b>${c.name}</b>.<br>(${dur} minutes)`, false, { kind: 'curse' });
+      }
+      if (curseRoll && curseRoll.overcharged && curseRoll.overcharged.curse) {
+        const oc = curseRoll.overcharged.curse;
+        const stacks = oc.stacks || 1;
+        const msg = stacks > 1
+          ? `<b>Overcharged ×${stacks}</b> — tool uses now cost <b>${__formatTimeCost(stacks * (typeof OVERCHARGED_COST_PER_STACK_S === 'number' ? OVERCHARGED_COST_PER_STACK_S : 90) * 1000)}</b> from your timer.`
+          : `<b>Overcharged</b> — tool uses now cost time from your timer.`;
+        showToast(msg, false, { kind: 'curse' });
+        try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
+      }
+    } catch(e) {}
+  }
+
+  function __toolConfirmShow({ menu, title, accentClass, descHtml, cost, onConfirm }) {
     if (!menu) return;
     const savedHTML = menu.innerHTML;
     const heatDisplay = (cost && typeof cost.heat_cost === 'number') ? Number(cost.heat_cost).toFixed(1) : null;
-    const timeSec = (typeof timeCostMs === 'number' && timeCostMs > 0) ? Math.round(timeCostMs / 1000) : 0;
-    const timeDisplay = timeSec > 0 ? (timeSec >= 60 ? `${Math.floor(timeSec/60)}m ${timeSec%60?timeSec%60+'s':''}`.trim() : `${timeSec}s`) : null;
-    let costParts = [];
-    if (heatDisplay) costParts.push(`<span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat`);
-    if (timeDisplay) costParts.push(`<span class="text-red-400 font-semibold">⏱ ${timeDisplay}</span>`);
-    const costRow = costParts.length
-      ? `<div class="text-slate-400 text-xs">Costs ${costParts.join(' + ')}.</div>`
+    // Time cost is curse-gated — only show when overcharged curse is active
+    const _tcMs = (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs() : 0;
+    const timeDisplay = _tcMs > 0 ? __formatTimeCost(_tcMs) : null;
+    const stacks = (typeof window.getOverchargedStacks === 'function') ? window.getOverchargedStacks() : 0;
+    const heatRow = heatDisplay
+      ? `<div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat.</div>`
       : '';
+    const timeRow = timeDisplay
+      ? `<div class="text-red-400 text-xs mt-1">⚠ Time cursed — costs <span class="font-semibold">⏱ ${timeDisplay}</span> from your timer${stacks > 1 ? ` (${stacks}× stacked)` : ''}.</div>`
+      : '';
+    const costRow = heatRow + timeRow;
     const restore = () => { menu.innerHTML = savedHTML; };
     menu.innerHTML = `
       <div class="flex justify-between mb-3">
@@ -757,7 +785,6 @@ if (debugMode) {
         title: `📡 Radar — ${label}`,
         accentClass: 'text-blue-400',
         cost,
-        timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('radar', String(meters)) : 0,
         onConfirm: () => {
           const curseRoll = applyQuestionCosts('radar', String(meters));
           if (curseRoll && curseRoll.blocked) return;
@@ -771,12 +798,7 @@ if (debugMode) {
               showToast(res.ok ? `Yes — the target is within ${pretty}.` : `No — the target is not within ${pretty}.`, res.ok);
               noteToolOptionUsed('radar', String(meters));
               try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('radar', String(meters))); } catch(e) {}
-              try {
-                if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
-                  const c = curseRoll.applied.curse;
-                  showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-                }
-              } catch(e) {}
+              __showCurseToasts(curseRoll);
             }
           } catch(e) { console.error(e); }
         }
@@ -799,7 +821,6 @@ if (debugMode) {
         accentClass: 'text-orange-400',
         descHtml: `<div class="text-slate-400 text-sm">Walk <span class="text-gray-100 font-semibold">${label}</span> — temperature rises as you approach the target.</div>`,
         cost,
-        timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('thermometer', String(distM)) : 0,
         onConfirm: () => {
           if (panelGameplay) panelGameplay.classList.remove('open');
           showMenu('main');
@@ -816,12 +837,7 @@ if (debugMode) {
             showToast(`Thermometer active — walk ${label}.`, true);
             noteToolOptionUsed('thermometer', String(distM));
             try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('thermometer', String(distM))); } catch(e) {}
-            try {
-              if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
-                const c = curseRoll.applied.curse;
-                showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-              }
-            } catch(e) {}
+            __showCurseToasts(curseRoll);
           } else {
             showToast('Set your location first (geolocation) before using the thermometer.', false);
           }
@@ -858,7 +874,6 @@ if (debugMode) {
         descHtml: `<div class="text-slate-400 text-sm">Reveals whether the target is <span class="text-gray-100 font-semibold">${mode === 'NS' ? 'North or South' : 'East or West'}</span> of your current position.</div>
           <div class="text-amber-400 text-xs mt-2">⚠ Using this locks out the ${_pairedLabel} split for this round.</div>`,
         cost,
-        timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('nsew', String(mode)) : 0,
         onConfirm: () => {
           const curseRoll = applyQuestionCosts('nsew', String(mode));
           if (curseRoll && curseRoll.blocked) return;
@@ -871,12 +886,7 @@ if (debugMode) {
               noteToolOptionUsed('nsew', String(mode));
               noteToolOptionUsed('nsew', _pairedMode); // lock out the other axis
               try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('nsew', String(mode))); } catch(e) {}
-              try {
-                if (curseRoll && curseRoll.triggered && curseRoll.applied?.curse) {
-                  const c = curseRoll.applied.curse;
-                  showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-                }
-              } catch(e) {}
+              __showCurseToasts(curseRoll);
             }
           } catch(e) { console.error(e); showToast("Couldn't run N/S/E/W right now.", false); }
         }
@@ -923,18 +933,20 @@ if (debugMode) {
     if (!body) return;
     const cost = (typeof getToolCosts === 'function') ? getToolCosts('landmark', kind) : { heat_cost: 0.5 };
     const heatDisplay = Number(cost && cost.heat_cost != null ? cost.heat_cost : 0.5).toFixed(1);
-    const _timeSec = (typeof getToolTimeCostMs === 'function') ? Math.round(getToolTimeCostMs('landmark', kind) / 1000) : 0;
-    const _timeLabel = _timeSec > 0 ? (_timeSec >= 60 ? `${Math.floor(_timeSec/60)}m${_timeSec%60?' '+_timeSec%60+'s':''}` : `${_timeSec}s`) : '';
-    const _timePart = _timeLabel ? ` + <span class="text-red-400 font-semibold">⏱ ${_timeLabel}</span>` : '';
+    const _tcMs = (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs() : 0;
+    const _timeLabel = _tcMs > 0 ? __formatTimeCost(_tcMs) : '';
+    const _stacks = (typeof window.getOverchargedStacks === 'function') ? window.getOverchargedStacks() : 0;
     if (error || !nearestPoi) {
       body.innerHTML = `
         <div class="text-slate-400 text-sm">${error || 'Nothing found nearby.'}</div>
         <button id="lmCancelBtn" class="mt-2 px-4 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>`;
     } else {
       const dist = nearestMeters < 1000 ? `${Math.round(nearestMeters)}m` : `${(nearestMeters/1000).toFixed(1)}km`;
+      const _timeRow = _timeLabel ? `<div class="text-red-400 text-xs mt-1">⚠ Time cursed — costs <span class="font-semibold">⏱ ${_timeLabel}</span>${_stacks > 1 ? ` (${_stacks}× stacked)` : ''}.</div>` : '';
       body.innerHTML = `
         <div class="text-gray-100 text-sm">Your nearest: <b>${nearestPoi.name}</b><span class="text-slate-400"> (${dist})</span></div>
-        <div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span>${_timePart} to confirm.</div>
+        <div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat to confirm.</div>
+        ${_timeRow}
         <div class="flex gap-2 mt-1">
           <button id="lmConfirmBtn" class="flex-1 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm cursor-pointer hover:bg-emerald-500 active:scale-[.98]">Confirm</button>
           <button id="lmCancelBtn" class="px-4 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>
@@ -984,12 +996,7 @@ if (debugMode) {
     noteToolOptionUsed('landmark', kind);
     try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('landmark', kind)); } catch(e) {}
 
-    try {
-      if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
-        const c = curseRoll.applied.curse;
-        showToast(`You've been cursed: <b>${c.name}</b>.<br>(5 minutes)`, false, { kind: 'curse' });
-      }
-    } catch(e) {}
+    __showCurseToasts(curseRoll);
   }
 
   // Landmark menu — use event delegation so listeners survive innerHTML replacement
@@ -1064,16 +1071,12 @@ if (debugMode) {
           if (!res || !res.ok) {
             showToast('No further photos available for this target.', false);
           } else {
-            try {
-              if (!res.cached) {
-                const cost = (typeof getToolCosts === 'function') ? getToolCosts('photo', String(mode)) : null;
-                const h = (cost && typeof cost.heat_cost === 'number' && isFinite(cost.heat_cost))
-                  ? cost.heat_cost : (typeof QUESTION_HEAT_COST === 'number' ? QUESTION_HEAT_COST : 0.5);
-                if (typeof addHeat === 'function') addHeat(h);
-                else if (typeof setHeatLevel === 'function') setHeatLevel((heatLevel||0)+h);
-                try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', String(mode))); } catch(e) {}
-              }
-            } catch(e) {}
+            if (!res.cached) {
+              const curseRoll = applyQuestionCosts('photo', String(mode));
+              if (curseRoll && curseRoll.blocked) return;
+              try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', String(mode))); } catch(e) {}
+              __showCurseToasts(curseRoll);
+            }
           }
           try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
           try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
@@ -1088,6 +1091,8 @@ if (debugMode) {
       try {
         const already = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
         if (already) { showToast('Photos are already uncorrupted for this round.', true); return; }
+        const curseRoll = applyQuestionCosts('photo', 'uncorrupt');
+        if (curseRoll && curseRoll.blocked) return;
         if (typeof window.__setPhotosUncorrupted === 'function') window.__setPhotosUncorrupted(true);
         try {
           document.querySelectorAll('.photo-glimpse-frame').forEach(el => el.classList.add('is-uncorrupted'));
@@ -1098,6 +1103,7 @@ if (debugMode) {
         showToast('All photos uncorrupted for this round.', true);
         noteToolOptionUsed('photo', 'uncorrupt');
         try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', 'uncorrupt')); } catch(e) {}
+        __showCurseToasts(curseRoll);
       } catch(e) { console.error(e); showToast('Could not uncorrupt photos right now.', false); }
       return;
     }
@@ -1105,13 +1111,13 @@ if (debugMode) {
       try {
         const res = await window.showStreetViewHorizonPhotoForTarget();
         if (res && res.ok && !res.cached) {
-          const cost = (typeof getToolCosts === 'function') ? getToolCosts('photo', 'horizon') : { heat_cost: 1.0 };
-          const h = (cost && typeof cost.heat_cost === 'number') ? cost.heat_cost : 1.0;
-          if (typeof addHeat === 'function') addHeat(h);
+          const curseRoll = applyQuestionCosts('photo', 'horizon');
+          if (curseRoll && curseRoll.blocked) return;
           if (typeof noteToolOptionUsed === 'function') noteToolOptionUsed('photo', 'horizon');
           try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', 'horizon')); } catch(e) {}
           if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig();
           if (typeof updateHUD === 'function') updateHUD();
+          __showCurseToasts(curseRoll);
         }
       } catch(e) { console.error(e); showToast('Could not load the horizon photo right now.', false); }
       return;
@@ -1158,7 +1164,6 @@ if (debugMode) {
           accentClass: 'text-violet-400',
           descHtml: `<div class="text-slate-400 text-sm">A Street View photo taken within <span class="text-gray-100 font-semibold">${tierLabel}</span> of the target.</div>`,
           cost,
-          timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('photo', mode) : 0,
           onConfirm: () => {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');
@@ -1177,7 +1182,6 @@ if (debugMode) {
           accentClass: 'text-violet-400',
           descHtml: `<div class="text-slate-400 text-sm">Removes glitch corruption from all photos this round.</div>`,
           cost,
-          timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('photo', 'uncorrupt') : 0,
           onConfirm: () => {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');
@@ -1202,7 +1206,6 @@ if (debugMode) {
           accentClass: 'text-violet-400',
           descHtml: '<div class="text-slate-400 text-sm">A skyline view from the target pano, facing toward your current position.</div>',
           cost: (typeof getToolCosts === 'function') ? getToolCosts('photo', 'horizon') : { heat_cost: 1.0 },
-          timeCostMs: (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs('photo', 'horizon') : 0,
           onConfirm: () => {
             if (panelGameplay) panelGameplay.classList.remove('open');
             showMenu('main');

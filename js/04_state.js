@@ -392,6 +392,7 @@ function resetRound({ keepTarget = false } = {}) {
   __lastHeatSaveMs = 0;
   thermoRun = null;
   usedToolOptions = {};
+  try { if (typeof window.clearCurses === 'function') window.clearCurses(); } catch(e) {}
   if (!keepTarget) {
     targetIdx = null;
     targetCustom = null;

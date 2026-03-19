@@ -266,6 +266,12 @@ function updateHUD() {
     elTimerPenalty.textContent = p > 0 ? `+${formatMMSS(p)}` : '';
     elTimerPenalty.style.display = p > 0 ? '' : 'none';
   }
+  const elTimerCurse = document.getElementById('timerCurseIndicator');
+  if (elTimerCurse) {
+    const _stacks = (typeof window.getOverchargedStacks === 'function') ? window.getOverchargedStacks() : 0;
+    elTimerCurse.classList.toggle('hidden', _stacks <= 0);
+    elTimerCurse.textContent = _stacks > 1 ? `⚠ CURSED ×${_stacks}` : '⚠ CURSED';
+  }
 
   // Heat
   const heatEl = document.getElementById("heatWidget");
@@ -468,7 +474,8 @@ function updateCursesPanel(){
   ul.classList.remove('hidden');
 
   ul.innerHTML = list.map(c => {
-    const name = (c && c.name) ? String(c.name) : String((c && c.id) || 'Curse');
+    let name = (c && c.name) ? String(c.name) : String((c && c.id) || 'Curse');
+    if (c && c.stacks > 1) name += ` ×${c.stacks}`;
     const desc = (c && c.description) ? String(c.description) : '';
     let left = 0;
     try { left = (typeof window.__msLeftOnCurse === 'function') ? window.__msLeftOnCurse(c) : 0; } catch (e) { left = 0; }

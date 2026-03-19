@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "defaultDurationMs": 300000,
   "triggerChanceByHeatLevel": {
     "1": 0.20,
@@ -7,6 +7,14 @@
     "3": 0.65,
     "4": 0.90,
     "5": 1.00
+  },
+  "overchargedChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0.10,
+    "3": 0.25,
+    "4": 0.45,
+    "5": 0.65
   },
   "tiers": {
     "1": {
@@ -38,6 +46,16 @@
       "name": "Heat V \u2014 Full Hex",
       "description": "Extra photos are blocked for 5 minutes.",
       "durationMs": 300000
+    }
+  },
+  "special": {
+    "overcharged": {
+      "id": "overcharged",
+      "name": "Overcharged \u2014 Signal Drain",
+      "description": "Tool use costs time while active. Stacks up to 3\u00d7.",
+      "durationMs": 240000,
+      "maxStacks": 3,
+      "kind": "time_penalty"
     }
   }
 }
