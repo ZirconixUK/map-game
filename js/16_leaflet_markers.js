@@ -184,10 +184,11 @@ function showRevealOverlay({ guess, target }){
     clearRevealOverlay();
     const g = L.latLng(+guess.lat, +guess.lon);
     const t = L.latLng(+target.lat, +target.lon);
+    ensurePlayerPane(); // ensure playerPane (700) exists so reveal renders above fog (450)
     const grp = L.layerGroup();
-    L.polyline([g, t], { weight: 4, opacity: 0.85 }).addTo(grp);
-    L.circleMarker(g, { radius: 7, weight: 2, opacity: 0.9, fillOpacity: 0.5 }).addTo(grp);
-    L.circleMarker(t, { radius: 7, weight: 2, opacity: 0.9, fillOpacity: 0.5 }).addTo(grp);
+    L.polyline([g, t], { weight: 4, opacity: 0.85, pane: 'playerPane' }).addTo(grp);
+    L.circleMarker(g, { radius: 7, weight: 2, opacity: 0.9, fillOpacity: 0.5, pane: 'playerPane' }).addTo(grp);
+    L.circleMarker(t, { radius: 7, weight: 2, opacity: 0.9, fillOpacity: 0.5, pane: 'playerPane' }).addTo(grp);
     grp.addTo(window.leafletMap);
     __revealLayer = grp;
   } catch(e) {}

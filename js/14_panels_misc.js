@@ -244,33 +244,44 @@
     if (!body) return;
 
     const cfg = window.__curseConfig || null;
-    // Gather all curses from config, or fall back to known IDs
+    // Gather all curses from config, or fall back to known IDs.
+    // heatLabel: "Heat N" for exact-tier curses, "Heat N+" for specials with a min threshold.
     const curses = [];
     if (cfg) {
       if (cfg.tiers) {
         for (const k of Object.keys(cfg.tiers)) {
           const c = cfg.tiers[k];
-          if (c && c.id) curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || cfg.defaultDurationMs || 300000 });
+          if (c && c.id) curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || cfg.defaultDurationMs || 300000, heatLabel: `Heat ${k}` });
         }
       }
       if (cfg.special) {
+        // Find the minimum heat level (>0 chance) for each special curse's own table.
+        const specialTableKeys = { overcharged: "overchargedChanceByHeatLevel", veil: "veilChanceByHeatLevel", blackout: "blackoutChanceByHeatLevel", ghost: "ghostChanceByHeatLevel" };
         for (const k of Object.keys(cfg.special)) {
           const c = cfg.special[k];
-          if (c && c.id) curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || cfg.defaultDurationMs || 300000 });
+          if (!c || !c.id) continue;
+          let heatLabel = "";
+          const tableKey = specialTableKeys[c.id];
+          if (tableKey && cfg[tableKey]) {
+            const table = cfg[tableKey];
+            const minHeat = [1,2,3,4,5].find(n => (table[String(n)] || 0) > 0);
+            if (minHeat != null) heatLabel = `Heat ${minHeat}+`;
+          }
+          curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || cfg.defaultDurationMs || 300000, heatLabel });
         }
       }
     } else {
       // Fallback hardcoded list matching known curse IDs
       const fallback = [
-        { id: "heat1", name: "Heat I", description: "Every question costs +0.25 extra heat for 5 minutes.", durationMs: 300000 },
-        { id: "heat2", name: "Heat II", description: "Every question costs +0.5 extra heat for 5 minutes.", durationMs: 300000 },
-        { id: "heat3", name: "Heat III", description: "N/S/E/W is locked for 5 minutes.", durationMs: 300000 },
-        { id: "heat4", name: "Heat IV", description: "Radar is limited to 250m for 5 minutes.", durationMs: 300000 },
-        { id: "heat5", name: "Heat V", description: "Extra photos are blocked for 5 minutes.", durationMs: 300000 },
-        { id: "overcharged", name: "Overcharged", description: "Tool use costs time while active.", durationMs: 240000 },
-        { id: "veil", name: "Veil of Ignorance", description: "The map fades to nothing.", durationMs: 300000 },
-        { id: "blackout", name: "The Blackout", description: "All visual reference vanishes. Only your position remains.", durationMs: 300000 },
-        { id: "ghost", name: "Ghost Walk", description: "Your presence fades from the map.", durationMs: 180000 },
+        { id: "heat1", name: "Heat I", description: "Every question costs +0.25 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 1" },
+        { id: "heat2", name: "Heat II", description: "Every question costs +0.5 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 2" },
+        { id: "heat3", name: "Heat III", description: "N/S/E/W is locked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 3" },
+        { id: "heat4", name: "Heat IV", description: "Radar is limited to 250m for 5 minutes.", durationMs: 300000, heatLabel: "Heat 4" },
+        { id: "heat5", name: "Heat V", description: "Extra photos are blocked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 5" },
+        { id: "overcharged", name: "Overcharged", description: "Tool use costs time while active.", durationMs: 240000, heatLabel: "Heat 2+" },
+        { id: "veil", name: "Veil of Ignorance", description: "The map fades to nothing.", durationMs: 300000, heatLabel: "Heat 3+" },
+        { id: "blackout", name: "The Blackout", description: "All visual reference vanishes. Only your position remains.", durationMs: 300000, heatLabel: "Heat 3+" },
+        { id: "ghost", name: "Ghost Walk", description: "Your presence fades from the map.", durationMs: 180000, heatLabel: "Heat 3+" },
       ];
       curses.push(...fallback);
     }
@@ -283,7 +294,10 @@
     body.innerHTML = curses.map(c =>
       `<div class="flex items-start justify-between gap-2 py-2 border-b border-[#1e3a5f] last:border-b-0" data-curse-id="${c.id}" data-curse-dur="${c.durationMs}">
         <div class="flex-1 min-w-0">
-          <div class="text-xs font-semibold text-gray-200 leading-snug truncate">${c.name}</div>
+          <div class="flex items-center gap-1.5 leading-snug">
+            <span class="text-xs font-semibold text-gray-200 truncate">${c.name}</span>
+            ${c.heatLabel ? `<span class="flex-shrink-0 text-[10px] font-semibold text-purple-400 bg-purple-900/40 border border-purple-700/50 rounded px-1 py-px">${c.heatLabel}</span>` : ''}
+          </div>
           <div class="text-[11px] text-slate-400 leading-snug mt-0.5">${c.description}</div>
         </div>
         <button class="btnApplyCurse flex-shrink-0 px-2 py-1 rounded-lg border border-[#2a3f60] bg-[#1e2d44] text-gray-300 text-[11px] font-semibold cursor-pointer hover:bg-[#253550] transition-colors" type="button" aria-label="Apply ${c.name}">Apply</button>
@@ -303,7 +317,12 @@
       const dur = parseInt(row.dataset.curseDur, 10) || 300000;
       try {
         if (typeof window.applyCurse === "function") {
-          window.applyCurse(id, { durationMs: dur });
+          const result = window.applyCurse(id, { durationMs: dur });
+          if (result && result.curse && typeof showToast === "function") {
+            const c = result.curse;
+            const durMins = Math.round(dur / 60000);
+            showToast(`You've been cursed: <b>${c.name}</b>.<br>(${durMins} minutes)`, false, { kind: 'curse' });
+          }
         }
       } catch (e) {}
       setOpen(panelCurseSelect, false);
