@@ -43,31 +43,31 @@
   "tiers": {
     "1": {
       "id": "heat1",
-      "name": "Heat I \u2014 The First Chill",
+      "name": "Accelerant",
       "description": "Every question costs +0.25 extra heat for 5 minutes.",
       "durationMs": 300000
     },
     "2": {
       "id": "heat2",
-      "name": "Heat II \u2014 Lingering Doubt",
+      "name": "Fever Surge",
       "description": "Every question costs +0.5 extra heat for 5 minutes.",
       "durationMs": 300000
     },
     "3": {
       "id": "heat3",
-      "name": "Heat III \u2014 Static in the Veins",
+      "name": "Compass Rot",
       "description": "N/S/E/W is locked for 5 minutes.",
       "durationMs": 300000
     },
     "4": {
       "id": "heat4",
-      "name": "Heat IV \u2014 The Violet Pressure",
+      "name": "Signal Clamp",
       "description": "Radar is limited to 250m for 5 minutes.",
       "durationMs": 300000
     },
     "5": {
       "id": "heat5",
-      "name": "Heat V \u2014 Full Hex",
+      "name": "Burned Lens",
       "description": "Extra photos are blocked for 5 minutes.",
       "durationMs": 300000
     }

@@ -273,11 +273,11 @@
     } else {
       // Fallback hardcoded list matching known curse IDs
       const fallback = [
-        { id: "heat1", name: "Heat I", description: "Every question costs +0.25 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 1" },
-        { id: "heat2", name: "Heat II", description: "Every question costs +0.5 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 2" },
-        { id: "heat3", name: "Heat III", description: "N/S/E/W is locked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 3" },
-        { id: "heat4", name: "Heat IV", description: "Radar is limited to 250m for 5 minutes.", durationMs: 300000, heatLabel: "Heat 4" },
-        { id: "heat5", name: "Heat V", description: "Extra photos are blocked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 5" },
+        { id: "heat1", name: "Accelerant", description: "Every question costs +0.25 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 1" },
+        { id: "heat2", name: "Fever Surge", description: "Every question costs +0.5 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 2" },
+        { id: "heat3", name: "Compass Rot", description: "N/S/E/W is locked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 3" },
+        { id: "heat4", name: "Signal Clamp", description: "Radar is limited to 250m for 5 minutes.", durationMs: 300000, heatLabel: "Heat 4" },
+        { id: "heat5", name: "Burned Lens", description: "Extra photos are blocked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 5" },
         { id: "overcharged", name: "Overcharged", description: "Tool use costs time while active.", durationMs: 240000, heatLabel: "Heat 2+" },
         { id: "veil", name: "Veil of Ignorance", description: "The map fades to nothing.", durationMs: 300000, heatLabel: "Heat 3+" },
         { id: "blackout", name: "The Blackout", description: "All visual reference vanishes. Only your position remains.", durationMs: 300000, heatLabel: "Heat 3+" },
