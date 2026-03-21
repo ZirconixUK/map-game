@@ -703,7 +703,8 @@ if (debugMode) {
       if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
         const c = curseRoll.applied.curse;
         const dur = c.expiresAt && c.appliedAt ? Math.round((c.expiresAt - c.appliedAt) / 60000) : 5;
-        showToast(`You've been cursed: <b>${c.name}</b>.<br>(${dur} minutes)`, false, { kind: 'curse' });
+        const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
+        showToast(`You've been cursed: <b>${c.name}</b>${descPart}<br><span class="muted">(${dur} minutes)</span>`, false, { kind: 'curse' });
       }
       if (curseRoll && curseRoll.overcharged && curseRoll.overcharged.curse) {
         const oc = curseRoll.overcharged.curse;
@@ -1097,6 +1098,9 @@ if (debugMode) {
       return;
     }
     if (mode === 'horizon') {
+      if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat5')) {
+        showToast('Extra photos are blocked while cursed.', false); return;
+      }
       try {
         const res = await window.showStreetViewHorizonPhotoForTarget();
         if (res && res.ok && !res.cached) {
