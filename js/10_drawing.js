@@ -73,31 +73,15 @@ function draw() {
     if (typeof window.setFogLayerVisible === 'function') window.setFogLayerVisible(!_veilOn && !_blackoutOn);
   } catch (e) {}
 
-  // Overlay pane (blackout only — hides all vector layers including player dot)
-  try {
-    const _overlayPane = document.querySelector('#leafletMap .leaflet-overlay-pane');
-    if (_overlayPane) _overlayPane.style.opacity = _blackoutOn ? '0' : '';
-  } catch (e) {}
-
-  // Tile panes (blackout only)
-  try {
-    const _tilePanes = document.querySelectorAll('.leaflet-tile-pane');
-    for (const _tp of _tilePanes) _tp.style.opacity = _blackoutOn ? '0' : '';
-  } catch (e) {}
-
-  // Marker pane (blackout only)
-  try {
-    const _markerPane = document.querySelector('#leafletMap .leaflet-marker-pane');
-    if (_markerPane) _markerPane.style.opacity = _blackoutOn ? '0' : '';
-  } catch (e) {}
-
-  // Solid black cover for blackout (z-index 10: above map/canvas, below FABs/HUD at 30)
+  // Solid black cover for blackout — lives inside #leafletMap so Leaflet z-indices apply.
+  // z-index 650: above all default Leaflet panes (tile 200, overlay 400, fog 450, marker 600)
+  // but below playerPane at 700, so the player dot stays visible.
   let _blackoutCover = document.getElementById('_blackoutCover');
   if (!_blackoutCover) {
     _blackoutCover = document.createElement('div');
     _blackoutCover.id = '_blackoutCover';
-    _blackoutCover.style.cssText = 'position:fixed;inset:0;background:#000;z-index:10;pointer-events:none;display:none;';
-    (document.getElementById('mapShell') || document.body).appendChild(_blackoutCover);
+    _blackoutCover.style.cssText = 'position:absolute;inset:0;background:#000;z-index:650;pointer-events:none;display:none;';
+    (document.getElementById('leafletMap') || document.getElementById('mapShell') || document.body).appendChild(_blackoutCover);
   }
   _blackoutCover.style.display = _blackoutOn ? 'block' : 'none';
 

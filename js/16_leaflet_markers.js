@@ -11,6 +11,16 @@ let leafletPoiLayer = null;
 let leafletPoiMarkers = [];
 let showAllPoiPins = false;
 
+function ensurePlayerPane() {
+  if (!window.leafletMap) return null;
+  if (!window.leafletMap.getPane('playerPane')) {
+    const pane = window.leafletMap.createPane('playerPane');
+    pane.style.zIndex = '700'; // above blackout cover (650) and all default Leaflet panes
+    pane.style.pointerEvents = 'none';
+  }
+  return window.leafletMap.getPane('playerPane');
+}
+
 function ensureLeafletMarkersLayer() {
   if (!window.leafletMap) return false;
   if (!leafletMarkersLayer) {
@@ -110,6 +120,7 @@ function syncLeafletPlayerMarker() {
   const acc = null;
 
   const _ghostActive = typeof window.isCurseActive === 'function' && window.isCurseActive('ghost');
+  ensurePlayerPane();
   if (!leafletPlayerMarker) {
     leafletPlayerMarker = L.circleMarker(ll, {
       radius: 7,
@@ -117,6 +128,7 @@ function syncLeafletPlayerMarker() {
       fillOpacity: _ghostActive ? 0 : 0.9,
       opacity: _ghostActive ? 0 : 1,
       interactive: false,
+      pane: 'playerPane',
     }).addTo(leafletMarkersLayer);
   } else {
     leafletPlayerMarker.setLatLng(ll);
