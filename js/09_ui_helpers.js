@@ -153,6 +153,13 @@ function updateUI() {
       n.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
     });
 
+    // Signal Clamp curse: purple-lock radar buttons > 250m.
+    const _signalClamped = typeof window.isCurseActive === 'function' && window.isCurseActive('heat4');
+    document.querySelectorAll('#radarMenu .menuBtn[data-radar]').forEach(btn => {
+      const m = parseFloat(btn.getAttribute('data-radar') || '0');
+      btn.classList.toggle('curse-locked', _signalClamped && m > 250);
+    });
+
     // Keep the N/S/E/W category button openable; lock the individual NS/EW questions instead.
     const qDir = document.getElementById('qDir');
     if (qDir) {

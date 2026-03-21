@@ -349,6 +349,22 @@ body{
   filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));
 }
 .menuBtn--iconOnly.locked::after{ top:5px; right:6px; }
+/* Curse-locked: purple tint + lock badge — used when a curse blocks a specific option */
+.menuBtn.curse-locked{
+  border-color:rgba(168,85,247,.50) !important;
+  background:rgba(88,28,135,.28) !important;
+  cursor:not-allowed;
+}
+.menuBtn.curse-locked .iconBox{
+  background:rgba(168,85,247,.12);
+  border-color:rgba(168,85,247,.40);
+}
+.menuBtn.curse-locked::after{
+  content:'🔒';
+  position:absolute; top:6px; right:8px;
+  font-size:12px; line-height:1; opacity:.95; pointer-events:none;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));
+}
 .menuBtn.cursed{
   border-color:rgba(168,85,247,.45) !important;
   background:rgba(88,28,135,.22) !important;
