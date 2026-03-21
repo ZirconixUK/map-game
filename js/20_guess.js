@@ -227,6 +227,9 @@
       guessRemainingMs,
     });
 
+    // Dismiss any active toast so it doesn't obscure the reveal animation
+    try { if (typeof window.dismissAllToasts === 'function') window.dismissAllToasts(); } catch(e) {}
+
     // Reveal line/markers if Leaflet helpers exist
     try {
       if (typeof window.showRevealOverlay === 'function') window.showRevealOverlay({ guess, target: tgt });

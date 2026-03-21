@@ -90,6 +90,12 @@ function showToast(msg, ok, opts = null){
 // Expose for modules that want to chain popups.
 window.enqueueToast = enqueueToast;
 
+// Immediately dismiss any visible toast and drain the queue (e.g. before a reveal animation).
+window.dismissAllToasts = function() {
+  __toastQueue.length = 0;
+  if (typeof window.__dismissCurrentToast === 'function') window.__dismissCurrentToast();
+};
+
 function on(id, ev, fn){ const el=document.getElementById(id); if(el) el.addEventListener(ev, fn); return el; }
 
 function formatViewBbox(bounds){
