@@ -47,6 +47,8 @@
       if (!e.isPrimary) return;
       // Body drags only engage when panel is scrolled to the top
       if (source === 'body' && panel.scrollTop > 2) return;
+      // Don't capture pointer events from interactive elements — would swallow clicks on Chrome/desktop
+      if (source === 'body' && e.target.closest('button, input, select, a, textarea, [role="button"]')) return;
       startY = e.clientY;
       lastY = e.clientY;
       lastT = e.timeStamp;
