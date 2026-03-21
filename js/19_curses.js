@@ -82,6 +82,8 @@
   function refreshUI() {
     try { if (typeof window.updateCursesButton === "function") window.updateCursesButton(); } catch (e) {}
     try { if (typeof window.updateCursesPanel === "function") window.updateCursesPanel(); } catch (e) {}
+    try { if (typeof window.drawThrottled === "function") window.drawThrottled(); } catch (e) {}
+    try { if (typeof window.syncLeafletPlayerMarker === "function") window.syncLeafletPlayerMarker(); } catch (e) {}
   }
 
   function saveIfPossible() {

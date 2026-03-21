@@ -8,6 +8,7 @@ function drawThrottled() {
     draw();
   });
 }
+window.drawThrottled = drawThrottled;
 
 
 function getLeafletFogTransform() {

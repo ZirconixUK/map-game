@@ -327,6 +327,7 @@ function safeParseJSON(s) {
 // Debounced variant — coalesces rapid-fire saves (tool use, heat changes, penalties).
 // Immediate saves (round reset, photo capture, lock-in) call saveRoundState() directly.
 let __saveRoundStateTimer = null;
+let __penaltyFlashTimer = null;
 function saveRoundStateDebounced() {
   if (__saveRoundStateTimer) clearTimeout(__saveRoundStateTimer);
   __saveRoundStateTimer = setTimeout(() => { __saveRoundStateTimer = null; saveRoundState(); }, 300);
@@ -417,7 +418,8 @@ function addPenaltyMs(ms) {
       // Force reflow so re-adding the class restarts the animation
       void el.offsetWidth;
       el.classList.add('timer-penalty-flash');
-      setTimeout(() => { try { el.classList.remove('timer-penalty-flash'); } catch(e) {} }, 450);
+      if (__penaltyFlashTimer !== null) clearTimeout(__penaltyFlashTimer);
+      __penaltyFlashTimer = setTimeout(() => { try { el.classList.remove('timer-penalty-flash'); } catch(e) {} __penaltyFlashTimer = null; }, 450);
     }
   } catch(e) {}
 }
