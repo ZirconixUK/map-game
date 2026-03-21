@@ -328,6 +328,19 @@
     }
   }
 
+  // Debug helper: shift all active curse timestamps backwards by `ms` milliseconds,
+  // simulating elapsed time for the purpose of curse expiry. Called by
+  // debugAdvanceRoundElapsedByMs in 04_state.js.
+  function debugAdvanceCurseTimersBy(ms) {
+    const delta = Math.max(0, Number(ms) || 0);
+    if (!delta || !active.length) return;
+    for (const c of active) {
+      if (typeof c.appliedAt === 'number') c.appliedAt -= delta;
+      if (typeof c.expiresAt === 'number') c.expiresAt -= delta;
+    }
+    tickCurses(Date.now());
+  }
+
   // Debug helper: toggle a simulated tier-3 curse (arbitrary).
   function debugSimulateCurse(on) {
     if (on) {
@@ -349,6 +362,7 @@
   }
 
   // Expose
+  window.debugAdvanceCurseTimersBy = debugAdvanceCurseTimersBy;
   window.loadCursesConfig = loadCursesConfig;
   window.getActiveCurses = getActiveCurses;
   window.isCurseActive = isCurseActive;

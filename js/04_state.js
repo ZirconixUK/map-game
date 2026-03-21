@@ -94,6 +94,8 @@ window.debugAdvanceRoundElapsedByMs = (ms) => {
   if (!(typeof roundStartMs === 'number' && isFinite(roundStartMs))) roundStartMs = Date.now();
   roundStartMs -= delta;
   try { saveRoundStateDebounced(); } catch (e) {}
+  // Advance curse expiry timestamps so curses expire in step with the timer.
+  try { if (typeof window.debugAdvanceCurseTimersBy === 'function') window.debugAdvanceCurseTimersBy(delta); } catch (e) {}
   return true;
 };
 

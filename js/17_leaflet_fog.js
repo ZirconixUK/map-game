@@ -108,14 +108,32 @@ function unionIntoFog(addGeom) {
   }
 }
 
+function ensureFogPane() {
+  if (!window.leafletMap) return null;
+  let pane = window.leafletMap.getPane('fogPane');
+  if (!pane) {
+    pane = window.leafletMap.createPane('fogPane');
+    // Between overlay pane (400) and shadow pane (500); above vector layers.
+    pane.style.zIndex = '450';
+    pane.style.pointerEvents = 'none';
+  }
+  return pane;
+}
+
+window.setFogLayerVisible = function(visible) {
+  const pane = ensureFogPane();
+  if (pane) pane.style.opacity = visible ? '' : '0';
+};
+
 function ensureFogLayer() {
   if (!window.leafletMap) return false;
   if (fogLayer) return true;
 
   // Use a LayerGroup so we can replace polygons cleanly
-  try { __fogRenderer = __fogRenderer || L.canvas({ padding: 0.5 }); } catch(e) { __fogRenderer = null; }
+  ensureFogPane();
+  try { __fogRenderer = __fogRenderer || L.canvas({ padding: 0.5, pane: 'fogPane' }); } catch(e) { __fogRenderer = null; }
 
-  fogLayer = L.layerGroup().addTo(window.leafletMap);
+  fogLayer = L.layerGroup({ pane: 'fogPane' }).addTo(window.leafletMap);
   return true;
 }
 
@@ -141,6 +159,7 @@ function renderFog() {
     fillOpacity: a,
     interactive: false,
     renderer: (__fogRenderer || undefined),
+    pane: 'fogPane',
   };
 
   for (const poly of fogGeom) {

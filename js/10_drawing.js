@@ -68,10 +68,15 @@ function draw() {
   // Canvas overlay (both curses)
   canvas.style.opacity = (_veilOn || _blackoutOn) ? '0' : '';
 
-  // Fog overlay pane: veil hides fog clue info; blackout hides everything
+  // Fog layer: veil and blackout both hide fog clue info
+  try {
+    if (typeof window.setFogLayerVisible === 'function') window.setFogLayerVisible(!_veilOn && !_blackoutOn);
+  } catch (e) {}
+
+  // Overlay pane (blackout only — hides all vector layers including player dot)
   try {
     const _overlayPane = document.querySelector('#leafletMap .leaflet-overlay-pane');
-    if (_overlayPane) _overlayPane.style.opacity = (_veilOn || _blackoutOn) ? '0' : '';
+    if (_overlayPane) _overlayPane.style.opacity = _blackoutOn ? '0' : '';
   } catch (e) {}
 
   // Tile panes (blackout only)
