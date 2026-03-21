@@ -61,15 +61,40 @@ function draw() {
   // base clear
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Veil curse: hide canvas overlay. Blackout curse: hide both canvas and map tiles.
+  // Veil curse: hide canvas overlay + fog layer. Blackout: hide everything + show solid black cover.
   const _veilOn = typeof window.isCurseActive === 'function' && window.isCurseActive('veil');
   const _blackoutOn = typeof window.isCurseActive === 'function' && window.isCurseActive('blackout');
+
+  // Canvas overlay (both curses)
   canvas.style.opacity = (_veilOn || _blackoutOn) ? '0' : '';
+
+  // Fog overlay pane: veil hides fog clue info; blackout hides everything
+  try {
+    const _overlayPane = document.querySelector('#leafletMap .leaflet-overlay-pane');
+    if (_overlayPane) _overlayPane.style.opacity = (_veilOn || _blackoutOn) ? '0' : '';
+  } catch (e) {}
+
+  // Tile panes (blackout only)
   try {
     const _tilePanes = document.querySelectorAll('.leaflet-tile-pane');
-    const _tileOpacity = _blackoutOn ? '0' : '';
-    for (const _tp of _tilePanes) _tp.style.opacity = _tileOpacity;
+    for (const _tp of _tilePanes) _tp.style.opacity = _blackoutOn ? '0' : '';
   } catch (e) {}
+
+  // Marker pane (blackout only)
+  try {
+    const _markerPane = document.querySelector('#leafletMap .leaflet-marker-pane');
+    if (_markerPane) _markerPane.style.opacity = _blackoutOn ? '0' : '';
+  } catch (e) {}
+
+  // Solid black cover for blackout (z-index 10: above map/canvas, below FABs/HUD at 30)
+  let _blackoutCover = document.getElementById('_blackoutCover');
+  if (!_blackoutCover) {
+    _blackoutCover = document.createElement('div');
+    _blackoutCover.id = '_blackoutCover';
+    _blackoutCover.style.cssText = 'position:fixed;inset:0;background:#000;z-index:10;pointer-events:none;display:none;';
+    (document.getElementById('mapShell') || document.body).appendChild(_blackoutCover);
+  }
+  _blackoutCover.style.display = _blackoutOn ? 'block' : 'none';
 
   if ((elBBox ? elBBox.checked : false)) drawMapBounds();
 
