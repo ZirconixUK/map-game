@@ -321,8 +321,8 @@
           if (result && result.curse && typeof showToast === "function") {
             const c = result.curse;
             const durMins = Math.round(dur / 60000);
-            const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
-            showToast(`You've been cursed: <b>${c.name}</b>${descPart}<br><span class="muted">(${durMins} minutes)</span>`, false, { kind: 'curse' });
+            const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : `<br><span class="muted">(${durMins} minutes)</span>`;
+            showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse' });
           }
         }
       } catch (e) {}
