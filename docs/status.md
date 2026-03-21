@@ -11,14 +11,15 @@
 - Horizon photo
 - N/S and E/W split
 - Heat meter
-- Curse system with live tier effects
+- Curse system with live tier effects (5 tier curses + 4 special curses)
 - Lock-in guess and scoring v2
 - Result modal with persistence and reopen behavior
 - Tool confirmation panels
-- Used/locked tool feedback
+- Used/locked/curse-locked tool feedback
 - Difficulty selector with live scoring impact
 - Timer expiry auto-lock
 - Street View guardrails and failure handling
+- Debug curse picker with heat tier badges and toast feedback
 
 ### Not yet implemented
 - Chain mode
@@ -41,6 +42,9 @@ That means focusing on:
 - `QUESTION_TIME_COST_MS` in `js/00_config.js` is defined but unused — left as dead code (Q&A mechanic removed).
 - Timer exploit fix landed 2026-03-18: wall-clock expiry enforced on page restore, overtime display removed.
 - V3 timer rebalance landed 2026-03-19: curse-gated time costs ("Overcharged" curse), thermometer inversion fixed in tools.json, time bonus doubled to 300, heat costs rebalanced. Tools are free (time-wise) when uncursed. See `docs/plan-v3-timer-rebalance.md` for details.
+- Curses v2 landed 2026-03-21: added Veil of Ignorance, The Blackout, Ghost Walk, Signal Clamp visual lock. Fog moved to a dedicated Leaflet pane (`fogPane`, z-index 450). Player marker uses `playerPane` (z-index 700) so it remains visible during blackout. Blackout cover is `position:absolute` inside `#leafletMap` at z-index 650.
+- Curse names overhauled 2026-03-21: tier curses renamed from "Heat I–V" + generic subtitles to Accelerant, Fever Surge, Compass Rot, Signal Clamp, Burned Lens.
+- Debug timer advance now also ticks curse expiry timestamps via `debugAdvanceCurseTimersBy()` in `js/19_curses.js`.
 
 ## Key constants and rules snapshot
 ### Mode radii
@@ -106,10 +110,11 @@ Later ideas such as daily challenges, async comparison, lore, and social feature
 
 ## Risk watchlist
 - Grade thresholds too strict for real GPS variance
-- Curses feeling arbitrary rather than readable
+- Curses still need playtesting for readability — naming pass done, mechanical legibility improving
 - N/S/E/W overpowered and collapsing too much search space
 - Solved-meta opener sequences
 - Dead air in the middle of runs
 - Timer pressure tuning — v3 time costs active; monitor for too-harsh timeout rates on short/hard
 - Street View API cost/availability concerns
 - Any regression that breaks adjusted-distance fairness at lock-in
+- Leaflet stacking context: fog (450), blackout cover (650), player (700) — any new Leaflet layers must declare a pane explicitly or they land in the default overlay pane (400) below the fog

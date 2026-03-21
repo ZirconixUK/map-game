@@ -76,6 +76,16 @@ Selected state for mode/difficulty choice buttons should be visibly distinct and
 - Purple miasma/glow treatment is appropriate.
 - The curse FAB should clearly indicate inactive vs active states.
 
+### Curse-blocked tool options
+When a curse prevents use of a specific tool option (e.g. Signal Clamp blocking radar > 250m), that button should use the `.menuBtn.curse-locked` class:
+- Purple border: `rgba(168,85,247,.50)`
+- Purple-tinted background: `rgba(88,28,135,.28)`
+- Purple-tinted icon box
+- 🔒 badge (top-right, same position as the standard `.locked` badge)
+- `cursor: not-allowed`
+
+This is distinct from the standard `.locked` class (time-gated, blue tint) and `.used` class (already consumed, grey). The curse-locked state should be toggled reactively in `updateUI()` so it clears automatically when the curse expires.
+
 ## Result modal guidance
 The result modal should feel rewarding and easy to parse:
 - earned medal is the hero element

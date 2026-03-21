@@ -39,6 +39,12 @@ Whenever a non-trivial change lands, manually check the systems most likely to d
 - Curse icon inactive/active states match the real curse state.
 - Curse effects actually apply and are understandable.
 - Hard mode interactions still make sense.
+- **Veil of Ignorance**: fog overlay disappears; map tiles and player dot remain visible; canvas overlay (bounds box) hidden.
+- **The Blackout**: map goes fully black; player dot remains visible; HUD/FABs remain accessible; fog and tiles hidden.
+- **Signal Clamp**: radar buttons > 250m show purple background, purple border, and 🔒 badge; 50m/100m/250m buttons are unaffected.
+- **Ghost Walk**: player dot disappears from map.
+- **Debug curse picker**: opening shows all curses with correct heat tier badges (e.g. "Heat 3" for Compass Rot, "Heat 3+" for Veil). Applying a curse triggers the standard curse toast.
+- **Debug timer advance**: advancing the timer with active curses also advances curse expiry. Curses expire in sync with the round timer.
 
 ### Timer and wall-clock expiry
 - Timer does not show overtime (cannot go negative).

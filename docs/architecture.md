@@ -18,12 +18,12 @@ js/
   10_drawing.js                 Canvas drawing
   12_geo_helpers.js             Geo distance and helper functions
   13_boot.js                    Boot flow, restore state, first target
-  14_panels_misc.js             Panel sizing, timer tap handler, misc UI
+  14_panels_misc.js             Panel sizing, timer tap handler, debug curse picker
   15_tools_config.js            tools.json loading and badge updates
-  16_leaflet_markers.js         Player/target markers, accuracy circle, POI pins
-  17_leaflet_fog.js             Fog-of-war and Voronoi logic
+  16_leaflet_markers.js         Player/target markers (playerPane z-700), reveal overlay, POI pins
+  17_leaflet_fog.js             Fog-of-war geometry in fogPane (z-450); setFogLayerVisible()
   18_streetview_glimpse.js      Google Street View wrapper and photo caching
-  19_curses.js                  Curse system
+  19_curses.js                  Curse system; debugAdvanceCurseTimersBy() for debug timer sync
   20_guess.js                   Lock-in flow, grading, scoring, result modal persistence
   poi_worker.js                 Worker for UK POI dataset parsing
 POI_UK_runtime.json             UK-wide POI dataset
@@ -119,6 +119,22 @@ If scoring or result UI changes, verify both the visible modal and the persisted
 
 `startGeolocationWatch()` should remain tolerant of transient device/location errors.
 
+## Leaflet pane stack
+The game uses custom Leaflet panes to control layering independently of the default overlay pane:
+
+| Pane | z-index | Contents |
+|---|---|---|
+| tilePane (default) | 200 | Map tiles |
+| overlayPane (default) | 400 | Any unmarked vector layers |
+| fogPane | 450 | Fog-of-war geometry (`js/17_leaflet_fog.js`) |
+| blackout cover | 650 | `position:absolute` div inside `#leafletMap` |
+| markerPane (default) | 600 | Icon markers (none currently) |
+| playerPane | 700 | Player dot, reveal overlay (guess→target line) |
+
+**Important:** Any new `L.polygon`, `L.polyline`, or `L.circleMarker` added to the map without a `pane` option will land in the default overlayPane (400) — below the fog (450). Always declare `pane: 'playerPane'` for player-visible game elements that should render above fog.
+
+The blackout cover is `position:absolute; inset:0; z-index:650` appended inside `#leafletMap`. Because `#leafletMap` has `z-index:0` in the root stacking context, the cover cannot escape that context — FABs and HUD (z-index 30+) remain above it automatically. The player dot at playerPane (700) is above the cover (650) within the leaflet context.
+
 ## Editing checklist for architecture-sensitive changes
 Before changing target generation, persistence, landmark logic, or menus, check:
 - correct POI set usage
@@ -126,3 +142,4 @@ Before changing target generation, persistence, landmark logic, or menus, check:
 - round reset cleanup
 - target radius guarantee after Street View snap
 - refresh persistence still consistent
+- new Leaflet layers declare a pane explicitly (see pane stack above)

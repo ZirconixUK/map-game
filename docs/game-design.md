@@ -65,7 +65,7 @@ Tools should support that decision, not replace it.
 - N/S and E/W split may be too strong if available too early or too often.
 - Landmark clue quality depends on POI richness and category usefulness.
 - Mid-run dead air remains a major design risk.
-- Timer is currently irrelevant — no tool has a time cost, and the time bonus is too small to change strategy. V3 plan addresses this (see `docs/plan-v3-timer-rebalance.md`).
+- Timer pressure is live (v3): tool uses cost time when the Overcharged curse is active; time bonus is 300. Monitor for too-harsh timeout rates.
 
 ## Timer principles
 - The timer should create genuine pressure, not be a formality.
