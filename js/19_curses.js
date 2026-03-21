@@ -277,7 +277,49 @@
         }
       } catch(e) {}
 
-      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult };
+      // Fourth independent roll: Blackout (map tiles + canvas hidden)
+      let blackoutResult = null;
+      try {
+        let bp = 0;
+        if (CURSES_CONFIG && CURSES_CONFIG.blackoutChanceByHeatLevel) {
+          const bv = CURSES_CONFIG.blackoutChanceByHeatLevel[String(level)];
+          bp = (typeof bv === 'number' && isFinite(bv)) ? Math.max(0, Math.min(1, bv)) : 0;
+        }
+        try {
+          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+          if (diff === 'easy') bp *= 0.75;
+          else if (diff === 'hard') bp = Math.min(1, bp * 1.5);
+        } catch(e) {}
+        if (bp > 0) {
+          const br = Math.random();
+          if (br < bp) {
+            blackoutResult = applyCurse('blackout');
+          }
+        }
+      } catch(e) {}
+
+      // Fifth independent roll: Ghost (player dot hidden)
+      let ghostResult = null;
+      try {
+        let gp = 0;
+        if (CURSES_CONFIG && CURSES_CONFIG.ghostChanceByHeatLevel) {
+          const gv = CURSES_CONFIG.ghostChanceByHeatLevel[String(level)];
+          gp = (typeof gv === 'number' && isFinite(gv)) ? Math.max(0, Math.min(1, gv)) : 0;
+        }
+        try {
+          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+          if (diff === 'easy') gp *= 0.75;
+          else if (diff === 'hard') gp = Math.min(1, gp * 1.5);
+        } catch(e) {}
+        if (gp > 0) {
+          const gr = Math.random();
+          if (gr < gp) {
+            ghostResult = applyCurse('ghost');
+          }
+        }
+      } catch(e) {}
+
+      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult };
     } catch (e) {
       console.error(e);
       return { triggered: false, reason: 'error' };
@@ -324,6 +366,7 @@
   // Kick off config load ASAP (non-blocking).
   loadCursesConfig().then(() => {
     // refresh UI once definitions are known
+    window.__curseConfig = CURSES_CONFIG;
     try { refreshUI(); } catch (e) {}
   });
 

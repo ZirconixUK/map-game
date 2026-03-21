@@ -60,8 +60,15 @@ function draw() {
   // base clear
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Veil curse: hide all canvas overlay drawings so the player sees raw map tiles only
-  canvas.style.opacity = (typeof window.isCurseActive === 'function' && window.isCurseActive('veil')) ? '0' : '';
+  // Veil curse: hide canvas overlay. Blackout curse: hide both canvas and map tiles.
+  const _veilOn = typeof window.isCurseActive === 'function' && window.isCurseActive('veil');
+  const _blackoutOn = typeof window.isCurseActive === 'function' && window.isCurseActive('blackout');
+  canvas.style.opacity = (_veilOn || _blackoutOn) ? '0' : '';
+  try {
+    const _tilePanes = document.querySelectorAll('.leaflet-tile-pane');
+    const _tileOpacity = _blackoutOn ? '0' : '';
+    for (const _tp of _tilePanes) _tp.style.opacity = _tileOpacity;
+  } catch (e) {}
 
   if ((elBBox ? elBBox.checked : false)) drawMapBounds();
 

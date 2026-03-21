@@ -109,15 +109,21 @@ function syncLeafletPlayerMarker() {
   // Accuracy circle intentionally disabled (keeps UI cleaner).
   const acc = null;
 
+  const _ghostActive = typeof window.isCurseActive === 'function' && window.isCurseActive('ghost');
   if (!leafletPlayerMarker) {
     leafletPlayerMarker = L.circleMarker(ll, {
       radius: 7,
       weight: 2,
-      fillOpacity: 0.9,
+      fillOpacity: _ghostActive ? 0 : 0.9,
+      opacity: _ghostActive ? 0 : 1,
       interactive: false,
     }).addTo(leafletMarkersLayer);
   } else {
     leafletPlayerMarker.setLatLng(ll);
+    leafletPlayerMarker.setStyle({
+      fillOpacity: _ghostActive ? 0 : 0.9,
+      opacity: _ghostActive ? 0 : 1,
+    });
     if (!leafletMarkersLayer.hasLayer(leafletPlayerMarker)) leafletPlayerMarker.addTo(leafletMarkersLayer);
   }
 

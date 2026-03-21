@@ -24,6 +24,22 @@
     "4": 0.25,
     "5": 0.35
   },
+  "blackoutChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0.10,
+    "4": 0.18,
+    "5": 0.25
+  },
+  "ghostChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0.12,
+    "4": 0.20,
+    "5": 0.28
+  },
   "tiers": {
     "1": {
       "id": "heat1",
@@ -70,6 +86,18 @@
       "name": "Veil of Ignorance",
       "description": "The map fades to nothing. Navigate by feel alone.",
       "durationMs": 300000
+    },
+    "blackout": {
+      "id": "blackout",
+      "name": "The Blackout",
+      "description": "All visual reference vanishes. Only your position remains.",
+      "durationMs": 300000
+    },
+    "ghost": {
+      "id": "ghost",
+      "name": "Ghost Walk",
+      "description": "Your presence fades from the map. You are here, but invisible.",
+      "durationMs": 180000
     }
   }
 }

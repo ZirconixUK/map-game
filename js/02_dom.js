@@ -12,7 +12,7 @@ const elTarget = document.getElementById("targetOut");
 const elClues = document.getElementById("cluesOut");
 const elDbgMode = document.getElementById("dbgMode");
 const elBBox = document.getElementById("dbgBBox");
-const elDbgSimCurse = document.getElementById("dbgSimCurse");
+// elDbgSimCurse removed — replaced by btnDbgSimCurse + panelCurseSelect (see 14_panels_misc.js)
 const elDbgShowAllPois = document.getElementById("dbgShowAllPois");
 const elViewBboxOut = document.getElementById("viewBboxOut");
 const elLast = document.getElementById("lastAnswer");
@@ -386,18 +386,7 @@ function bindUI() {
   on("btnThermo","click",askThermometer);
   if (elBBox) elBBox.addEventListener("change", draw);
 
-  // ---- Debug: simulate active curse (lights the curses button) ----
-  if (elDbgSimCurse) {
-    elDbgSimCurse.addEventListener("change", () => {
-      const on = !!elDbgSimCurse.checked;
-      try {
-        if (typeof window.debugSimulateCurse === "function") {
-          window.debugSimulateCurse(on);
-        }
-      } catch (e) {}
-      try { log(on ? "🟣 Simulated curse ON." : "⚪ Simulated curse OFF."); } catch (e) {}
-    });
-  }
+  // ---- Debug: simulate curse — handled in 14_panels_misc.js via btnDbgSimCurse + panelCurseSelect ----
 
   // ---- Debug: view bbox (copy/paste into python script) ----
   let lastViewBboxCsv = "";

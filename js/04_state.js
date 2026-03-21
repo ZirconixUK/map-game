@@ -409,6 +409,17 @@ function setPenaltyMs(ms) {
 
 function addPenaltyMs(ms) {
   setPenaltyMs(penaltyMs + (ms | 0));
+  // Visual feedback: shake + red flash on #timerMain
+  try {
+    const el = document.getElementById('timerMain');
+    if (el) {
+      el.classList.remove('timer-penalty-flash');
+      // Force reflow so re-adding the class restarts the animation
+      void el.offsetWidth;
+      el.classList.add('timer-penalty-flash');
+      setTimeout(() => { try { el.classList.remove('timer-penalty-flash'); } catch(e) {} }, 450);
+    }
+  } catch(e) {}
 }
 
 function __recomputeHeatLevelFromValue() {
