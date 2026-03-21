@@ -462,6 +462,8 @@ function updateCursesPanel(){
   if (!empty || !ul) return;
 
   const list = __getActiveCursesForUI();
+  const panel = document.getElementById('panelCurses');
+  if (panel) panel.classList.toggle('curse-active', Array.isArray(list) && list.length > 0);
 
   if (!Array.isArray(list) || list.length === 0) {
     empty.classList.remove('hidden');

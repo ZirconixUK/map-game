@@ -572,6 +572,72 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 .cursesList{ margin:10px 0 0; padding-left:18px; }
 .cursesList li{ margin:6px 0; }
 
+/* ─── Curses panel miasma effect ─────────────────────────────────── */
+/*
+ * Two pseudo-elements create drifting purple fog when .curse-active is set.
+ * ::before is overridden to blend the top-accent line with a purple tint.
+ * ::after carries the main fog layer — two radial gradients animated at
+ * different speeds to simulate independent swirling blobs.
+ * Both are pointer-events:none so panel interaction is unaffected.
+ * z-index:0 keeps them behind panel content (content sits at z-index:1+).
+ */
+.panel--curses.curse-active{
+  /* Subtle purple border glow to frame the panel */
+  border-color:rgba(168,85,247,.55) !important;
+  box-shadow:0 0 0 1px rgba(168,85,247,.25), 0 -8px 40px rgba(88,28,135,.35);
+  transition:border-color .6s ease, box-shadow .6s ease;
+}
+/* Replace the neutral top accent with a purple one */
+.panel--curses.curse-active::before{
+  background:linear-gradient(90deg,
+    transparent 4%,
+    rgba(168,85,247,.55) 28%,
+    rgba(216,180,254,.70) 50%,
+    rgba(168,85,247,.55) 72%,
+    transparent 96%);
+}
+/* Primary fog layer */
+.panel--curses.curse-active::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  /* Two radial blobs offset from each other */
+  background:
+    radial-gradient(ellipse 80% 55% at 20% 30%, rgba(88,28,135,.30) 0%, rgba(88,28,135,.00) 70%),
+    radial-gradient(ellipse 65% 45% at 78% 70%, rgba(168,85,247,.20) 0%, rgba(168,85,247,.00) 68%);
+  animation:miasmaDrift1 5.8s ease-in-out infinite alternate,
+            miasmaDrift2 8.3s ease-in-out infinite alternate-reverse;
+  pointer-events:none;
+  z-index:0;
+}
+/* All direct children of the panel stay above the fog */
+.panel--curses.curse-active > *{ position:relative; z-index:1; }
+
+@keyframes miasmaDrift1{
+  0%  { background-position: 0% 0%, 100% 100%; opacity:.75; }
+  33% { opacity:1.00; }
+  66% { opacity:.80; }
+  100%{ background-position: 18% 22%, 82% 60%; opacity:.90; }
+}
+@keyframes miasmaDrift2{
+  0%  {
+    background:
+      radial-gradient(ellipse 80% 55% at 20% 30%, rgba(88,28,135,.30) 0%, rgba(88,28,135,.00) 70%),
+      radial-gradient(ellipse 65% 45% at 78% 70%, rgba(168,85,247,.20) 0%, rgba(168,85,247,.00) 68%);
+  }
+  50% {
+    background:
+      radial-gradient(ellipse 90% 60% at 55% 55%, rgba(88,28,135,.22) 0%, rgba(88,28,135,.00) 72%),
+      radial-gradient(ellipse 70% 50% at 30% 20%, rgba(168,85,247,.26) 0%, rgba(168,85,247,.00) 65%);
+  }
+  100%{
+    background:
+      radial-gradient(ellipse 75% 50% at 68% 80%, rgba(88,28,135,.28) 0%, rgba(88,28,135,.00) 70%),
+      radial-gradient(ellipse 60% 40% at 15% 45%, rgba(168,85,247,.18) 0%, rgba(168,85,247,.00) 68%);
+  }
+}
+
 /* ─── Result modal helpers ───────────────────────────────────────── */
 .resultStack{ display:flex; flex-direction:column; gap:10px; }
 .resultRow{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
