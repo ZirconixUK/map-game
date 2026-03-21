@@ -255,7 +255,29 @@
         }
       } catch(e) {}
 
-      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult };
+      // Third independent roll: Veil (canvas overlay hidden)
+      let veilResult = null;
+      try {
+        let vp = 0;
+        if (CURSES_CONFIG && CURSES_CONFIG.veilChanceByHeatLevel) {
+          const vv = CURSES_CONFIG.veilChanceByHeatLevel[String(level)];
+          vp = (typeof vv === 'number' && isFinite(vv)) ? Math.max(0, Math.min(1, vv)) : 0;
+        }
+        // Difficulty scaling
+        try {
+          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
+          if (diff === 'easy') vp *= 0.75;
+          else if (diff === 'hard') vp = Math.min(1, vp * 1.5);
+        } catch(e) {}
+        if (vp > 0) {
+          const vr = Math.random();
+          if (vr < vp) {
+            veilResult = applyCurse('veil');
+          }
+        }
+      } catch(e) {}
+
+      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult };
     } catch (e) {
       console.error(e);
       return { triggered: false, reason: 'error' };

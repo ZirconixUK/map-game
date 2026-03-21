@@ -60,6 +60,8 @@ function draw() {
   // base clear
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Veil curse: hide all canvas overlay drawings so the player sees raw map tiles only
+  canvas.style.opacity = (typeof window.isCurseActive === 'function' && window.isCurseActive('veil')) ? '0' : '';
 
   if ((elBBox ? elBBox.checked : false)) drawMapBounds();
 

@@ -16,6 +16,14 @@
     "4": 0.45,
     "5": 0.65
   },
+  "veilChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0.15,
+    "4": 0.25,
+    "5": 0.35
+  },
   "tiers": {
     "1": {
       "id": "heat1",
@@ -56,6 +64,12 @@
       "durationMs": 240000,
       "maxStacks": 3,
       "kind": "time_penalty"
+    },
+    "veil": {
+      "id": "veil",
+      "name": "Veil of Ignorance",
+      "description": "The map fades to nothing. Navigate by feel alone.",
+      "durationMs": 300000
     }
   }
 }
