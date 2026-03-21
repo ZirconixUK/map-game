@@ -61,7 +61,6 @@ Tools should support that decision, not replace it.
 - Extra photo tools add visual confirmation and pacing variety.
 
 ### Ongoing balance questions
-- Thermometer usefulness still needs tuning. Tight radius currently costs *less* heat than wide — inversion bug, tracked in v3 plan.
 - N/S and E/W split may be too strong if available too early or too often.
 - Landmark clue quality depends on POI richness and category usefulness.
 - Mid-run dead air remains a major design risk.

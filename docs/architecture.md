@@ -7,7 +7,7 @@ styles.css                      All UI styling (dark theme, mobile-first)
 js/
   00_config.js                  Master constants, thresholds, API key reads
   01_pois.js                    POI loading, filtering, landmark category helpers
-  02_dom.js                     DOM refs, toasts, debug panel, confirmation panels, delegated gameplay menu events
+  02_dom.js                     DOM refs, toasts (enqueueToast, dismissAllToasts), debug panel, confirmation panels, delegated gameplay menu events
   03_map_image.js               Leaflet map init, fog canvas setup
   04_state.js                   Master game state and globals
   05_view_transform.js          Canvas coordinate mapping
@@ -24,7 +24,7 @@ js/
   17_leaflet_fog.js             Fog-of-war geometry in fogPane (z-450); setFogLayerVisible()
   18_streetview_glimpse.js      Google Street View wrapper and photo caching
   19_curses.js                  Curse system; debugAdvanceCurseTimersBy() for debug timer sync
-  20_guess.js                   Lock-in flow, grading, scoring, result modal persistence
+  20_guess.js                   Lock-in flow, grading, scoring, reveal beat (toast dismiss → reveal line → fitBounds → 1.8s delay → modal), result modal persistence
   poi_worker.js                 Worker for UK POI dataset parsing
 POI_UK_runtime.json             UK-wide POI dataset
 tools.json                      Tool definitions

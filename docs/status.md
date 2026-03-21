@@ -14,6 +14,7 @@
 - Curse system with live tier effects (5 tier curses + 4 special curses)
 - Lock-in guess and scoring v2
 - Result modal with persistence and reopen behavior
+- Reveal beat on lock-in: map fits to show player→target line for 1.8s before result modal opens; toasts auto-dismissed before reveal
 - Tool confirmation panels
 - Used/locked/curse-locked tool feedback
 - Difficulty selector with live scoring impact
@@ -45,6 +46,7 @@ That means focusing on:
 - Curses v2 landed 2026-03-21: added Veil of Ignorance, The Blackout, Ghost Walk, Signal Clamp visual lock. Fog moved to a dedicated Leaflet pane (`fogPane`, z-index 450). Player marker uses `playerPane` (z-index 700) so it remains visible during blackout. Blackout cover is `position:absolute` inside `#leafletMap` at z-index 650.
 - Curse names overhauled 2026-03-21: tier curses renamed from "Heat I–V" + generic subtitles to Accelerant, Fever Surge, Compass Rot, Signal Clamp, Burned Lens.
 - Debug timer advance now also ticks curse expiry timestamps via `debugAdvanceCurseTimersBy()` in `js/19_curses.js`.
+- Reveal beat added 2026-03-21: `lockInGuess()` now dismisses all toasts, shows the player→target line on the map, fits the map to both endpoints, then waits 1.8s before opening the result modal. Result HTML is persisted to localStorage before the delay to protect against mid-reveal refreshes. `window.dismissAllToasts()` added to `js/02_dom.js`.
 
 ## Key constants and rules snapshot
 ### Mode radii
