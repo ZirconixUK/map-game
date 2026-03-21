@@ -94,6 +94,7 @@ Use the right set for the right job:
 ### Persistence gotchas
 - `startNewRound()` must clear persisted result modal HTML.
 - Refresh recovery should preserve round state and allow result modal restoration when appropriate.
+- Result HTML is written to `localStorage` before the 1.8s reveal delay, so a refresh during the reveal beat still restores the modal correctly.
 - Cached photo behavior must stay aligned with gameplay rules for free reopen vs first purchase.
 - Wall-clock timer is enforced on restore (since 2026-03-18): `roundStartMs` + `getRoundTimeLimitMs()` are compared against `Date.now()` in `js/13_boot.js`. Games expired >30 min are discarded; games already expired on load fire immediate auto-lock via `window.__roundExpiredOnLoad`.
 

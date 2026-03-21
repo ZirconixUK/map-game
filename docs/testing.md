@@ -55,9 +55,10 @@ Whenever a non-trivial change lands, manually check the systems most likely to d
 ### Scoring and results
 - Lock-in guess produces the correct grade and score breakdown.
 - Adjusted distance behavior still feels fair under GPS accuracy.
+- After locking in: reveal line appears on map, map pans/zooms to fit both endpoints, then ~1.8s later the result modal opens.
 - Result modal renders fully.
 - Result modal can be reopened after dismiss.
-- Refresh recovery still works when expected.
+- Refresh recovery still works when expected — result HTML is persisted to localStorage before the reveal delay, so a refresh during that window still restores the modal.
 
 ### Debug mode
 - Debug controls still open and function.

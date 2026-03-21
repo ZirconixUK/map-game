@@ -232,6 +232,16 @@
       if (typeof window.showRevealOverlay === 'function') window.showRevealOverlay({ guess, target: tgt });
     } catch(e) {}
 
+    // Fit map to show both player and target during the reveal beat
+    try {
+      if (window.leafletMap && typeof L !== 'undefined') {
+        window.leafletMap.fitBounds(
+          L.latLngBounds([[guess.lat, guess.lon], [tgt.lat, tgt.lon]]),
+          { padding: [60, 60], animate: true, maxZoom: 17 }
+        );
+      }
+    } catch(e) {}
+
     const gradeInfo = {
       Diamond:  { color:'#a5f3fc', flavor:'Extraordinary' },
       Emerald:  { color:'#34d399', flavor:'Exceptional' },
@@ -331,6 +341,12 @@
         </div>
       </div>
     `;
+    // Persist result HTML before the delay so a refresh during the reveal beat can still restore the modal
+    try { localStorage.setItem(RESULT_MODAL_KEY, html); } catch(e) {}
+
+    // Brief pause so the player can see the reveal line on the map before the modal appears
+    await new Promise(r => setTimeout(r, 1800));
+
     openResultModal(html);
 
   }
