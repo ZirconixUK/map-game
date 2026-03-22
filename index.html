@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-<title>Map Game (mobile)</title>
+<title>Field Op — Real-World Walking Deduction Game</title>
   <script>
     tailwind.config = {
       corePlugins: { preflight: false },
@@ -430,6 +430,62 @@
           <button id="resultModalClose" class="appearance-none bg-[#1e2d44] border border-[#2a3f60] text-gray-300 rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-[#253550]" aria-label="Close">✕</button>
         </div>
         <div id="resultModalBody" class="px-3.5 py-3 overflow-auto max-h-[70vh]"></div>
+      </div>
+    </div>
+
+    <!-- ── Welcome / entry modal ─────────────────────────── -->
+    <div id="welcomeModal" class="hidden fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Welcome">
+      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#0f1729] border border-[#1e3a5f] rounded-3xl shadow-modal flex flex-col">
+
+        <!-- First-time visitor content -->
+        <div id="welcomeContentFirst" class="hidden flex flex-col gap-0">
+          <div class="px-5 pt-5 pb-4 border-b border-[#1e3a5f]">
+            <div class="text-xl font-bold tracking-tight text-white leading-tight mb-0.5">Field Op</div>
+            <div class="text-xs text-slate-400 leading-snug">A real-world walking deduction game</div>
+          </div>
+          <div class="px-5 py-4 flex flex-col gap-4 text-sm text-gray-200 leading-relaxed">
+            <div class="flex gap-3">
+              <span class="text-2xl shrink-0">📸</span>
+              <div>
+                <div class="font-semibold text-white mb-0.5">You get a photo</div>
+                <div class="text-slate-300">A corrupted Street View image of a hidden location nearby. Your job is to physically walk to that exact spot.</div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <span class="text-2xl shrink-0">🛠️</span>
+              <div>
+                <div class="font-semibold text-white mb-0.5">Use tools carefully</div>
+                <div class="text-slate-300">Five investigation tools — radar, thermometer, compass, landmarks, extra photos. Each costs <span class="text-amber-400 font-semibold">heat</span>. Too much heat triggers curses.</div>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <span class="text-2xl shrink-0">📍</span>
+              <div>
+                <div class="font-semibold text-white mb-0.5">Lock in your position</div>
+                <div class="text-slate-300">When you think you've found it, lock in. Your GPS coordinates are scored against the true target. The closer, the better.</div>
+              </div>
+            </div>
+          </div>
+          <div class="px-4 pb-5">
+            <button id="btnWelcomeStart" class="w-full appearance-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base rounded-2xl px-4 py-3 cursor-pointer transition-colors">Start Playing</button>
+          </div>
+        </div>
+
+        <!-- Returning player content -->
+        <div id="welcomeContentReturn" class="hidden flex flex-col gap-0">
+          <div class="px-5 pt-5 pb-4 border-b border-[#1e3a5f]">
+            <div class="text-xl font-bold tracking-tight text-white leading-tight mb-0.5">Field Op</div>
+            <div class="text-xs text-slate-400 leading-snug">Ready for a new round?</div>
+          </div>
+          <div class="px-5 py-4 flex flex-col gap-3">
+            <p id="welcomeTimedOutNote" class="hidden text-sm text-amber-400 leading-snug px-3 py-2.5 rounded-xl bg-[#1e2d44] border border-[#2a3f60]">Your previous round timed out.</p>
+            <p class="text-sm text-slate-300 leading-relaxed">Walk to a hidden location from a single corrupted photo. Use tools to narrow it down. Lock in when you're sure.</p>
+          </div>
+          <div class="px-4 pb-5">
+            <button id="btnWelcomeStartReturn" class="w-full appearance-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base rounded-2xl px-4 py-3 cursor-pointer transition-colors">Start Round</button>
+          </div>
+        </div>
+
       </div>
     </div>
 

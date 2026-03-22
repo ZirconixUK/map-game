@@ -80,6 +80,7 @@ function __tryRestoreFog(saved) {
     if (_savedTimedOutCompletely) {
       // Discard the stale game — go straight to new game panel with a message.
       window.__needsNewGameSetup = true;
+      window.__suppressAutoNewGame = true;
       window.__timedOutPreviousGame = true;
     } else if (saved && saved.targetCustom && typeof saved.targetCustom.lat === 'number' && typeof saved.targetCustom.lon === 'number') {
       targetIdx = null;
@@ -198,10 +199,12 @@ function __tryRestoreFog(saved) {
     } else {
       // No saved game — flag so startup flow opens the New Game panel
       window.__needsNewGameSetup = true;
+      window.__suppressAutoNewGame = true;
     }
   } catch (e) {
     // Corrupted save — flag so startup flow opens the New Game panel
     window.__needsNewGameSetup = true;
+    window.__suppressAutoNewGame = true;
   }
 
   // Attempt fog restore SYNCHRONOUSLY before startHUDTicker/updateHUD.
@@ -270,17 +273,18 @@ setTimeout(async function __autoStartup() {
     } catch (e) {}
   }
 
-  // Open New Game setup panel if there was no saved game to resume
+  // Open New Game setup panel if there was no saved game to resume.
+  // When the welcome modal is active (__suppressAutoNewGame), show it instead.
   if (window.__needsNewGameSetup) {
-    try {
-      const p = document.getElementById('panelNewGame');
-      if (p) p.classList.add('open');
-    } catch (e) {}
-    if (window.__timedOutPreviousGame) {
-      try { if (typeof showToast === 'function') showToast("Previous game timed out — start a new one.", false); } catch(e) {}
-      window.__timedOutPreviousGame = false;
+    if (window.__suppressAutoNewGame) {
+      try { if (typeof window.__showWelcomeModal === 'function') window.__showWelcomeModal(); } catch(e) {}
+    } else {
+      try {
+        const p = document.getElementById('panelNewGame');
+        if (p) p.classList.add('open');
+      } catch (e) {}
+      window.__needsNewGameSetup = false;
     }
-    window.__needsNewGameSetup = false;
   }
 }, 400);
 

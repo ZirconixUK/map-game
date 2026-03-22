@@ -359,6 +359,44 @@
   });
 })();
 
+// ---- Welcome / entry modal ----
+// Called from __autoStartup in 13_boot.js after async init completes,
+// so that __needsNewGameSetup and __timedOutPreviousGame are already resolved.
+window.__showWelcomeModal = function() {
+  const welcomeModal = document.getElementById('welcomeModal');
+  if (!welcomeModal) return;
+
+  const panelNewGame = document.getElementById('panelNewGame');
+
+  function openNewGamePanel() {
+    welcomeModal.classList.add('hidden');
+    window.__suppressAutoNewGame = false;
+    window.__needsNewGameSetup = false;
+    if (panelNewGame) panelNewGame.classList.add('open');
+  }
+
+  const isFirstVisit = !localStorage.getItem('mapgame_firstvisit_v1');
+  if (isFirstVisit) {
+    localStorage.setItem('mapgame_firstvisit_v1', '1');
+    const c = document.getElementById('welcomeContentFirst');
+    if (c) c.classList.remove('hidden');
+    const btn = document.getElementById('btnWelcomeStart');
+    if (btn) btn.addEventListener('click', openNewGamePanel);
+  } else {
+    const c = document.getElementById('welcomeContentReturn');
+    if (c) c.classList.remove('hidden');
+    if (window.__timedOutPreviousGame) {
+      const note = document.getElementById('welcomeTimedOutNote');
+      if (note) note.classList.remove('hidden');
+      window.__timedOutPreviousGame = false;
+    }
+    const btn = document.getElementById('btnWelcomeStartReturn');
+    if (btn) btn.addEventListener('click', openNewGamePanel);
+  }
+
+  welcomeModal.classList.remove('hidden');
+};
+
 // ---- Back-compat (if older single panel ids exist) ----
 (() => {
   const btn = document.getElementById("btnPanel");
