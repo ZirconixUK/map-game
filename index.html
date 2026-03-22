@@ -49,6 +49,39 @@
       }
 
       function start() {
+        // Show welcome modal immediately (before any scripts load) if there is no
+        // saved game. POI loading and geolocation then run in the background while
+        // the player reads the intro, so they're ready to go as soon as they tap through.
+        (function() {
+          try {
+            var hasSave = !!localStorage.getItem('mapgame_round_v1');
+            if (!hasSave) {
+              var modal = document.getElementById('welcomeModal');
+              if (!modal) return;
+              var isFirstVisit = !localStorage.getItem('mapgame_firstvisit_v1');
+              if (isFirstVisit) {
+                localStorage.setItem('mapgame_firstvisit_v1', '1');
+                var cf = document.getElementById('welcomeContentFirst');
+                if (cf) cf.classList.remove('hidden');
+              } else {
+                var cr = document.getElementById('welcomeContentReturn');
+                if (cr) cr.classList.remove('hidden');
+              }
+              modal.classList.remove('hidden');
+              window.__welcomeShownEarly = true;
+              function onWelcomeStart() {
+                modal.classList.add('hidden');
+                var p = document.getElementById('panelNewGame');
+                if (p) p.classList.add('open');
+              }
+              var b1 = document.getElementById('btnWelcomeStart');
+              var b2 = document.getElementById('btnWelcomeStartReturn');
+              if (b1) b1.addEventListener('click', onWelcomeStart);
+              if (b2) b2.addEventListener('click', onWelcomeStart);
+            }
+          } catch(e) {}
+        })();
+
         (async function () {
         try { await load('./js/secrets.js?cb=' + cb); } catch(e) { /* no secrets.js — Street View disabled */ }
         await load('./js/00_config.js?cb=' + cb);

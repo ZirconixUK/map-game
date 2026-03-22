@@ -205,6 +205,7 @@ function __tryRestoreFog(saved) {
     // Corrupted save — flag so startup flow opens the New Game panel
     window.__needsNewGameSetup = true;
     window.__suppressAutoNewGame = true;
+    window.__timedOutPreviousGame = true; // surface a contextual note in the welcome modal
   }
 
   // Attempt fog restore SYNCHRONOUSLY before startHUDTicker/updateHUD.
@@ -277,7 +278,13 @@ setTimeout(async function __autoStartup() {
   // When the welcome modal is active (__suppressAutoNewGame), show it instead.
   if (window.__needsNewGameSetup) {
     if (window.__suppressAutoNewGame) {
-      try { if (typeof window.__showWelcomeModal === 'function') window.__showWelcomeModal(); } catch(e) {}
+      if (window.__welcomeShownEarly) {
+        // Early path in start() already showed the modal and wired buttons — just clean up.
+        window.__needsNewGameSetup = false;
+        window.__suppressAutoNewGame = false;
+      } else {
+        try { if (typeof window.__showWelcomeModal === 'function') window.__showWelcomeModal(); } catch(e) {}
+      }
     } else {
       try {
         const p = document.getElementById('panelNewGame');

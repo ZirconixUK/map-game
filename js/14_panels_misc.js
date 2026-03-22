@@ -26,6 +26,7 @@
   // Watch for direct .classList mutations from other modules (e.g. 02_dom.js)
   const mo = new MutationObserver(syncBackdrop);
   allPanels.forEach(p => mo.observe(p, { attributes: true, attributeFilter: ["class"] }));
+  syncBackdrop(); // sync initial state in case a panel was opened before this script loaded
 
   function setOpen(panel, open) {
     if (!panel) return;
@@ -360,9 +361,12 @@
 })();
 
 // ---- Welcome / entry modal ----
-// Called from __autoStartup in 13_boot.js after async init completes,
-// so that __needsNewGameSetup and __timedOutPreviousGame are already resolved.
+// The no-save case is handled immediately in index.html start() before scripts load.
+// This function handles the timed-out game case, where a save existed but init()
+// determined it had expired — so the early check didn't show the modal.
 window.__showWelcomeModal = function() {
+  if (window.__welcomeShownEarly) return; // already shown and wired
+
   const welcomeModal = document.getElementById('welcomeModal');
   if (!welcomeModal) return;
 
@@ -375,24 +379,16 @@ window.__showWelcomeModal = function() {
     if (panelNewGame) panelNewGame.classList.add('open');
   }
 
-  const isFirstVisit = !localStorage.getItem('mapgame_firstvisit_v1');
-  if (isFirstVisit) {
-    localStorage.setItem('mapgame_firstvisit_v1', '1');
-    const c = document.getElementById('welcomeContentFirst');
-    if (c) c.classList.remove('hidden');
-    const btn = document.getElementById('btnWelcomeStart');
-    if (btn) btn.addEventListener('click', openNewGamePanel);
-  } else {
-    const c = document.getElementById('welcomeContentReturn');
-    if (c) c.classList.remove('hidden');
-    if (window.__timedOutPreviousGame) {
-      const note = document.getElementById('welcomeTimedOutNote');
-      if (note) note.classList.remove('hidden');
-      window.__timedOutPreviousGame = false;
-    }
-    const btn = document.getElementById('btnWelcomeStartReturn');
-    if (btn) btn.addEventListener('click', openNewGamePanel);
+  // For the timed-out case, the player is a known returning player.
+  const c = document.getElementById('welcomeContentReturn');
+  if (c) c.classList.remove('hidden');
+  if (window.__timedOutPreviousGame) {
+    const note = document.getElementById('welcomeTimedOutNote');
+    if (note) note.classList.remove('hidden');
+    window.__timedOutPreviousGame = false;
   }
+  const btn = document.getElementById('btnWelcomeStartReturn');
+  if (btn) btn.addEventListener('click', openNewGamePanel, { once: true });
 
   welcomeModal.classList.remove('hidden');
 };
