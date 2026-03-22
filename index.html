@@ -60,9 +60,11 @@
               if (!modal) return;
               var isFirstVisit = !localStorage.getItem('mapgame_firstvisit_v1');
               if (isFirstVisit) {
-                localStorage.setItem('mapgame_firstvisit_v1', '1');
                 var cf = document.getElementById('welcomeContentFirst');
-                if (cf) cf.classList.remove('hidden');
+                if (cf) {
+                  cf.classList.remove('hidden');
+                  localStorage.setItem('mapgame_firstvisit_v1', '1');
+                }
               } else {
                 var cr = document.getElementById('welcomeContentReturn');
                 if (cr) cr.classList.remove('hidden');
@@ -71,6 +73,8 @@
               window.__welcomeShownEarly = true;
               function onWelcomeStart() {
                 modal.classList.add('hidden');
+                if (cf) cf.classList.add('hidden');
+                if (cr) cr.classList.add('hidden');
                 var p = document.getElementById('panelNewGame');
                 if (p) p.classList.add('open');
               }

@@ -372,20 +372,20 @@ window.__showWelcomeModal = function() {
 
   const panelNewGame = document.getElementById('panelNewGame');
 
-  function openNewGamePanel() {
-    welcomeModal.classList.add('hidden');
-    window.__suppressAutoNewGame = false;
-    window.__needsNewGameSetup = false;
-    if (panelNewGame) panelNewGame.classList.add('open');
-  }
-
   // For the timed-out case, the player is a known returning player.
   const c = document.getElementById('welcomeContentReturn');
   if (c) c.classList.remove('hidden');
-  if (window.__timedOutPreviousGame) {
-    const note = document.getElementById('welcomeTimedOutNote');
-    if (note) note.classList.remove('hidden');
-    window.__timedOutPreviousGame = false;
+  const note = window.__timedOutPreviousGame ? document.getElementById('welcomeTimedOutNote') : null;
+  if (note) note.classList.remove('hidden');
+  window.__timedOutPreviousGame = false;
+
+  function openNewGamePanel() {
+    welcomeModal.classList.add('hidden');
+    if (c) c.classList.add('hidden');
+    if (note) note.classList.add('hidden');
+    window.__suppressAutoNewGame = false;
+    window.__needsNewGameSetup = false;
+    if (panelNewGame) panelNewGame.classList.add('open');
   }
   const btn = document.getElementById('btnWelcomeStartReturn');
   if (btn) btn.addEventListener('click', openNewGamePanel, { once: true });
