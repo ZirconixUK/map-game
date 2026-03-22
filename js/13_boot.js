@@ -274,6 +274,18 @@ setTimeout(async function __autoStartup() {
     } catch (e) {}
   }
 
+  // If a result modal was persisted (round already completed), restore it so the player
+  // isn't left staring at a frozen timer with no context. This also guards against a
+  // rare restore glitch where hasGuessed is stale/false despite a result existing.
+  if (!window.__needsNewGameSetup) {
+    try {
+      const _savedResult = localStorage.getItem('mapgame_result_html_v1');
+      if (_savedResult && typeof window.reopenResultModal === 'function') {
+        window.reopenResultModal();
+      }
+    } catch(e) {}
+  }
+
   // Open New Game setup panel if there was no saved game to resume.
   // When the welcome modal is active (__suppressAutoNewGame), show it instead.
   if (window.__needsNewGameSetup) {

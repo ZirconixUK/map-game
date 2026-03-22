@@ -159,6 +159,16 @@
     if (!r) { try { if (typeof showToast === 'function') showToast('No active round.', false); } catch(e) {} return; }
     if (r.hasGuessed) { try { if (typeof showToast === 'function') showToast('Guess already locked.', false); } catch(e) {} return; }
 
+    // Safety net: if a result modal exists in storage, the round was already scored.
+    // Prevents a second guess when hasGuessed is stale/false due to a restore glitch.
+    try {
+      const _existingResult = localStorage.getItem(RESULT_MODAL_KEY);
+      if (_existingResult) {
+        if (typeof window.reopenResultModal === 'function') window.reopenResultModal();
+        return;
+      }
+    } catch(e) {}
+
     const tgt = getTargetLatLng();
     if (!tgt) { try { if (typeof showToast === 'function') showToast('No target set yet.', false); } catch(e) {} return; }
 

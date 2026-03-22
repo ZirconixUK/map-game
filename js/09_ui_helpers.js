@@ -216,8 +216,9 @@ function updateHUD() {
   // Timer
   if (elTimerMain) {
     const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : (window.roundStateV1 || null);
-    if (r && r.hasGuessed && typeof r.guessRemainingMs === 'number') {
-      elTimerMain.textContent = formatMMSS(Math.max(0, r.guessRemainingMs));
+    if (r && r.hasGuessed) {
+      const frozenMs = (typeof r.guessRemainingMs === 'number' && isFinite(r.guessRemainingMs)) ? r.guessRemainingMs : 0;
+      elTimerMain.textContent = formatMMSS(Math.max(0, frozenMs));
       elTimerMain.style.color = '#fbbf24'; // amber — locked
     } else {
       const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
