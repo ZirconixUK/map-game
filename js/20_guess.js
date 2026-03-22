@@ -357,6 +357,11 @@
   function startNewRound(){
     try { localStorage.removeItem(RESULT_MODAL_KEY); } catch(e) {}
     try { const b = document.getElementById('resultModalBody'); if (b) b.innerHTML = ''; } catch(e) {}
+    // Close gameplay panel first so the new game panel isn't hidden behind it.
+    try {
+      const pg = document.getElementById('panelGameplay');
+      if (pg) pg.classList.remove('open');
+    } catch(e) {}
     // Open the New Game setup panel so the player can choose length and difficulty.
     try {
       const p = document.getElementById('panelNewGame');
