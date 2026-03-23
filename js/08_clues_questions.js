@@ -356,10 +356,13 @@ function pickNewTarget(verbose = true) {
     // Phase 1: always show the initial "Circle Snapshot" for the new target.
     try {
       if (typeof showStreetViewGlimpseForTarget === 'function') {
+        try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus('Loading photograph…'); } catch(e) {}
         await showStreetViewGlimpseForTarget({ context: 'snapshot' });
       }
     } catch (e) {
       // If Street View fails, don't block the round; player can still use other tools.
+    } finally {
+      try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
     }
   })().finally(() => {
     __isPickingTarget = false;

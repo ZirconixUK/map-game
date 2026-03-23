@@ -232,6 +232,7 @@ async function loadPois() {
     try {
       if (typeof window.showToast === 'function') window.showToast('Downloading map data… (first run only)', false);
     } catch(e) {}
+    try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus('Downloading map data…'); } catch(e) {}
     try {
       const pois = await new Promise((resolve, reject) => {
         let worker;
@@ -251,10 +252,12 @@ async function loadPois() {
       window.__allPois = pois;
       log(`📍 ${pois.length} POIs loaded from ${UK_POI_URL}`);
       try { if (typeof window.__dismissCurrentToast === 'function') window.__dismissCurrentToast(); } catch(e) {}
+      try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
     } catch(e) {
       // Worker unavailable — fall back to main-thread fetch (may briefly freeze UI)
       log(`⚠️ Worker unavailable, parsing on main thread: ${e.message}`);
       try { if (typeof window.__dismissCurrentToast === 'function') window.__dismissCurrentToast(); } catch(e) {}
+      try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
       try {
         const r = await fetch(new URL(UK_POI_URL, location.href).href, { cache: 'no-cache' });
         const d = await r.json();

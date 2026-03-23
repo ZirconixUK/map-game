@@ -251,6 +251,7 @@ setTimeout(async function __autoStartup() {
   const inDebug = (typeof debugMode !== 'undefined') && debugMode;
 
   if (!inDebug && window.isSecureContext && navigator.geolocation) {
+    try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus('Obtaining location…'); } catch(e) {}
     try {
       await window.__setPlayerFromCurrentLocation({ centerAfterFix: true });
     } catch (e) {
@@ -273,6 +274,7 @@ setTimeout(async function __autoStartup() {
       }
     } catch (e) {}
   }
+  try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
 
   // If a result modal was persisted (round already completed), restore it so the player
   // isn't left staring at a frozen timer with no context. This also guards against a
