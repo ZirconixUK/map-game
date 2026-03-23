@@ -249,6 +249,7 @@ function bindUI() {
     // Use the exact same working helper as the top-right "Use location" button.
     // Order required by design: get real location -> centre map on player -> then pick target.
     try { log("📡 Requesting your current location for new game…"); } catch (e) {}
+    try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus('Finding your location…'); } catch(e) {}
 
     try {
       if (typeof window.__setPlayerFromCurrentLocation === 'function') {
@@ -258,6 +259,7 @@ function bindUI() {
           centerAfterFix: true,
           geoOpts: { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
         });
+        try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
         try {
           const el = document.getElementById("playerOut");
           if (el && fix) el.textContent = `${fix.lat.toFixed(6)}, ${fix.lon.toFixed(6)}`;
@@ -296,8 +298,10 @@ function bindUI() {
       } catch (e) {}
       try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch (e) {}
       try { log(`📍 New game start location: ${fix.lat.toFixed(6)}, ${fix.lon.toFixed(6)}${(typeof fix.accuracy === "number" && isFinite(fix.accuracy)) ? ` (±${Math.round(fix.accuracy)}m)` : ""}`); } catch (e) {}
+      try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
       return true;
     } catch (err) {
+      try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
       const msg = (err && err.message) ? err.message : String(err || 'geo_unavailable');
       try { log(`⚠️ Couldn't get current location for new game (${msg}); using default start.`); } catch (e) {}
       try {
@@ -307,6 +311,9 @@ function bindUI() {
           try { log(`📍 New game fallback start: ${DEFAULT_START_LATLNG.lat.toFixed(6)}, ${DEFAULT_START_LATLNG.lon.toFixed(6)} (Lime Street)`); } catch (e) {}
         }
       } catch (e) {}
+      try {
+        showToast("📍 Couldn't get your location — map centred on Liverpool city centre. You may want to set your position before starting.", false, { autoDismissMs: 0 });
+      } catch(e) {}
       return false;
     }
   }
