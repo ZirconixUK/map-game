@@ -3,6 +3,8 @@
 ## Repository shape
 ```text
 index.html                      Main entry, sequential script loader
+login.html                      Google OAuth sign-in page (standalone)
+profile.html                    Player profile: run history, stats, achievements (standalone)
 styles.css                      All UI styling (dark theme, mobile-first)
 js/
   00_config.js                  Master constants, thresholds, API key reads
@@ -24,8 +26,11 @@ js/
   17_leaflet_fog.js             Fog-of-war geometry in fogPane (z-450); setFogLayerVisible()
   18_streetview_glimpse.js      Google Street View wrapper and photo caching
   19_curses.js                  Curse system; debugAdvanceCurseTimersBy() for debug timer sync
-  20_guess.js                   Lock-in flow, grading, scoring, reveal beat (toast dismiss → reveal line → fitBounds → 1.8s delay → modal), result modal persistence
+  20_guess.js                   Lock-in flow, grading, scoring, reveal beat (toast dismiss → reveal line → fitBounds → 1.8s delay → modal), result modal persistence, calls saveRoundResult()
+  auth.js                       Supabase client init, Google OAuth, session management, system panel auth UI
+  db.js                         saveRoundResult(), achievement checking, getRoundHistory(), getAchievements()
   poi_worker.js                 Worker for UK POI dataset parsing
+  secrets.js                    Local-only API keys (gitignored); auth.js/db.js have hardcoded fallbacks for production
 POI_UK_runtime.json             UK-wide POI dataset
 tools.json                      Tool definitions
 curses.json                     Curse definitions
@@ -39,6 +44,7 @@ curses.json                     Curse definitions
 - Street View photos are cached as `data:` URLs in localStorage.
 - Round state is persisted to localStorage and restored at boot.
 - UK POI dataset is loaded once, cached in IndexedDB, and then sliced per play area.
+- Auth and DB are progressive enhancements: the game is fully playable as a guest. All Supabase calls are silent no-ops if the user is not signed in or if the CDN fails to load.
 
 ## Critical invariants
 ### Script loading
@@ -135,6 +141,27 @@ The game uses custom Leaflet panes to control layering independently of the defa
 **Important:** Any new `L.polygon`, `L.polyline`, or `L.circleMarker` added to the map without a `pane` option will land in the default overlayPane (400) — below the fog (450). Always declare `pane: 'playerPane'` for player-visible game elements that should render above fog.
 
 The blackout cover is `position:absolute; inset:0; z-index:650` appended inside `#leafletMap`. Because `#leafletMap` has `z-index:0` in the root stacking context, the cover cannot escape that context — FABs and HUD (z-index 30+) remain above it automatically. The player dot at playerPane (700) is above the cover (650) within the leaflet context.
+
+## Auth and database layer
+
+### Supabase setup
+- Project: `rxnljetuukqtlmauuruz.supabase.co`
+- Auth provider: Google OAuth
+- Tables: `rounds`, `user_profiles`, `user_achievements`, `user_settings`
+- All tables have Row Level Security enabled — users can only read/write their own rows
+- Schema SQL lives in `/Users/sierro/.claude/plans/server-auth-and-database.md`
+
+### Script loading
+`auth.js` and `db.js` load in the sequential loader immediately after `secrets.js` (try/catch). The Supabase CDN (`@supabase/supabase-js@2`) is a synchronous `<script>` tag in `<head>` and is guaranteed to execute before the sequential loader runs.
+
+### OAuth flow gotcha
+`createClient()` reads `window.location.hash` **asynchronously** inside its `initialize()` promise chain. Do not wipe the URL hash synchronously after calling `createClient()` — Supabase will not have read it yet. Hash cleanup must happen inside `onAuthStateChange`, after Supabase has processed the token.
+
+### Round result sync
+`js/20_guess.js` calls `window.saveRoundResult()` after scoring. The call is fire-and-forget (not awaited) to avoid blocking the reveal animation. `saveRoundResult` is a no-op if the user is not signed in.
+
+### Deployment note
+`secrets.js` is gitignored and not on GitHub Pages. `auth.js` hardcodes the Supabase URL and anon key as defaults. The anon key is a publishable key — safe to commit; data is protected by RLS.
 
 ## Editing checklist for architecture-sensitive changes
 Before changing target generation, persistence, landmark logic, or menus, check:

@@ -33,6 +33,8 @@
 - Landmark queries and landmark Voronoi logic use `window.__allPois`, not the live filtered slice.
 - Round persistence and result modal persistence use localStorage and must stay in sync with round reset behavior.
 - Sparse-POI mode and Street View snapping can change target generation behavior; verify radius guarantees when touching that flow.
+- Auth and DB are progressive enhancements. The game must remain fully playable without a Supabase session. All auth/DB calls must be silent no-ops for guests.
+- Do not wipe the OAuth token hash from the URL synchronously after `createClient()`. Supabase reads the hash asynchronously. Hash cleanup must happen inside `onAuthStateChange`.
 
 ## Common failure modes to avoid
 - Binding direct click handlers to gameplay submenu buttons that are later destroyed and recreated.
@@ -61,8 +63,9 @@
 - Score, result modal, and persistence still work across refresh.
 
 ## Where to look first
-- `docs/architecture.md` for code structure, state, POIs, persistence, and geolocation.
+- `docs/architecture.md` for code structure, state, POIs, persistence, geolocation, and auth/DB layer.
 - `docs/game-design.md` for design pillars, loop, balance stance, roadmap, and open design questions.
 - `docs/ui-style.md` for visual language, color usage, and component styling rules.
 - `docs/status.md` for implementation status, current priority, and known risks.
 - `docs/testing.md` for regression checks and qualitative playtest criteria.
+- `/Users/sierro/.claude/plans/server-auth-and-database.md` for the full Supabase schema and auth plan.

@@ -21,6 +21,12 @@
 - Timer expiry auto-lock
 - Street View guardrails and failure handling
 - Debug curse picker with heat tier badges and toast feedback
+- User accounts via Google OAuth (Supabase Auth)
+- Server-side round result persistence (Supabase `rounds` table)
+- Achievement tracking (6 initial achievements, evaluated after each round)
+- Profile page (`profile.html`): run history, aggregate stats, achievements
+- Guest play mode with dismissable notice; full game playable without an account
+- Sign in / sign out via System panel; profile link shows first name when signed in
 
 ### Not yet implemented
 - Chain mode
@@ -47,6 +53,7 @@ That means focusing on:
 - Curse names overhauled 2026-03-21: tier curses renamed from "Heat I–V" + generic subtitles to Accelerant, Fever Surge, Compass Rot, Signal Clamp, Burned Lens.
 - Debug timer advance now also ticks curse expiry timestamps via `debugAdvanceCurseTimersBy()` in `js/19_curses.js`.
 - Reveal beat added 2026-03-21: `lockInGuess()` now dismisses all toasts, shows the player→target line on the map, fits the map to both endpoints, then waits 1.8s before opening the result modal. Result HTML is persisted to localStorage before the delay to protect against mid-reveal refreshes. `window.dismissAllToasts()` added to `js/02_dom.js`.
+- Server-side auth and DB landed 2026-03-24: Supabase Google OAuth, round result sync, achievement tracking. `js/auth.js` and `js/db.js` added; loaded after `secrets.js` in the sequential loader. `login.html` and `profile.html` added as standalone pages. `js/20_guess.js` calls `window.saveRoundResult()` after scoring (silent no-op for guests). OAuth token hash cleanup happens inside `onAuthStateChange` (after Supabase processes the token, not before).
 
 ## Key constants and rules snapshot
 ### Mode radii
@@ -120,3 +127,4 @@ Later ideas such as daily challenges, async comparison, lore, and social feature
 - Street View API cost/availability concerns
 - Any regression that breaks adjusted-distance fairness at lock-in
 - Leaflet stacking context: fog (450), blackout cover (650), player (700) — any new Leaflet layers must declare a pane explicitly or they land in the default overlay pane (400) below the fog
+- Supabase anon key is hardcoded in `js/auth.js` and `login.html`/`profile.html` (publishable key, safe by design); RLS policies protect all tables
