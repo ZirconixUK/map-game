@@ -188,11 +188,6 @@
     <button id="btnGameplay"  class="fab fab--right fab--stack2 rounded-2xl bg-blue-600 border border-blue-500 shadow-fab text-white text-lg grid place-items-center hover:bg-blue-500 transition-colors" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
     <button id="btnCurses"    class="fab fab--right fab--stack3 fab--curse rounded-2xl bg-[#2d1a4a] border border-[#4a2d7a] shadow-fab grid place-items-center hover:bg-[#3d2560] transition-colors" aria-label="Curses" title="Curses">☠</button>
 
-    <!-- Auth widget FAB (left stack4, below Info FAB) -->
-    <div id="authWidget" class="fab fab--left fab--stack4 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center" aria-label="Account" title="Account">
-      <a href="./login.html" title="Sign in" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1rem;color:#94a3b8;text-decoration:none;">⎋</a>
-    </div>
-
     <!-- System FAB -->
     <button id="btnSystem" class="fab fab--left fab--stack2 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-amber-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="System" title="System">⌂</button>
     <!-- Info FAB -->
@@ -403,8 +398,12 @@
         </button>
         <a id="systemProfileLink" href="./profile.html" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#111827] border border-[#1e3a5f] text-slate-300 font-semibold no-underline hover:bg-[#1a2744] active:scale-[.98] transition-all duration-150 text-sm">
           <span class="text-xl">👤</span>
-          <span id="systemProfileLabel">Profile</span>
+          <span id="systemProfileLabel">Profile / Sign in</span>
         </a>
+        <button id="btnSystemSignOut" class="hidden w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-transparent border border-[#1e3a5f] text-slate-500 font-semibold cursor-pointer hover:bg-[#1a2744] hover:text-slate-300 active:scale-[.98] transition-all duration-150 text-sm" type="button">
+          <span class="text-xl">⎋</span>
+          <span>Sign out</span>
+        </button>
       </div>
     </div>
 

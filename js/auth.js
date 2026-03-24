@@ -20,15 +20,6 @@
   }
 
   function updateAuthWidget(user) {
-    const w = document.getElementById('authWidget');
-    if (w) {
-      if (user) {
-        w.innerHTML = `<a href="./profile.html" title="Profile" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;font-size:0.8rem;color:#67e8f9;text-decoration:none;">${_initials(user)}</a>`;
-      } else {
-        w.innerHTML = `<a href="./login.html" title="Sign in" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1rem;color:#94a3b8;text-decoration:none;">⎋</a>`;
-      }
-    }
-    // Update system panel profile label
     const lbl = document.getElementById('systemProfileLabel');
     if (lbl) {
       const name = user?.user_metadata?.full_name || user?.email || null;
@@ -36,6 +27,8 @@
     }
     const link = document.getElementById('systemProfileLink');
     if (link) link.href = user ? './profile.html' : './login.html';
+    const signOut = document.getElementById('btnSystemSignOut');
+    if (signOut) signOut.classList.toggle('hidden', !user);
   }
 
   function showGuestNotice() {
@@ -65,6 +58,10 @@
       updateAuthWidget(null);
     },
   };
+
+  // Wire sign out button
+  const _signOutBtn = document.getElementById('btnSystemSignOut');
+  if (_signOutBtn) _signOutBtn.addEventListener('click', () => window.mgAuth.signOut());
 
   // Init: check session, wire widget, show guest notice if needed
   client.auth.getSession().then(({ data: { session } }) => {
