@@ -10,16 +10,9 @@
     return;
   }
 
-  // createClient reads window.location.hash to process OAuth tokens — must happen first
+  // createClient processes the hash token asynchronously — do not touch the hash before this
   const client = window.supabase.createClient(URL, KEY);
   window.__supabase = client;
-
-  // Now safe to clean the token hash from the URL
-  try {
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-    }
-  } catch(e) {}
 
   function _initials(user) {
     const name = user.user_metadata?.full_name || user.email || '';
@@ -82,6 +75,12 @@
 
   client.auth.onAuthStateChange((_event, session) => {
     console.log('[auth] onAuthStateChange:', _event, session ? session.user.email : 'no session');
+    // Safe to clean the token hash now — Supabase has already read and processed it
+    try {
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      }
+    } catch(e) {}
     updateAuthWidget(session?.user || null);
     if (!session) showGuestNotice();
     else {
