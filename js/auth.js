@@ -1,11 +1,19 @@
 // js/auth.js — Supabase auth layer
-// Requires: Supabase CDN loaded, window.SUPABASE_URL + window.SUPABASE_ANON_KEY set in secrets.js
+// Credentials are hardcoded (anon/publishable key — safe to commit).
+// secrets.js can override via window.SUPABASE_URL / window.SUPABASE_ANON_KEY.
 (function () {
-  const URL = window.SUPABASE_URL;
-  const KEY = window.SUPABASE_ANON_KEY;
+  // Clean OAuth token hash immediately, before any async work
+  try {
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
+  } catch(e) {}
 
-  if (!URL || !KEY || typeof window.supabase === 'undefined') {
-    console.warn('[auth] Supabase not configured — auth disabled');
+  const URL = window.SUPABASE_URL || 'https://rxnljetuukqtlmauuruz.supabase.co';
+  const KEY = window.SUPABASE_ANON_KEY || 'sb_publishable_oM6zcplDuEfB1vowTdnUDg_Uxdf0ulm';
+
+  if (typeof window.supabase === 'undefined') {
+    console.warn('[auth] Supabase CDN not loaded — auth disabled');
     return;
   }
 
@@ -64,24 +72,14 @@
     },
   };
 
-  function _cleanUrlToken() {
-    try {
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-      }
-    } catch(e) {}
-  }
-
   // Init: check session, wire widget, show guest notice if needed
   client.auth.getSession().then(({ data: { session } }) => {
-    _cleanUrlToken();
     updateAuthWidget(session?.user || null);
     if (!session) showGuestNotice();
     else console.log('[auth] signed in as', session.user.email);
   }).catch(() => {});
 
   client.auth.onAuthStateChange((_event, session) => {
-    _cleanUrlToken();
     updateAuthWidget(session?.user || null);
     if (!session) showGuestNotice();
     else {
