@@ -113,7 +113,7 @@
       status.className = 'status';
       const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + (window.location.pathname.replace('login.html', 'index.html')) },
+        options: { redirectTo: 'https://zirconixuk.github.io/map-game/' },
       });
       if (error) {
         status.textContent = error.message || 'Sign-in failed. Please try again.';
