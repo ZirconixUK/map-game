@@ -342,6 +342,10 @@ function bindUI() {
         btnStart.textContent = 'Starting game…';
       }
       try { if (typeof log === 'function') log(`🎮 Game setup: ${__formatGameSetupLabel()}`); } catch (e) {}
+      // Clear any persisted result from the previous round so a refresh mid-game
+      // doesn't restore a stale result modal instead of resuming the live game.
+      try { localStorage.removeItem('mapgame_result_html_v1'); } catch(e) {}
+      try { const m = document.getElementById('resultModal'); if (m) m.classList.add('hidden'); } catch(e) {}
       __landmarkLiveCache = {};
       __landmarkCategoryHTML = null;
       // Rebuild radar and thermometer menus for the newly-selected mode before the round starts.
