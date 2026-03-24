@@ -25,6 +25,7 @@
       if (!auth) return;
       const { client, userId } = auth;
 
+      console.log('[db] saving round for user', userId);
       const { error } = await client.from('rounds').insert({
         user_id:              userId,
         target_name:          data.target_name          || null,
@@ -53,6 +54,7 @@
       if (error) {
         console.warn('[db] saveRoundResult error', error);
       } else {
+        console.log('[db] round saved successfully');
         await _checkAndAwardAchievements(client, userId, data);
       }
     } catch (e) {
