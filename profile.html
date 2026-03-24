@@ -145,11 +145,9 @@
 
       // Profile row
       const profileRow = document.getElementById('profileRow');
-      const avatarHtml = meta.avatar_url
-        ? `<img src="${meta.avatar_url}" alt="" />`
-        : initials(meta.full_name || user.email || '');
+      const avatarContent = meta.avatar_url ? `<img src="${meta.avatar_url}" alt="">` : initials(meta.full_name || user.email || '');
       profileRow.innerHTML = `
-        <div class="avatar">${meta.avatar_url ? `<img src="${meta.avatar_url}" alt="">` : initials(meta.full_name || user.email)}</div>
+        <div class="avatar">${avatarContent}</div>
         <div>
           <div class="profile-name">${meta.full_name || 'Player'}</div>
           <div class="profile-email">${user.email || ''}</div>
