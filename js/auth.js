@@ -2,13 +2,6 @@
 // Credentials are hardcoded (anon/publishable key — safe to commit).
 // secrets.js can override via window.SUPABASE_URL / window.SUPABASE_ANON_KEY.
 (function () {
-  // Clean OAuth token hash immediately, before any async work
-  try {
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-    }
-  } catch(e) {}
-
   const URL = window.SUPABASE_URL || 'https://rxnljetuukqtlmauuruz.supabase.co';
   const KEY = window.SUPABASE_ANON_KEY || 'sb_publishable_oM6zcplDuEfB1vowTdnUDg_Uxdf0ulm';
 
@@ -17,8 +10,16 @@
     return;
   }
 
+  // createClient reads window.location.hash to process OAuth tokens — must happen first
   const client = window.supabase.createClient(URL, KEY);
   window.__supabase = client;
+
+  // Now safe to clean the token hash from the URL
+  try {
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
+  } catch(e) {}
 
   function _initials(user) {
     const name = user.user_metadata?.full_name || user.email || '';
