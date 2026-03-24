@@ -14,11 +14,6 @@
   const client = window.supabase.createClient(URL, KEY);
   window.__supabase = client;
 
-  function _initials(user) {
-    const name = user.user_metadata?.full_name || user.email || '';
-    return name.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase() || '?';
-  }
-
   function updateAuthWidget(user) {
     const lbl = document.getElementById('systemProfileLabel');
     if (lbl) {
@@ -53,10 +48,7 @@
       provider: 'google',
       options: { redirectTo: window.location.href.split('?')[0].split('#')[0] },
     }),
-    signOut: async () => {
-      await client.auth.signOut();
-      updateAuthWidget(null);
-    },
+    signOut: () => client.auth.signOut(),
   };
 
   // Wire sign out button
