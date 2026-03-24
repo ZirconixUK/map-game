@@ -109,6 +109,8 @@
 
         (async function () {
         try { await load('./js/secrets.js?cb=' + cb); } catch(e) { /* no secrets.js — Street View disabled */ }
+        try { await load('./js/auth.js?cb=' + cb); } catch(e) {}
+        try { await load('./js/db.js?cb=' + cb); } catch(e) {}
         await load('./js/00_config.js?cb=' + cb);
         await load('./js/01_pois.js?cb=' + cb);
         await load('./js/15_tools_config.js?cb=' + cb);
@@ -147,6 +149,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <!-- Leaflet -->
   <link
     rel="stylesheet"
@@ -182,6 +187,11 @@
     <button id="btnRecenter"  class="fab fab--right rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-cyan-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Center on me" title="Center on me">⌖</button>
     <button id="btnGameplay"  class="fab fab--right fab--stack2 rounded-2xl bg-blue-600 border border-blue-500 shadow-fab text-white text-lg grid place-items-center hover:bg-blue-500 transition-colors" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
     <button id="btnCurses"    class="fab fab--right fab--stack3 fab--curse rounded-2xl bg-[#2d1a4a] border border-[#4a2d7a] shadow-fab grid place-items-center hover:bg-[#3d2560] transition-colors" aria-label="Curses" title="Curses">☠</button>
+
+    <!-- Auth widget FAB (top-left) -->
+    <div id="authWidget" class="fab fab--left rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center" aria-label="Account" title="Account">
+      <a href="./login.html" title="Sign in" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1rem;color:#94a3b8;text-decoration:none;">⎋</a>
+    </div>
 
     <!-- System FAB -->
     <button id="btnSystem" class="fab fab--left fab--stack2 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-amber-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="System" title="System">⌂</button>
@@ -483,6 +493,13 @@
         </div>
         <div id="photoModalFooter" class="px-3.5 pb-3.5 pt-2.5 border-t border-[#1e3a5f] text-xs text-slate-400 leading-snug"></div>
       </div>
+    </div>
+
+    <!-- ── Guest notice banner ───────────────────────────── -->
+    <div id="guestNotice" class="hidden fixed bottom-0 left-0 right-0 z-[200] px-4 py-3 bg-[#0f1729] border-t border-[#1e3a5f] flex items-center gap-3 text-sm text-slate-300" role="status">
+      <span class="flex-1">Playing as guest — stats and achievements won't be saved.</span>
+      <a href="./login.html" class="shrink-0 px-3 py-1.5 rounded-xl bg-blue-600 border border-blue-500 text-white font-semibold text-xs hover:bg-blue-500 transition-colors">Sign in</a>
+      <button onclick="window.__dismissGuestNotice && window.__dismissGuestNotice()" class="shrink-0 appearance-none bg-transparent border-0 text-slate-500 hover:text-slate-300 text-lg leading-none cursor-pointer" aria-label="Dismiss">✕</button>
     </div>
 
     <!-- ── Result modal ───────────────────────────────────── -->

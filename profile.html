@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Profile — Field Op</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100dvh;
+      background: #080c14;
+      color: #f1f5f9;
+      font-family: 'Barlow', sans-serif;
+      padding: 24px 16px max(24px, env(safe-area-inset-bottom));
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 540px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: 0.05em; color: #67e8f9; text-transform: uppercase; }
+    .back-link { font-size: 0.8rem; color: #64748b; }
+    .back-link:hover { color: #94a3b8; }
+
+    .card { background: #0f1729; border: 1px solid #1e3a5f; border-radius: 20px; padding: 20px; }
+    .card-title { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #475569; margin-bottom: 14px; }
+
+    .profile-row { display: flex; align-items: center; gap: 14px; }
+    .avatar { width: 52px; height: 52px; border-radius: 50%; background: #1e3a5f; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: #67e8f9; flex-shrink: 0; overflow: hidden; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-name { font-size: 1.1rem; font-weight: 700; color: #f1f5f9; }
+    .profile-email { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { background: #111827; border: 1px solid #1e3a5f; border-radius: 14px; padding: 14px; }
+    .stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; font-weight: 700; color: #67e8f9; }
+    .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+    .round-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #111827; border: 1px solid #1e3a5f; border-radius: 14px; }
+    .round-grade { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
+    .round-meta { flex: 1; min-width: 0; }
+    .round-target { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .round-detail { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+    .round-score { font-family: 'Space Mono', monospace; font-size: 0.9rem; font-weight: 700; color: #94a3b8; flex-shrink: 0; }
+
+    .achievements-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .achievement { padding: 12px; background: #111827; border: 1px solid #1e3a5f; border-radius: 12px; opacity: 0.35; }
+    .achievement.earned { opacity: 1; border-color: #4ade80; }
+    .achievement-name { font-size: 0.8rem; font-weight: 700; color: #f1f5f9; }
+    .achievement-desc { font-size: 0.7rem; color: #64748b; margin-top: 3px; }
+    .achievement.earned .achievement-name { color: #4ade80; }
+
+    .btn-signout { width: 100%; padding: 12px; background: transparent; border: 1px solid #2a3f60; border-radius: 14px; color: #94a3b8; font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .btn-signout:hover { background: #1a2540; color: #f1f5f9; }
+
+    .empty { font-size: 0.85rem; color: #475569; text-align: center; padding: 20px 0; }
+    .loading { font-size: 0.85rem; color: #475569; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="logo">Field Op</div>
+      <a class="back-link" href="./index.html">← Back to game</a>
+    </div>
+
+    <!-- Profile -->
+    <div class="card">
+      <div class="card-title">Player</div>
+      <div class="profile-row" id="profileRow">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <div class="card-title">All-time stats</div>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat"><div class="stat-val" id="statRounds">—</div><div class="stat-label">Rounds</div></div>
+        <div class="stat"><div class="stat-val" id="statBestScore">—</div><div class="stat-label">Best score</div></div>
+        <div class="stat"><div class="stat-val" id="statBestGrade">—</div><div class="stat-label">Best grade</div></div>
+        <div class="stat"><div class="stat-val" id="statAvgDist">—</div><div class="stat-label">Avg distance</div></div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="card">
+      <div class="card-title">Achievements</div>
+      <div class="achievements-grid" id="achievementsGrid">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Run history -->
+    <div class="card">
+      <div class="card-title">Recent rounds</div>
+      <div class="history-list" id="historyList">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <button class="btn-signout" id="btnSignOut">Sign out</button>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://rxnljetuukqtlmauuruz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_oM6zcplDuEfB1vowTdnUDg_Uxdf0ulm';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const GRADE_COLORS = {
+      Diamond: '#a5f3fc', Emerald: '#34d399', Platinum: '#e2e8f0',
+      Gold: '#fbbf24', Silver: '#94a3b8', Bronze: '#f97316', Copper: '#ef4444',
+    };
+    const GRADE_ORDER = ['Diamond','Emerald','Platinum','Gold','Silver','Bronze','Copper'];
+
+    const ALL_ACHIEVEMENTS = [
+      { id: 'first_round',   name: 'First Steps',   desc: 'Complete any round' },
+      { id: 'first_diamond', name: 'Diamond Hunter', desc: 'Score a Diamond grade' },
+      { id: 'no_tools',      name: 'Naked Eye',      desc: 'Complete a round using no tools' },
+      { id: 'ten_rounds',    name: 'Committed',      desc: 'Complete 10 rounds' },
+      { id: 'hard_diamond',  name: 'Elite',          desc: 'Diamond on Hard difficulty' },
+      { id: 'long_run',      name: 'The Long Walk',  desc: 'Complete a Long round' },
+    ];
+
+    function fmtDist(m) {
+      if (m == null) return '—';
+      return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+    }
+    function fmtDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+    }
+    function initials(name) {
+      return (name || '').split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase() || '?';
+    }
+
+    async function load() {
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) { window.location.replace('./login.html'); return; }
+
+      const user = session.user;
+      const meta = user.user_metadata || {};
+
+      // Profile row
+      const profileRow = document.getElementById('profileRow');
+      const avatarHtml = meta.avatar_url
+        ? `<img src="${meta.avatar_url}" alt="" />`
+        : initials(meta.full_name || user.email || '');
+      profileRow.innerHTML = `
+        <div class="avatar">${meta.avatar_url ? `<img src="${meta.avatar_url}" alt="">` : initials(meta.full_name || user.email)}</div>
+        <div>
+          <div class="profile-name">${meta.full_name || 'Player'}</div>
+          <div class="profile-email">${user.email || ''}</div>
+        </div>`;
+
+      // Fetch rounds
+      const { data: rounds } = await client.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false });
+      const rs = rounds || [];
+
+      // Stats
+      document.getElementById('statRounds').textContent = rs.length;
+      const scores = rs.map(r => r.score_total).filter(Boolean);
+      document.getElementById('statBestScore').textContent = scores.length ? Math.max(...scores).toLocaleString() : '—';
+      const bestGradeIdx = rs.reduce((best, r) => {
+        const idx = GRADE_ORDER.indexOf(r.grade_label);
+        return (idx !== -1 && (best === -1 || idx < best)) ? idx : best;
+      }, -1);
+      const bestGradeEl = document.getElementById('statBestGrade');
+      if (bestGradeIdx !== -1) {
+        const g = GRADE_ORDER[bestGradeIdx];
+        bestGradeEl.textContent = g;
+        bestGradeEl.style.color = GRADE_COLORS[g] || '#67e8f9';
+      }
+      const dists = rs.map(r => r.distance_m).filter(v => v != null);
+      document.getElementById('statAvgDist').textContent = dists.length ? fmtDist(dists.reduce((a, b) => a + b, 0) / dists.length) : '—';
+
+      // Achievements
+      const { data: earnedRows } = await client.from('user_achievements').select('achievement_id').eq('user_id', user.id);
+      const earnedSet = new Set((earnedRows || []).map(r => r.achievement_id));
+      document.getElementById('achievementsGrid').innerHTML = ALL_ACHIEVEMENTS.map(a => `
+        <div class="achievement ${earnedSet.has(a.id) ? 'earned' : ''}">
+          <div class="achievement-name">${a.name}</div>
+          <div class="achievement-desc">${a.desc}</div>
+        </div>`).join('');
+
+      // History
+      const historyList = document.getElementById('historyList');
+      if (!rs.length) {
+        historyList.innerHTML = '<div class="empty">No rounds yet — get out there.</div>';
+      } else {
+        historyList.innerHTML = rs.slice(0, 20).map(r => {
+          const gc = GRADE_COLORS[r.grade_label] || '#94a3b8';
+          return `<div class="round-row">
+            <div class="round-grade" style="color:${gc}">${r.grade_label || '—'}</div>
+            <div class="round-meta">
+              <div class="round-target">${r.target_name || 'Unknown target'}</div>
+              <div class="round-detail">${fmtDist(r.distance_m)} · ${r.game_length || ''} · ${fmtDate(r.played_at)}</div>
+            </div>
+            <div class="round-score">${r.score_total != null ? r.score_total.toLocaleString() : '—'}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    document.getElementById('btnSignOut').addEventListener('click', async () => {
+      await client.auth.signOut();
+      window.location.replace('./login.html');
+    });
+
+    load().catch(e => console.error('[profile]', e));
+  </script>
+</body>
+</html>

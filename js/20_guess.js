@@ -237,6 +237,37 @@
       guessRemainingMs,
     });
 
+    // Persist round result to server (no-op if not signed in; errors swallowed in db.js)
+    try {
+      if (typeof window.saveRoundResult === 'function') {
+        const _tgt = getTargetLatLng();
+        const _round = getRound();
+        window.saveRoundResult({
+          target_name:         _round?.targetName || null,
+          target_lat:          _tgt?.lat          ?? null,
+          target_lon:          _tgt?.lon          ?? null,
+          game_length:         (typeof window.getSelectedGameLength     === 'function') ? window.getSelectedGameLength()     : null,
+          difficulty:          (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : null,
+          grade_label:         grade,
+          score_total:         scoreResult.total,
+          score_base:          scoreResult.base,
+          score_time_bonus:    scoreResult.timeBonus,
+          score_length_bonus:  scoreResult.lengthBonus,
+          score_diff_bonus:    scoreResult.diffBonus,
+          score_tool_bonus:    scoreResult.toolBonus,
+          distance_m:          rawD,
+          adjusted_distance_m: adjD,
+          elapsed_ms:          Date.now() - _tStart,
+          remaining_ms:        guessRemainingMs,
+          tools_used_count:    _toolsUsed,
+          tools_used_json:     _usedOpts,
+          curses_active_json:  (typeof window.getActiveCurses === 'function') ? window.getActiveCurses() : null,
+          round_start_lat:     _round?.startLatLng?.lat ?? null,
+          round_start_lon:     _round?.startLatLng?.lon ?? null,
+        });
+      }
+    } catch(e) {}
+
     // Dismiss any active toast so it doesn't obscure the reveal animation
     try { if (typeof window.dismissAllToasts === 'function') window.dismissAllToasts(); } catch(e) {}
 
