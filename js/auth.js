@@ -75,16 +75,16 @@
 
   // Init: check session, wire widget, show guest notice if needed
   client.auth.getSession().then(({ data: { session } }) => {
+    console.log('[auth] getSession:', session ? session.user.email : 'no session');
     updateAuthWidget(session?.user || null);
     if (!session) showGuestNotice();
-    else console.log('[auth] signed in as', session.user.email);
-  }).catch(() => {});
+  }).catch(e => console.warn('[auth] getSession error', e));
 
   client.auth.onAuthStateChange((_event, session) => {
+    console.log('[auth] onAuthStateChange:', _event, session ? session.user.email : 'no session');
     updateAuthWidget(session?.user || null);
     if (!session) showGuestNotice();
     else {
-      console.log('[auth] session established for', session.user.email);
       sessionStorage.setItem('mg_guest_dismissed', '1');
       const n = document.getElementById('guestNotice');
       if (n) n.classList.add('hidden');
