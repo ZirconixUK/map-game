@@ -291,11 +291,12 @@ function updateHUD() {
     elTimerPenalty.textContent = p > 0 ? `+${formatMMSS(p)}` : '';
     elTimerPenalty.style.display = p > 0 ? '' : 'none';
   }
-  const elTimerCurse = elTimerCurseIndicator;
+  const elTimerCurse = (typeof elTimerCurseIndicator !== 'undefined') ? elTimerCurseIndicator : document.getElementById('timerCurseIndicator');
   if (elTimerCurse) {
-    const _stacks = (typeof window.getOverchargedStacks === 'function') ? window.getOverchargedStacks() : 0;
-    elTimerCurse.classList.toggle('hidden', _stacks <= 0);
-    elTimerCurse.textContent = _stacks > 1 ? `⚠ CURSED ×${_stacks}` : '⚠ CURSED';
+    const _curses = (typeof window.getActiveCurses === 'function') ? window.getActiveCurses() : [];
+    const _count = Array.isArray(_curses) ? _curses.length : 0;
+    elTimerCurse.classList.toggle('hidden', _count <= 0);
+    elTimerCurse.textContent = _count > 1 ? `⚠ CURSED ×${_count}` : '⚠ CURSED';
   }
 
   // Heat
