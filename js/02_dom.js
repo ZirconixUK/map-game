@@ -1298,6 +1298,8 @@ if (debugMode) {
     });
   } catch(e) {}
 
+  // Cache tool button node lists for updateUI performance
+  try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
 
 }
 window.bindUI = bindUI;

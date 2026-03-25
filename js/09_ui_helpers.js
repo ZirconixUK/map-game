@@ -1,9 +1,23 @@
 // ---- UI helpers ----
+// Cached tool button NodeList — populated after bindUI() runs.
+let __toolButtonNodes = null;
+let __radarMenuNodes = null;
+
 function setLast(text, ok) {
   if (!elLast) return;
   elLast.className = "pill " + (ok ? "ok" : "no");
   elLast.textContent = text;
 }
+function __cacheToolButtonNodes() {
+  const lockSelectors = [
+    '#qRadar','#qThermo','#qDir','#qLandmark','#qPhoto',
+    '#radarMenu .menuBtn','#thermoMenu .menuBtn','#dirMenu .menuBtn','#landmarkMenu .menuBtn','#photoMenu .menuBtn'
+  ];
+  __toolButtonNodes = Array.from(document.querySelectorAll(lockSelectors.join(',')));
+  __radarMenuNodes  = Array.from(document.querySelectorAll('#radarMenu .menuBtn[data-radar]'));
+}
+window.__cacheToolButtonNodes = __cacheToolButtonNodes;
+
 function updateUI() {
   try { if (typeof syncDebugModeUI === "function") syncDebugModeUI(); } catch(e){}
   if (elClues) elClues.textContent = String(clues.length);
@@ -97,7 +111,7 @@ function updateUI() {
       '#qRadar','#qThermo','#qDir','#qLandmark','#qPhoto',
       '#radarMenu .menuBtn','#thermoMenu .menuBtn','#dirMenu .menuBtn','#landmarkMenu .menuBtn','#photoMenu .menuBtn'
     ];
-    const nodes = document.querySelectorAll(lockSelectors.join(','));
+    const nodes = __toolButtonNodes || document.querySelectorAll(lockSelectors.join(','));
 
     const getToolUsageMeta = (n) => {
       if (!n) return null;
@@ -155,7 +169,7 @@ function updateUI() {
 
     // Signal Clamp curse: purple-lock radar buttons > 250m.
     const _signalClamped = typeof window.isCurseActive === 'function' && window.isCurseActive('heat4');
-    document.querySelectorAll('#radarMenu .menuBtn[data-radar]').forEach(btn => {
+    (__radarMenuNodes || document.querySelectorAll('#radarMenu .menuBtn[data-radar]')).forEach(btn => {
       const m = parseFloat(btn.getAttribute('data-radar') || '0');
       btn.classList.toggle('curse-locked', _signalClamped && m > 250);
     });
