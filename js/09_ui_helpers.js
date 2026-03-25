@@ -161,8 +161,19 @@ function updateUI() {
       n.classList.toggle('locked', !!timeLocked && !over && !usedThisRound);
       if (!over && !usedThisRound && timeLocked && lockInfo && typeof lockInfo.remainingMs === 'number') {
         n.title = `Unlocks in ${formatMMSS(lockInfo.remainingMs)}`;
+        // Also display countdown directly in the button's cost badge area (mobile-visible)
+        let _badge = n.querySelector('.lockCountdown');
+        if (!_badge) {
+          _badge = document.createElement('span');
+          _badge.className = 'lockCountdown';
+          _badge.style.cssText = 'display:block;font-size:9px;font-weight:700;letter-spacing:.05em;color:#a78bfa;margin-top:2px;line-height:1;';
+          n.appendChild(_badge);
+        }
+        _badge.textContent = formatMMSS(lockInfo.remainingMs);
       } else {
         n.removeAttribute('title');
+        const _badge = n.querySelector('.lockCountdown');
+        if (_badge) _badge.remove();
       }
       n.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
     });
