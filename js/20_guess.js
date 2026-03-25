@@ -356,6 +356,7 @@
         Diamond: {
           vb: '0 0 64 70',
           paths: `<polygon points="8,26 20,6 44,6 56,26" fill="${color}" opacity="0.95"/>` +
+                 // Pavilion uses a darker shade than the tier colour to simulate a less-lit facet
                  `<polygon points="8,26 56,26 32,66" fill="#7dd3fc" opacity="0.9"/>` +
                  `<line x1="8" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/>` +
                  `<line x1="56" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/>` +
@@ -380,6 +381,7 @@
       .map((g, i, arr) => _flankMedal(g.label, g.color, 'left', arr.length - i)).join('');
     const _rightHtml = _gradeOrder.slice(_earnedIdx + 1, Math.min(_gradeOrder.length, _earnedIdx + 3))
       .map((g, i) => _flankMedal(g.label, g.color, 'right', i + 1)).join('');
+    const _glowAnim = ['Platinum','Emerald','Diamond'].includes(grade) ? 'tierGlowHigh' : 'tierGlowLow';
 
     const _bd = scoreResult;
     const _bdTimeLabel = `Time (${timeStatVal} ${timeStatLabel.toLowerCase()})`;
@@ -396,12 +398,9 @@
         <div class="resultGradeBadge">
           <div class="resultMedalScene">
             ${_leftHtml}
-            <svg class="resultMedalSvg" viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="28" y="2" width="24" height="20" rx="4" fill="${gc}" opacity="0.85"/>
-              <rect x="36" y="18" width="8" height="8" fill="${gc}" opacity="0.7"/>
-              <circle cx="40" cy="62" r="28" fill="${gc}"/>
-              <circle cx="40" cy="62" r="21" fill="none" stroke="white" stroke-width="2.5" stroke-opacity="0.2"/>
-            </svg>
+            <div class="resultMedalGlowWrap" style="--glow-color:${gc};animation:${_glowAnim} 1.8s ease-in-out 0.2s 2 forwards;">
+              ${_tierShape(grade, gc, 80, 80)}
+            </div>
             ${_rightHtml}
           </div>
           <div class="resultGradeLabel" style="color:${gc}">${grade}</div>
