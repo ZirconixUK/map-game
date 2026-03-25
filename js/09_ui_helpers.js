@@ -275,7 +275,7 @@ function updateHUD() {
             try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
           } else {
             try {
-              window.enqueueToast("Time's up — locking in your position…", false)
+              window.enqueueToast("Time's up — locking in your position…", false, { autoDismissMs: 1200 })
                 .then(() => {
                   try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
                 });
