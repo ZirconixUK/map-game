@@ -61,19 +61,30 @@ function __showNextToast(){
   else toast.classList.add(ok ? "good" : "bad");
 
   let autoDismissTimer = null;
+
+  // Prevent accidental tap-dismiss during map pan gestures immediately after a toast appears
+  let _dismissGuarded = true;
+  const _guardTimer = setTimeout(() => { _dismissGuarded = false; }, 600);
+
   const dismiss = () => {
+    clearTimeout(_guardTimer);
     if (autoDismissTimer) { clearTimeout(autoDismissTimer); autoDismissTimer = null; }
     window.__dismissCurrentToast = null;
     toast.classList.add("hidden");
     toast.classList.remove("good","bad","curse");
-    window.removeEventListener("pointerdown", dismiss, true);
+    window.removeEventListener("pointerdown", _tapDismiss, true);
     window.removeEventListener("keydown", dismiss, true);
     try { resolve && resolve(); } catch(e) {}
     __showNextToast();
   };
 
+  const _tapDismiss = () => {
+    if (_dismissGuarded) return;
+    dismiss();
+  };
+
   window.__dismissCurrentToast = dismiss;
-  window.addEventListener("pointerdown", dismiss, true);
+  window.addEventListener("pointerdown", _tapDismiss, true);
   window.addEventListener("keydown", dismiss, true);
   if (autoDismissMs > 0) autoDismissTimer = setTimeout(dismiss, autoDismissMs);
 }
