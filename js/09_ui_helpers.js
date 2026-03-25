@@ -368,6 +368,27 @@ function updateHUD() {
     dbgHeatCurrent.textContent = `${Math.max(0, Math.min(5, v)).toFixed(2)}/5  (Level ${Math.max(0, Math.min(5, L))})`;
   }
 
+  // Refresh lock countdown badges on time-locked tool buttons (250ms tick)
+  document.querySelectorAll('.lockCountdown').forEach(badge => {
+    try {
+      const btn = badge.closest('[data-radar],[data-thermo],[data-dir],[data-landmark],[data-photo]');
+      if (!btn) return;
+      let toolId = null, optionId = null;
+      if (btn.hasAttribute('data-radar'))    { toolId = 'radar';        optionId = String(btn.getAttribute('data-radar') || ''); }
+      else if (btn.hasAttribute('data-thermo'))   { toolId = 'thermometer'; optionId = String(btn.getAttribute('data-thermo') || ''); }
+      else if (btn.hasAttribute('data-dir'))      { toolId = 'nsew';        optionId = String(btn.getAttribute('data-dir') || ''); }
+      else if (btn.hasAttribute('data-landmark')) { toolId = 'landmark';    optionId = String((btn.getAttribute('data-landmark') || '').toLowerCase()); }
+      else if (btn.hasAttribute('data-photo'))    { toolId = 'photo';       optionId = String((btn.getAttribute('data-photo') || '').toLowerCase()); }
+      if (!toolId) return;
+      const lockInfo = (typeof window.getToolUnlockInfo === 'function') ? window.getToolUnlockInfo(toolId, optionId) : null;
+      if (lockInfo && lockInfo.locked && typeof lockInfo.remainingMs === 'number') {
+        badge.textContent = formatMMSS(lockInfo.remainingMs);
+      } else {
+        badge.remove(); // lock cleared, clean up
+      }
+    } catch(e) {}
+  });
+
 }
 
 // ---- Gameplay panel width helper ----
