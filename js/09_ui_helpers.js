@@ -274,7 +274,7 @@ function updateHUD() {
     elTimerPenalty.textContent = p > 0 ? `+${formatMMSS(p)}` : '';
     elTimerPenalty.style.display = p > 0 ? '' : 'none';
   }
-  const elTimerCurse = document.getElementById('timerCurseIndicator');
+  const elTimerCurse = elTimerCurseIndicator;
   if (elTimerCurse) {
     const _stacks = (typeof window.getOverchargedStacks === 'function') ? window.getOverchargedStacks() : 0;
     elTimerCurse.classList.toggle('hidden', _stacks <= 0);
@@ -282,7 +282,7 @@ function updateHUD() {
   }
 
   // Heat
-  const heatEl = document.getElementById("heatWidget");
+  const heatEl = elHeatWidget;
   if (heatEl) {
     const boxes = heatEl.querySelectorAll(".heatBox");
     const vertical = heatEl.classList.contains("heatWidget--vertical");
@@ -309,9 +309,9 @@ function updateHUD() {
   }
 
   // Thermometer progress
-  const tp = document.getElementById("thermoProgress");
-  const tpFill = document.getElementById("thermoProgressFill");
-  const tpText = document.getElementById("thermoProgressText");
+  const tp     = elThermoProgress;
+  const tpFill = elThermoProgressFill;
+  const tpText = elThermoProgressText;
   if (tp && tpFill && tpText) {
     if (thermoRun && typeof thermoRun.requiredDistM === "number" && thermoRun.startPlayer) {
       const moved = (player && typeof player.lat === "number" && typeof haversineMeters === "function")
@@ -332,7 +332,7 @@ function updateHUD() {
   }
 
   // Debug: current heat display (if present)
-  const dbgHeatCurrent = document.getElementById("dbgHeatCurrent");
+  const dbgHeatCurrent = elDbgHeatCurrent;
   if (dbgHeatCurrent) {
     const v = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : ((typeof heatLevel === "number" && isFinite(heatLevel)) ? heatLevel : 0);
     const L = (typeof heatLevel === "number" && isFinite(heatLevel)) ? (heatLevel | 0) : Math.floor(v);

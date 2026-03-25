@@ -28,9 +28,13 @@ const elDbgHeatCurrent = document.getElementById("dbgHeatCurrent");
 const elDbgTimerPlus5 = document.getElementById("dbgTimerPlus5");
 
 // HUD
-const elTimerMain = document.getElementById("timerMain");
-const elTimerPenalty = document.getElementById("timerPenalty");
-const elHeatWidget = document.getElementById("heatWidget");
+const elTimerMain            = document.getElementById("timerMain");
+const elTimerPenalty         = document.getElementById("timerPenalty");
+const elHeatWidget           = document.getElementById("heatWidget");
+const elTimerCurseIndicator  = document.getElementById("timerCurseIndicator");
+const elThermoProgress       = document.getElementById("thermoProgress");
+const elThermoProgressFill   = document.getElementById("thermoProgressFill");
+const elThermoProgressText   = document.getElementById("thermoProgressText");
 
 
 
