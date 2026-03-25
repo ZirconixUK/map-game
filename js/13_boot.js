@@ -42,6 +42,45 @@ function __tryRestoreFog(saved) {
   }
 }
 
+function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
+  roundStartMs = (typeof saved.roundStartMs === 'number') ? saved.roundStartMs : Date.now();
+  penaltyMs    = (typeof saved.penaltyMs    === 'number') ? saved.penaltyMs    : 0;
+
+  const restoredHeatValue = (typeof saved.heatValue === 'number' && isFinite(saved.heatValue))
+    ? saved.heatValue
+    : ((typeof saved.heatLevel === 'number' && isFinite(saved.heatLevel)) ? saved.heatLevel : 0);
+  try {
+    if (typeof setHeatValue === 'function') {
+      setHeatValue(restoredHeatValue, 'restore');
+    } else {
+      heatLevel = restoredHeatValue;
+    }
+  } catch (e) {}
+
+  heatLastMs = (typeof saved.heatLastMs === 'number') ? saved.heatLastMs : Date.now();
+  thermoRun  = (saved.thermoRun && typeof saved.thermoRun.startMs === 'number') ? saved.thermoRun : null;
+
+  try { if (typeof window.__restoreUsedToolOptionsThisRound === 'function') window.__restoreUsedToolOptionsThisRound(saved.usedToolOptions || null); } catch(e) {}
+  try { if (typeof window.__restoreCursesFromSave === 'function') window.__restoreCursesFromSave(saved.activeCurses); } catch (e) {}
+
+  if (typeof saved.debugMode === 'boolean') {
+    debugMode = saved.debugMode;
+    try { const cb = document.getElementById('dbgMode'); if (cb) cb.checked = !!debugMode; } catch (e) {}
+  }
+
+  if (saved.playerSaved && typeof saved.playerSaved.lat === 'number' && typeof saved.playerSaved.lon === 'number') {
+    try {
+      if (typeof setPlayerLatLng === 'function') {
+        setPlayerLatLng(saved.playerSaved.lat, saved.playerSaved.lon, { source: 'restore', manual: true, force: true });
+      } else {
+        player = { lat: saved.playerSaved.lat, lon: saved.playerSaved.lon, manualOverride: true };
+      }
+    } catch (e) {}
+  }
+
+  if (_savedExpiredOnLoad) window.__roundExpiredOnLoad = true;
+}
+
 (async function init() {
   updateFogUI();
   await loadPois();
@@ -107,95 +146,11 @@ function __tryRestoreFog(saved) {
         }
       } catch (e) {}
 
-      roundStartMs = (typeof saved.roundStartMs === "number") ? saved.roundStartMs : Date.now();
-      penaltyMs = (typeof saved.penaltyMs === "number") ? saved.penaltyMs : 0;
-      // Heat: prefer continuous heatValue (new model), fallback to old heatLevel float.
-      const restoredHeatValue = (typeof saved.heatValue === "number" && isFinite(saved.heatValue))
-        ? saved.heatValue
-        : ((typeof saved.heatLevel === "number" && isFinite(saved.heatLevel)) ? saved.heatLevel : 0);
-      try {
-        if (typeof setHeatValue === "function") {
-          setHeatValue(restoredHeatValue, 'restore');
-        } else {
-          // legacy fallback
-          heatLevel = restoredHeatValue;
-        }
-      } catch (e) {
-        // ignore
-      }
-      heatLastMs = (typeof saved.heatLastMs === "number") ? saved.heatLastMs : Date.now();
-      thermoRun = (saved.thermoRun && typeof saved.thermoRun.startMs === "number") ? saved.thermoRun : null;
-      try { if (typeof window.__restoreUsedToolOptionsThisRound === 'function') window.__restoreUsedToolOptionsThisRound(saved.usedToolOptions || null); } catch(e) {}
-
-      // Restore active curses (if present)
-      try { if (typeof window.__restoreCursesFromSave === 'function') window.__restoreCursesFromSave(saved.activeCurses); } catch (e) {}
-
-
-      // Restore debug mode + manual player location (only if it was manually overridden)
-      if (typeof saved.debugMode === "boolean") {
-        debugMode = saved.debugMode;
-        try {
-          const cb = document.getElementById("dbgMode");
-          if (cb) cb.checked = !!debugMode;
-        } catch (e) {}
-      }
-      if (saved.playerSaved && typeof saved.playerSaved.lat === "number" && typeof saved.playerSaved.lon === "number") {
-        try {
-          if (typeof setPlayerLatLng === "function") {
-            setPlayerLatLng(saved.playerSaved.lat, saved.playerSaved.lon, { source: "restore", manual: true, force: true });
-          } else {
-            player = { lat: saved.playerSaved.lat, lon: saved.playerSaved.lon, manualOverride: true };
-          }
-        } catch (e) {}
-      }
-      // Flag for immediate auto-lock if the deadline already passed before this page load.
-      if (_savedExpiredOnLoad) window.__roundExpiredOnLoad = true;
+      __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
     } else if (saved && typeof saved.targetIdx === "number" && POIS && POIS[saved.targetIdx]) {
       targetIdx = saved.targetIdx;
       target = POIS[targetIdx];
-      roundStartMs = (typeof saved.roundStartMs === "number") ? saved.roundStartMs : Date.now();
-      penaltyMs = (typeof saved.penaltyMs === "number") ? saved.penaltyMs : 0;
-      // Heat: prefer continuous heatValue (new model), fallback to old heatLevel float.
-      const restoredHeatValue = (typeof saved.heatValue === "number" && isFinite(saved.heatValue))
-        ? saved.heatValue
-        : ((typeof saved.heatLevel === "number" && isFinite(saved.heatLevel)) ? saved.heatLevel : 0);
-      try {
-        if (typeof setHeatValue === "function") {
-          setHeatValue(restoredHeatValue, 'restore');
-        } else {
-          // legacy fallback
-          heatLevel = restoredHeatValue;
-        }
-      } catch (e) {
-        // ignore
-      }
-      heatLastMs = (typeof saved.heatLastMs === "number") ? saved.heatLastMs : Date.now();
-      thermoRun = (saved.thermoRun && typeof saved.thermoRun.startMs === "number") ? saved.thermoRun : null;
-      try { if (typeof window.__restoreUsedToolOptionsThisRound === 'function') window.__restoreUsedToolOptionsThisRound(saved.usedToolOptions || null); } catch(e) {}
-
-      // Restore active curses (if present)
-      try { if (typeof window.__restoreCursesFromSave === 'function') window.__restoreCursesFromSave(saved.activeCurses); } catch (e) {}
-
-
-      // Restore debug mode + manual player location (only if it was manually overridden)
-      if (typeof saved.debugMode === "boolean") {
-        debugMode = saved.debugMode;
-        try {
-          const cb = document.getElementById("dbgMode");
-          if (cb) cb.checked = !!debugMode;
-        } catch (e) {}
-      }
-      if (saved.playerSaved && typeof saved.playerSaved.lat === "number" && typeof saved.playerSaved.lon === "number") {
-        try {
-          if (typeof setPlayerLatLng === "function") {
-            setPlayerLatLng(saved.playerSaved.lat, saved.playerSaved.lon, { source: "restore", manual: true, force: true });
-          } else {
-            player = { lat: saved.playerSaved.lat, lon: saved.playerSaved.lon, manualOverride: true };
-          }
-        } catch (e) {}
-      }
-      // Flag for immediate auto-lock if the deadline already passed before this page load.
-      if (_savedExpiredOnLoad) window.__roundExpiredOnLoad = true;
+      __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
     } else {
       // No saved game — flag so startup flow opens the New Game panel
       window.__needsNewGameSetup = true;
