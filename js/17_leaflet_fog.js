@@ -204,7 +204,7 @@ function addFogRadar(lat, lon, radiusM, ok, opts) {
 // ---- Persistence helpers ----
 function recordAction(action) {
   fogActions.push(action);
-  try { if (typeof saveRoundState === "function") saveRoundState(); } catch(e) {}
+  try { if (typeof saveRoundStateDebounced === "function") saveRoundStateDebounced(); } catch(e) {}
 }
 
 function getFogActions() {
