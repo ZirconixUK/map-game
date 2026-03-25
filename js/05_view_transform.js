@@ -16,10 +16,10 @@ function resizeCanvasToDisplaySize() {
   const rect = c.getBoundingClientRect();
   const w = Math.max(1, Math.round(rect.width * dpr));
   const h = Math.max(1, Math.round(rect.height * dpr));
-  if (c.width !== w || c.height !== h) {
-    c.width = w;
-    c.height = h;
-  }
+  // Early return if nothing changed — avoids clearing canvas on every draw() call
+  if (c.width === w && c.height === h) return;
+  c.width = w;
+  c.height = h;
 
   // Keep fogScreen in sync
   if (window.fogScreen) {
