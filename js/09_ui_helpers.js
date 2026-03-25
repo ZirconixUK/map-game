@@ -223,10 +223,13 @@ function __getTimerPhase(remainingMs, limitMs) {
 
 const __timerPhaseColors = { green: '#4ade80', yellow: '#fbbf24', red: '#f87171', expired: '#f87171' };
 
-function updateHUD() {
-  try { if (typeof applyHeatDecay === "function") applyHeatDecay(Date.now()); } catch (e) {}
-  try { if (typeof tickCurses === 'function') tickCurses(Date.now()); } catch (e) {}
+function __tickGameState() {
+  try { if (typeof applyHeatDecay   === 'function') applyHeatDecay(Date.now()); }   catch (e) {}
+  try { if (typeof tickCurses       === 'function') tickCurses(Date.now()); }       catch (e) {}
   try { if (typeof updateCostBadgesFromConfig === 'function') updateCostBadgesFromConfig(); } catch (e) {}
+}
+
+function updateHUD() {
   // Timer
   if (elTimerMain) {
     const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : (window.roundStateV1 || null);
@@ -421,10 +424,12 @@ let __hudTicker = null;
 function startHUDTicker() {
   if (__hudTicker) return;
   __hudTicker = setInterval(() => {
-    try { updateHUD(); } catch (e) {}
+    try { __tickGameState(); } catch (e) {}
+    try { updateHUD(); }       catch (e) {}
   }, 250);
   document.addEventListener("visibilitychange", () => {
-    try { updateHUD(); } catch (e) {}
+    try { __tickGameState(); } catch (e) {}
+    try { updateHUD(); }       catch (e) {}
   });
 }
 
