@@ -67,7 +67,7 @@ function __tryRestoreFog(saved) {
     // gameSetup is already restored above so getRoundTimeLimitMs() returns the right value.
     const _savedHasGuessed = !!(saved && saved.roundStateV1 && saved.roundStateV1.hasGuessed);
     const _savedRoundStartMs = (saved && typeof saved.roundStartMs === 'number') ? saved.roundStartMs : null;
-    const _savedLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : 30 * 60 * 1000;
+    const _savedLimit = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : ((typeof ROUND_TIME_LIMIT_MS === 'number' && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000));
     const _savedElapsedMs = _savedRoundStartMs ? (Date.now() - _savedRoundStartMs) : 0;
     const _savedPenaltyMs = (saved && typeof saved.penaltyMs === 'number' && isFinite(saved.penaltyMs)) ? saved.penaltyMs : 0;
     const _savedEffectiveElapsed = _savedElapsedMs + _savedPenaltyMs;

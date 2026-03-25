@@ -328,7 +328,7 @@ function bindUI() {
       const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
       const length = ((setup && setup.length) || 'short');
       const difficulty = ((setup && setup.difficulty) || 'normal');
-      const limitMs = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : (30 * 60 * 1000);
+      const limitMs = (typeof window.getRoundTimeLimitMs === 'function') ? window.getRoundTimeLimitMs() : ((typeof ROUND_TIME_LIMIT_MS === 'number' && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000));
       const mins = Math.round(limitMs / 60000);
       const pretty = (v) => String(v || '').charAt(0).toUpperCase() + String(v || '').slice(1);
       return `${pretty(length)} | ${pretty(difficulty)} | ${mins} min`;

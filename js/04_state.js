@@ -82,7 +82,7 @@ window.getRoundTimeLimitMs = () => {
     const length = setup && typeof setup.length === 'string' ? setup.length.toLowerCase() : 'short';
     if (length === 'medium') return 45 * 60 * 1000;
     if (length === 'long') return 60 * 60 * 1000;
-    return 30 * 60 * 1000;
+    return (typeof ROUND_TIME_LIMIT_MS === 'number' && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000);
   } catch (e) {
     return (typeof ROUND_TIME_LIMIT_MS === 'number' && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000);
   }
