@@ -1,5 +1,6 @@
 // ---- DOM ----
 let __landmarkLiveCache = {};       // { [kind]: { pois, ts } } — cleared each new game
+let __landmarkPoiPoolCache = {}; // { [kind]: POI[] } — populated on first menu open, cleared on new game
 let __landmarkCategoryHTML = null;  // saved category list HTML for restore
 let __landmarkActiveFetchKind = null; // stale-fetch guard
 
@@ -351,6 +352,7 @@ function bindUI() {
       try { localStorage.removeItem('mapgame_result_html_v1'); } catch(e) {}
       try { const m = document.getElementById('resultModal'); if (m) m.classList.add('hidden'); } catch(e) {}
       __landmarkLiveCache = {};
+      __landmarkPoiPoolCache = {};
       __landmarkCategoryHTML = null;
       // Rebuild radar and thermometer menus for the newly-selected mode before the round starts.
       try { if (typeof window.updateRadarMenuForMode === 'function') window.updateRadarMenuForMode(); } catch(e) {}
@@ -596,15 +598,16 @@ if (debugMode) {
       // Use full dataset for labels — POIS is filtered to mode radius, __allPois is not.
       const pois = Array.isArray(window.__allPois) && window.__allPois.length ? window.__allPois : (Array.isArray(POIS) ? POIS : []);
 
-      const pools = (typeof window.__landmarkCategoryPoisFilter === 'function')
-        ? {
-            train_station: window.__landmarkCategoryPoisFilter('train_station', pois),
-            cathedral:     window.__landmarkCategoryPoisFilter('cathedral', pois),
-            bus_station:   window.__landmarkCategoryPoisFilter('bus_station', pois),
-            library:       window.__landmarkCategoryPoisFilter('library', pois),
-            museum:        window.__landmarkCategoryPoisFilter('museum', pois),
-          }
-        : {};
+      const _kinds = ['train_station', 'cathedral', 'bus_station', 'library', 'museum'];
+      const pools = {};
+      for (const kind of _kinds) {
+        if (!__landmarkPoiPoolCache[kind]) {
+          __landmarkPoiPoolCache[kind] = (typeof window.__landmarkCategoryPoisFilter === 'function')
+            ? window.__landmarkCategoryPoisFilter(kind, pois)
+            : [];
+        }
+        pools[kind] = __landmarkPoiPoolCache[kind];
+      }
 
       function nearestFrom(list) {
         let best = null;
