@@ -566,7 +566,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 /* ─── prefers-reduced-motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
   .fab--curse.isActive{ animation:none; }
-  #heatWidget.heatPulseUp, #heatWidget.heatPulseDown, .heatBox.heatBoxPop{ animation:none !important; }
+  #heatWidget.heatPulseUp, #heatWidget.heatPulseDown, .heatBox.heatBoxPop, .timerPulse{ animation:none !important; }
   .menuBtn.cursed .iconBox::after{ animation:none; }
 }
 
