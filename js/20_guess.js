@@ -286,6 +286,16 @@
       }
     } catch(e) {}
 
+    const _targetName = (() => {
+      try {
+        const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+        const tgt = (typeof getTarget === 'function') ? getTarget() : (window.target || null);
+        // Prefer debug label (nearest POI name for pano targets)
+        const label = (r && r.targetName) || (tgt && (tgt.debug_label || (tgt.debug_poi && tgt.debug_poi.name) || tgt.name)) || null;
+        return label && String(label).trim() ? String(label).trim() : null;
+      } catch(e) { return null; }
+    })();
+
     const gradeInfo = {
       Diamond:  { color:'#a5f3fc', flavor:'Extraordinary' },
       Emerald:  { color:'#34d399', flavor:'Exceptional' },
@@ -303,7 +313,7 @@
     const timeStatLabel = 'Remaining';
 
     const adjLine = (useAdj && rawD != null && adjD != null && rawD !== adjD)
-      ? `<div class="muted" style="font-size:0.7rem;text-align:center;margin-bottom:4px;">Adjusted ${fmtMeters(adjD)} · GPS ±${acc != null ? fmtMeters(acc) : '—'}</div>`
+      ? `<div class="muted" style="font-size:0.65rem;text-align:center;margin-top:2px;">adj. ${fmtMeters(adjD)} · ±${acc != null ? fmtMeters(acc) : '—'}</div>`
       : '';
 
     const _gradeOrder = [
@@ -406,6 +416,7 @@
           <div class="resultGradeLabel" style="color:${gc}">${grade}</div>
         </div>
         <div class="resultFlavor" style="color:${gc}">${flavor}</div>
+        ${_targetName ? `<div class="muted" style="font-size:0.75rem;text-align:center;margin-top:2px;letter-spacing:.02em;">📍 ${_targetName}</div>` : ''}
         <div class="resultBreakdown">
           ${_bdRow(`${grade} base`, _bd.base)}
           ${_bdRow(_bdTimeLabel, _bd.timeBonus)}
@@ -417,6 +428,7 @@
         <div class="resultStats">
           <div class="resultStat">
             <div class="resultStatVal">${fmtMeters(rawD)}</div>
+            ${adjLine}
             <div class="resultStatLabel">Distance</div>
           </div>
           <div class="resultStat">
@@ -428,7 +440,6 @@
             <div class="resultStatLabel">Tools</div>
           </div>
         </div>
-        ${adjLine}
         <div class="resultActions">
           <button id="btnResultNewRound" class="primary" style="flex:1;">New Round</button>
           <button id="btnResultClose" style="flex:0 0 auto;">Close ✕</button>
