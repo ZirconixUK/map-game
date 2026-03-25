@@ -271,12 +271,12 @@ function updateHUD() {
             window.__roundExpiredOnLoad = false;
             try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
           } else {
-            setTimeout(() => {
-              try { if (typeof showToast === 'function') showToast("Time's up — locking in your position…", false); } catch(e) {}
-              setTimeout(() => {
-                try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
-              }, 1200);
-            }, 100);
+            try {
+              window.enqueueToast("Time's up — locking in your position…", false)
+                .then(() => {
+                  try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
+                });
+            } catch(e) {}
           }
         }
         __timerLastPhase = phase;
