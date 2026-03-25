@@ -207,6 +207,25 @@
     return (typeof v === 'number' && isFinite(v)) ? Math.max(0, Math.min(1, v)) : 0;
   }
 
+  /**
+   * Read probability for `configKey[level]` from CURSES_CONFIG, apply difficulty scaling,
+   * roll Math.random(), and call applyCurse(curseId) if it hits.
+   * Returns the applyCurse result, or null if it didn't trigger.
+   */
+  function __rollCurse(configKey, curseId, level, diff) {
+    try {
+      if (!CURSES_CONFIG || !CURSES_CONFIG[configKey]) return null;
+      const raw = CURSES_CONFIG[configKey][String(level)];
+      let p = (typeof raw === 'number' && isFinite(raw)) ? Math.max(0, Math.min(1, raw)) : 0;
+      if (p <= 0) return null;
+      if (diff === 'easy') p *= 0.75;
+      else if (diff === 'hard') p = Math.min(1, p * 1.5);
+      return (Math.random() < p) ? applyCurse(curseId) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Called after a question is asked.
   // Rolls a chance to trigger a curse based on current heat level.
   function maybeTriggerCurseFromQuestion(meta = null) {
@@ -220,15 +239,16 @@
       const level = (typeof lvl === 'number' && isFinite(lvl)) ? (lvl | 0) : 0;
       if (level <= 0) return { triggered: false, reason: 'heat0' };
 
+      const diff = (() => {
+        try { return (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal'; } catch(e) { return 'normal'; }
+      })();
+
       let p = getTriggerChanceForHeatLevel(level);
       if (p <= 0) return { triggered: false, reason: 'p0', p, level };
 
       // Scale curse probability by difficulty
-      try {
-        const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
-        if (diff === 'easy') p *= 0.75;
-        else if (diff === 'hard') p = Math.min(1, p * 1.5);
-      } catch(e) {}
+      if (diff === 'easy') p *= 0.75;
+      else if (diff === 'hard') p = Math.min(1, p * 1.5);
 
       const r = Math.random();
       const triggered = r < p;
@@ -236,90 +256,16 @@
       if (triggered) applied = applyTierCurse(level);
 
       // Second independent roll: Overcharged (time-penalty curse)
-      let overchargedResult = null;
-      try {
-        let op = 0;
-        if (CURSES_CONFIG && CURSES_CONFIG.overchargedChanceByHeatLevel) {
-          const ov = CURSES_CONFIG.overchargedChanceByHeatLevel[String(level)];
-          op = (typeof ov === 'number' && isFinite(ov)) ? Math.max(0, Math.min(1, ov)) : 0;
-        }
-        // Difficulty scaling
-        try {
-          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
-          if (diff === 'easy') op *= 0.75;
-          else if (diff === 'hard') op = Math.min(1, op * 1.5);
-        } catch(e) {}
-        if (op > 0) {
-          const or2 = Math.random();
-          if (or2 < op) {
-            overchargedResult = applyCurse('overcharged');
-          }
-        }
-      } catch(e) {}
+      const overchargedResult = __rollCurse('overchargedChanceByHeatLevel', 'overcharged', level, diff);
 
       // Third independent roll: Veil (canvas overlay hidden)
-      let veilResult = null;
-      try {
-        let vp = 0;
-        if (CURSES_CONFIG && CURSES_CONFIG.veilChanceByHeatLevel) {
-          const vv = CURSES_CONFIG.veilChanceByHeatLevel[String(level)];
-          vp = (typeof vv === 'number' && isFinite(vv)) ? Math.max(0, Math.min(1, vv)) : 0;
-        }
-        // Difficulty scaling
-        try {
-          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
-          if (diff === 'easy') vp *= 0.75;
-          else if (diff === 'hard') vp = Math.min(1, vp * 1.5);
-        } catch(e) {}
-        if (vp > 0) {
-          const vr = Math.random();
-          if (vr < vp) {
-            veilResult = applyCurse('veil');
-          }
-        }
-      } catch(e) {}
+      const veilResult = __rollCurse('veilChanceByHeatLevel', 'veil', level, diff);
 
       // Fourth independent roll: Blackout (map tiles + canvas hidden)
-      let blackoutResult = null;
-      try {
-        let bp = 0;
-        if (CURSES_CONFIG && CURSES_CONFIG.blackoutChanceByHeatLevel) {
-          const bv = CURSES_CONFIG.blackoutChanceByHeatLevel[String(level)];
-          bp = (typeof bv === 'number' && isFinite(bv)) ? Math.max(0, Math.min(1, bv)) : 0;
-        }
-        try {
-          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
-          if (diff === 'easy') bp *= 0.75;
-          else if (diff === 'hard') bp = Math.min(1, bp * 1.5);
-        } catch(e) {}
-        if (bp > 0) {
-          const br = Math.random();
-          if (br < bp) {
-            blackoutResult = applyCurse('blackout');
-          }
-        }
-      } catch(e) {}
+      const blackoutResult = __rollCurse('blackoutChanceByHeatLevel', 'blackout', level, diff);
 
       // Fifth independent roll: Ghost (player dot hidden)
-      let ghostResult = null;
-      try {
-        let gp = 0;
-        if (CURSES_CONFIG && CURSES_CONFIG.ghostChanceByHeatLevel) {
-          const gv = CURSES_CONFIG.ghostChanceByHeatLevel[String(level)];
-          gp = (typeof gv === 'number' && isFinite(gv)) ? Math.max(0, Math.min(1, gv)) : 0;
-        }
-        try {
-          const diff = (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal';
-          if (diff === 'easy') gp *= 0.75;
-          else if (diff === 'hard') gp = Math.min(1, gp * 1.5);
-        } catch(e) {}
-        if (gp > 0) {
-          const gr = Math.random();
-          if (gr < gp) {
-            ghostResult = applyCurse('ghost');
-          }
-        }
-      } catch(e) {}
+      const ghostResult = __rollCurse('ghostChanceByHeatLevel', 'ghost', level, diff);
 
       return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult };
     } catch (e) {
