@@ -16,6 +16,7 @@
 
 let fogGeom = null;          // Martinez multipolygon geometry (in EPSG3857 meters)
 let fogActions = [];        // replayable fog operations for persistence
+let __fogPoiCategoryCache = {}; // { [kind]: POI[] } — cleared with fog
 let fogLayer = null;         // Leaflet layer (L.Polygon or L.LayerGroup)
 
 // Performance: force Canvas renderer for heavy fog polygons (SVG can get very laggy when unioned shapes grow)
@@ -234,6 +235,7 @@ function rebuildFogFromActions(actions) {
   }
 }
 function clearFog() {
+  __fogPoiCategoryCache = {};
   fogGeom = null;
   fogActions = [];
   renderFog();
@@ -425,19 +427,23 @@ function addFogThermometer(lat0, lon0, lat1, lon1, hotter, opts) {
 // ---- Nearest-train-station Voronoi constraint ----
 // ok=true  => eliminate everything NOT in the chosen station's Voronoi cell (fog outside cell).
 // ok=false => eliminate the chosen station's Voronoi cell (fog inside cell).
+function __getCachedPoisForKind(kind) {
+  if (__fogPoiCategoryCache[kind]) return __fogPoiCategoryCache[kind];
+  const pois = window.__allPois || [];
+  const result = (typeof window.__landmarkCategoryPoisFilter === 'function')
+    ? window.__landmarkCategoryPoisFilter(kind, pois)
+    : pois.filter(p => p && p.kind === kind);
+  __fogPoiCategoryCache[kind] = result;
+  return result;
+}
+
 function addFogNearestStation(key, ok, opts) {
   if (!window.leafletMap || !window.martinez) return;
   if (!key) return;
 
   if (!(opts && opts._replay)) recordAction({ type:'nearest_station', key: String(key), ok: !!ok });
 
-  const stations = (Array.isArray(window.__allPois) ? window.__allPois : (Array.isArray(window.POIS) ? window.POIS : [])).filter(p => {
-    const t = p && p.osm_tags;
-    if (!t) return false;
-    const rw = String(t.railway || '').toLowerCase(), st = String(t.station || '').toLowerCase();
-    return rw === 'station' || rw === 'halt' || rw === 'tram_stop' ||
-           st === 'subway' || st === 'light_rail' || st === 'rail' || st === 'monorail';
-  });
+  const stations = __getCachedPoisForKind('train_station');
   if (!stations.length) return;
 
   const k = String(key);
@@ -494,22 +500,7 @@ function addFogNearestLandmark(kind, key, ok, opts) {
   if (!(opts && opts._replay)) recordAction({ type:'nearest_landmark', kind: String(kind), key: String(key), ok: !!ok });
 
   const knd = String(kind).toLowerCase();
-  const pois = (Array.isArray(window.__allPois) ? window.__allPois : (Array.isArray(window.POIS) ? window.POIS : []));
-
-  const getTag = (p, k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
-  const filtered = pois.filter(p => {
-    if (!p) return false;
-    if (knd === 'train_station') { const rw=getTag(p,'railway'), st=getTag(p,'station');
-      return rw==='station'||rw==='halt'||rw==='tram_stop'||
-             st==='subway'||st==='light_rail'||st==='rail'||st==='monorail'; }
-    if (knd === 'cathedral') return getTag(p,'building')==='cathedral' ||
-      getTag(p,'building')==='church' || getTag(p,'building')==='chapel' ||
-      getTag(p,'amenity')==='place_of_worship';
-    if (knd === 'bus_station') return getTag(p, 'amenity') === 'bus_station';
-    if (knd === 'library') return getTag(p, 'amenity') === 'library';
-    if (knd === 'museum') return getTag(p,'tourism')==='museum' || getTag(p,'amenity')==='museum';
-    return false;
-  });
+  const filtered = __getCachedPoisForKind(knd);
 
   if (!filtered.length) return;
 
