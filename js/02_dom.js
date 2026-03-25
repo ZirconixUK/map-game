@@ -859,7 +859,9 @@ if (debugMode) {
           if (started) {
             const curseRoll = applyQuestionCosts('thermometer', String(distM));
             if (curseRoll && curseRoll.blocked) return;
-            showToast(`Thermometer active — walk ${label}.`, true);
+            if (typeof showToast === 'function') {
+              showToast(`Thermometer started — walk ${distM}m from here.`, true, { autoDismissMs: 3500 });
+            }
             noteToolOptionUsed('thermometer', String(distM));
             try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('thermometer', String(distM))); } catch(e) {}
             __showCurseToasts(curseRoll);

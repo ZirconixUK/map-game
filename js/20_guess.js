@@ -441,7 +441,7 @@
           </div>
         </div>
         <div class="resultActions">
-          <button id="btnResultNewRound" class="primary" style="flex:1;">New Round</button>
+          <button id="btnResultNewRound" class="primary" style="flex:1;">Setup New Round</button>
           <button id="btnResultClose" style="flex:0 0 auto;">Close ✕</button>
         </div>
       </div>
