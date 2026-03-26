@@ -304,6 +304,7 @@ function pickNewTarget(verbose = true) {
       }
     } catch(e) {}
     try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
+    try { const p = document.getElementById('panelPhotoGallery'); if (p) p.classList.remove('open'); } catch(e) {}
     try { saveRoundState(); } catch(e) {}
     try { if (typeof syncLeafletTargetMarker === 'function') syncLeafletTargetMarker(); } catch(e) {}
 

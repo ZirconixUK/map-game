@@ -1183,6 +1183,7 @@ if (debugMode) {
         } catch(e) {}
         try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
         try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
+        try { const p = document.getElementById('panelPhotoGallery'); if (p && p.classList.contains('open') && typeof window.__buildPhotoGalleryGrid === 'function') window.__buildPhotoGalleryGrid(); } catch(e) {}
         showToast('All photos uncorrupted for this round.', true);
         noteToolOptionUsed('photo', 'uncorrupt');
         try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', 'uncorrupt')); } catch(e) {}

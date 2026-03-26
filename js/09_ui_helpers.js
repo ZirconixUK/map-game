@@ -414,18 +414,6 @@ function onHeatLevelChanged(prevLevel, newLevel, reason) {
     heatEl.offsetWidth;
     heatEl.classList.add(dir === "up" ? "heatPulseUp" : "heatPulseDown");
 
-    // Highlight newly lit boxes on level-up
-    if (dir === "up") {
-      const boxes = heatEl.querySelectorAll(".heatBox");
-      for (let i = prevLevel; i < newLevel && i < boxes.length; i++) {
-        const b = boxes[i];
-        b.classList.remove("heatBoxPop");
-        // eslint-disable-next-line no-unused-expressions
-        b.offsetWidth;
-        b.classList.add("heatBoxPop");
-      }
-    }
-
     const clearPulse = () => {
       heatEl.classList.remove("heatPulseUp", "heatPulseDown");
       heatEl.removeEventListener("animationend", clearPulse);

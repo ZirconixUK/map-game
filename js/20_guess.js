@@ -464,16 +464,18 @@
   function startNewRound(){
     try { localStorage.removeItem(RESULT_MODAL_KEY); } catch(e) {}
     try { const b = document.getElementById('resultModalBody'); if (b) b.innerHTML = ''; } catch(e) {}
-    // Reset photo gallery FAB badge and grid
+    // Reset photo gallery FAB badge, grid, and close panel
     try {
       const btn   = document.getElementById('btnPhotoGallery');
       const badge = document.getElementById('photoGalleryBadge');
       const grid  = document.getElementById('photoGalleryGrid');
       const empty = document.getElementById('photoGalleryEmpty');
+      const panel = document.getElementById('panelPhotoGallery');
       if (btn)   btn.classList.add('hidden');
       if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
       if (grid)  grid.innerHTML = '';
       if (empty) empty.classList.remove('hidden');
+      if (panel) panel.classList.remove('open');
     } catch(e) {}
     // Close gameplay panel first so the new game panel isn't hidden behind it.
     try {

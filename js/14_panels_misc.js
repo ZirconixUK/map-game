@@ -118,6 +118,7 @@
         setOpen(panelNewGame, false);
         setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
+        setOpen(panelPhotoGallery, false);
 
         // Reset gameplay menus when opening so we never land on an empty submenu state
         const gameMenu = document.getElementById("gameMenu");
@@ -160,6 +161,7 @@
         setOpen(panelSystem, false);
         setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
+        setOpen(panelPhotoGallery, false);
         try { if (typeof updateCursesPanel === 'function') updateCursesPanel(); } catch (e) {}
       }
     });
@@ -177,6 +179,7 @@
         setOpen(panelNewGame, false);
         setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
+        setOpen(panelPhotoGallery, false);
       }
     });
   }
@@ -206,6 +209,7 @@
         setOpen(panelSystem, false);
         setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
+        setOpen(panelPhotoGallery, false);
       }
     });
   }
@@ -222,6 +226,7 @@
         setOpen(panelNewGame, false);
         setOpen(panelSystem, false);
         setOpen(panelCurseSelect, false);
+        setOpen(panelPhotoGallery, false);
       }
     });
   }

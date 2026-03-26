@@ -375,20 +375,12 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   18%  { transform:scale(0.955); filter:brightness(1.18); opacity:.95; }
   100% { transform:scale(1); filter:brightness(1); opacity:1; }
 }
-@keyframes heatBoxPop{
-  0%   { transform:scale(1); filter:brightness(1); }
-  20%  { transform:scale(1.18); filter:brightness(1.65); }
-  100% { transform:scale(1); filter:brightness(1); }
-}
 #heatWidget.heatPulseUp{
   animation:heatWidgetPulseUp 1.7s cubic-bezier(.12,.9,.18,1);
   box-shadow:0 0 0 1px rgba(250,204,21,.28), 0 14px 38px rgba(0,0,0,.32);
 }
 #heatWidget.heatPulseDown{
   animation:heatWidgetPulseDown 1.7s cubic-bezier(.12,.9,.18,1);
-}
-.heatBox.heatBoxPop{
-  animation:heatBoxPop 1.5s cubic-bezier(.12,.9,.18,1);
 }
 
 /* ─── Photo glitch system ────────────────────────────────────────── */
