@@ -776,4 +776,27 @@ async function showStreetViewHorizonPhotoForTarget() {
   window.bindPhotoModal = bindPhotoModal;
   window.clearStreetViewGlimpseCache = clearCache;
   window.isStreetViewGlimpseFreeForCurrentTarget = isStreetViewGlimpseFreeForCurrentTarget;
+
+  window.showPhotoInModal = function(url, title, sourceUrl) {
+    try {
+      const kindLabel = {
+        starter: 'Circle Snapshot',
+        near100: 'Extra photo (≤100m)',
+        near200: 'Extra photo (≤200m)',
+        horizon: 'Horizon photo',
+      };
+      const displayTitle = kindLabel[title] || title || 'Photo';
+      const context = (title === 'starter') ? 'snapshot' : 'glimpse';
+      const tipText = (context === 'snapshot')
+        ? 'Your circle snapshot from this round.'
+        : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
+      openModal();
+      setTitle(displayTitle);
+      setPhoto(url, tipText, context);
+      const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+      if (!__unc && context !== 'snapshot') {
+        try { seedCorruption(0.55, url, context); } catch(e) {}
+      }
+    } catch(e) {}
+  };
 })();

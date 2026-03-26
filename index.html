@@ -220,6 +220,14 @@
         </div>
       </div>
 
+      <!-- Photo gallery strip: shows collected photos, hidden when empty -->
+      <div id="photoGalleryStrip" class="hidden px-3 pb-2 pt-1">
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <span style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#4a627a;">Photos</span>
+        </div>
+        <div id="photoGalleryList" class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+      </div>
+
       <!-- Main tool row -->
       <div id="gameMenu">
         <div class="grid gap-2" style="grid-template-columns:repeat(5,1fr)">

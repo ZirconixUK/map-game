@@ -101,6 +101,7 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
         if (!Array.isArray(roundStateV1.photos)) roundStateV1.photos = [];
       }
     } catch(e) {}
+    try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
 
     // Check wall-clock expiry before restoring any in-progress game.
     // gameSetup is already restored above so getRoundTimeLimitMs() returns the right value.

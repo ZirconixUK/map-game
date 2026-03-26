@@ -156,6 +156,57 @@ async function copyTextToClipboard(text){
   }
 }
 
+function __refreshPhotoGalleryStrip() {
+  const strip = document.getElementById('photoGalleryStrip');
+  const list  = document.getElementById('photoGalleryList');
+  if (!strip || !list) return;
+
+  const photos = (() => {
+    try {
+      const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+      return (r && Array.isArray(r.photos)) ? r.photos : [];
+    } catch(e) { return []; }
+  })();
+
+  if (!photos.length) {
+    strip.classList.add('hidden');
+    list.innerHTML = '';
+    return;
+  }
+
+  strip.classList.remove('hidden');
+
+  // Rebuild thumbnails — only add new ones to avoid flash
+  const existingKeys = new Set(Array.from(list.querySelectorAll('[data-photo-key]')).map(el => el.dataset.photoKey));
+  for (const photo of photos) {
+    const key = photo.context || photo.kind || String(photo.ts || '');
+    if (!key || existingKeys.has(key)) continue;
+
+    const thumb = document.createElement('img');
+    thumb.className = 'photoGalleryThumb';
+    thumb.dataset.photoKey = key;
+    thumb.src = photo.url || '';
+    thumb.alt = photo.kind || 'Photo';
+    thumb.title = photo.kind || 'Photo';
+
+    const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
+    if (isCorrupted && photo.kind !== 'starter') {
+      thumb.classList.add('is-corrupted');
+    }
+
+    thumb.addEventListener('click', () => {
+      try {
+        if (typeof window.showPhotoInModal === 'function') {
+          window.showPhotoInModal(photo.url, photo.kind || 'Photo', photo.sourceUrl || null);
+        }
+      } catch(e) {}
+    });
+
+    list.appendChild(thumb);
+  }
+}
+window.__refreshPhotoGalleryStrip = __refreshPhotoGalleryStrip;
+
 function bindUI() {
   on("btnRecenter","click", (ev) => {
     try { if (ev && ev.preventDefault) ev.preventDefault(); if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(e) {}

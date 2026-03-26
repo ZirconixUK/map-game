@@ -459,6 +459,13 @@
   function startNewRound(){
     try { localStorage.removeItem(RESULT_MODAL_KEY); } catch(e) {}
     try { const b = document.getElementById('resultModalBody'); if (b) b.innerHTML = ''; } catch(e) {}
+    // Clear photo gallery strip
+    try {
+      const list = document.getElementById('photoGalleryList');
+      if (list) list.innerHTML = '';
+      const strip = document.getElementById('photoGalleryStrip');
+      if (strip) strip.classList.add('hidden');
+    } catch(e) {}
     // Close gameplay panel first so the new game panel isn't hidden behind it.
     try {
       const pg = document.getElementById('panelGameplay');

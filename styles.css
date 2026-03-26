@@ -766,3 +766,19 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   .dbgHeatRow .muted{ min-width:auto !important; }
   #dbgHeatNew{ width:110px; }
 }
+
+/* Photo gallery strip */
+#photoGalleryStrip { border-bottom: 1px solid #172840; }
+#photoGalleryList::-webkit-scrollbar { display: none; }
+.photoGalleryThumb {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  border: 1.5px solid #1e3a5f;
+  object-fit: cover;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.photoGalleryThumb:active { border-color: #3b82f6; }
+.photoGalleryThumb.is-corrupted { filter: saturate(0.4) contrast(1.2); }

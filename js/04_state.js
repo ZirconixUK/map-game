@@ -317,6 +317,7 @@ window.__onStreetViewPhotoCaptured = (info) => {
     if (!roundStateV1.panoId && entry.panoId) roundStateV1.panoId = entry.panoId;
 
     saveRoundState();
+    try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
   } catch(e) {}
 };
 
