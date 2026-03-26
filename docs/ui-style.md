@@ -45,9 +45,9 @@ Section labels in submenus should echo the tool accent color.
 ### Right-side FABs (stack order top to bottom)
 - Stack 1 — Recenter: dark neutral base with cyan icon
 - Stack 2 — Gameplay: strong blue
-- Stack 3 — Curses: dark purple base; glow when active
-- Stack 4 — Heat: dark neutral base; flame SVG icon; colour shifts grey→amber→orange→red (`heat-1`–`heat-5`) as heat level rises; level 5 adds a red glow
-- Stack 5 — Photo gallery: dark neutral base; camera SVG icon; hidden until photos are collected; violet count badge top-right
+- Stack 3 — Photo gallery: dark neutral base; camera SVG icon; hidden until photos are collected; violet count badge top-right
+- Stack 4 — Curses: dark purple base; glow when active
+- Stack 5 — Heat: dark neutral base; flame SVG icon; colour shifts grey→amber→orange→red (`heat-1`–`heat-5`) as heat level rises; level 5 adds a red glow
 
 ### Left-side FABs
 - Debug uses dark neutral styling and should not visually overpower gameplay controls.
