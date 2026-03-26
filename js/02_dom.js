@@ -204,16 +204,33 @@ function __buildPhotoGalleryGrid() {
     return;
   }
   if (empty) empty.classList.add('hidden');
+  // Photo URLs are stripped from the saved state to avoid localStorage quota issues.
+  // Look them up from the SV cache (mg_sv_img_{context}_{targetKey}) when url is null.
+  const _svTgtKey = (() => {
+    try {
+      const tgt = (typeof target !== 'undefined') ? target : null;
+      if (!tgt || typeof tgt.lat !== 'number') return null;
+      return String(tgt.id || tgt.osm_id || tgt.name || '') + '|' + String(tgt.lat) + '|' + String(tgt.lon);
+    } catch(e) { return null; }
+  })();
   const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
   for (const photo of photos) {
+    let url = photo.url || null;
+    if (!url && _svTgtKey) {
+      try {
+        const ctx = (photo.context || 'snapshot').toLowerCase();
+        const cached = localStorage.getItem(`mg_sv_img_${ctx}_${_svTgtKey}`);
+        if (cached && cached.startsWith('data:image/')) url = cached;
+      } catch(e) {}
+    }
     const item = document.createElement('div');
     item.className = 'photoGalleryItem';
     if (isCorrupted && photo.kind !== 'starter') item.classList.add('is-corrupted');
-    item.dataset.photoUrl    = photo.url || '';
+    item.dataset.photoUrl    = url || '';
     item.dataset.photoKind   = photo.kind || 'Photo';
     item.dataset.photoSource = photo.sourceUrl || '';
     const img = document.createElement('img');
-    img.src = photo.url || '';
+    img.src = url || '';
     img.alt = photo.kind || 'Photo';
     img.loading = 'lazy';
     item.appendChild(img);

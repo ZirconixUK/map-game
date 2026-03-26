@@ -99,23 +99,10 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
         roundStateV1 = Object.assign({}, d, saved.roundStateV1);
         // Ensure nested objects exist
         if (!Array.isArray(roundStateV1.photos)) roundStateV1.photos = [];
-        // Synthesise a starter entry if starterPhotoUrl was saved but photos[] is missing it.
-        // This covers the case where the page was refreshed before the Street View snapshot
-        // callback fired and persisted the entry.
-        if (roundStateV1.starterPhotoUrl && !roundStateV1.photos.some(p => p && p.kind === 'starter')) {
-          roundStateV1.photos.unshift({
-            kind: 'starter', context: 'snapshot',
-            url: roundStateV1.starterPhotoUrl, sourceUrl: null,
-            panoId: roundStateV1.panoId || null,
-            lat: null, lon: null, heading: null, pitch: null, fov: null,
-            ts: roundStateV1.roundStartMs || Date.now(),
-          });
-        }
-        // Second-chance recovery: photos[] still empty and starterPhotoUrl also null — this
-        // happens when the page is refreshed AFTER __initRoundStateV1ForNewTarget saved
-        // (photos=[], starterPhotoUrl=null) but BEFORE __onStreetViewPhotoCaptured fired.
-        // The Street View image may already be in the SV localStorage cache; reconstruct the
-        // cache key the same way targetKey() does in js/18_streetview_glimpse.js and look it up.
+        // If photos[] is empty (page refreshed between __initRoundStateV1ForNewTarget and
+        // __onStreetViewPhotoCaptured), synthesise a placeholder starter entry if the SV
+        // snapshot cache already has the image. The URL is left null — __buildPhotoGalleryGrid
+        // looks it up from the SV cache using the target key + context.
         if (roundStateV1.photos.length === 0) {
           try {
             const _svTgt = (saved.targetCustom && typeof saved.targetCustom.lat === 'number')
@@ -126,12 +113,10 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
             if (_svTgt) {
               const _id = String(_svTgt.id || _svTgt.osm_id || _svTgt.name || '');
               const _ck = `mg_sv_img_snapshot_${_id}|${String(_svTgt.lat)}|${String(_svTgt.lon)}`;
-              const _cv = localStorage.getItem(_ck);
-              if (_cv && _cv.startsWith('data:image/')) {
-                roundStateV1.starterPhotoUrl = _cv;
+              if (localStorage.getItem(_ck)) {
                 roundStateV1.photos.unshift({
                   kind: 'starter', context: 'snapshot',
-                  url: _cv, sourceUrl: null,
+                  url: null, sourceUrl: null,
                   panoId: roundStateV1.panoId || null,
                   lat: null, lon: null, heading: null, pitch: null, fov: null,
                   ts: roundStateV1.roundStartMs || Date.now(),

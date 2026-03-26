@@ -351,6 +351,17 @@ function saveRoundState() {
       snapshot_params: (target.snapshot_params !== undefined) ? target.snapshot_params : null,
     } : (targetCustom && targetCustom.kind ? { ...targetCustom } : null);
 
+    // Strip large data URLs from photos before saving — they're already persisted in
+    // mg_sv_img_* localStorage keys. Storing them again in roundStateV1 can push the
+    // payload over the QuotaExceededError limit, causing the save to fail silently and
+    // leaving photos=[] in storage even though the in-memory state is correct.
+    const _photosForSave = Array.isArray(roundStateV1.photos)
+      ? roundStateV1.photos.map(p => Object.assign({}, p, { url: null }))
+      : [];
+    const _roundStateV1ForSave = Object.assign({}, roundStateV1, {
+      photos: _photosForSave,
+      starterPhotoUrl: null,  // also large; recoverable from mg_sv_img_snapshot_* cache
+    });
     const payload = {
       debugMode,
       playerSaved: (player && player.manualOverride) ? { lat: player.lat, lon: player.lon } : null,
@@ -364,7 +375,7 @@ function saveRoundState() {
       activeCurses: (typeof window.__getCursesStateForSave === 'function') ? window.__getCursesStateForSave() : null,
       thermoRun,
       usedToolOptions: __cloneUsedToolOptions(usedToolOptions),
-      roundStateV1,
+      roundStateV1: _roundStateV1ForSave,
       recentPanoKeys,
       fogActions: (typeof getFogActions === 'function') ? getFogActions() : null,
       gameSetup: __normalizeGameSetup(gameSetup),
