@@ -28,9 +28,10 @@
 - Guest play mode with dismissable notice; full game playable without an account
 - Sign in / sign out via System panel; profile link shows first name when signed in
 
-- Photo gallery strip in gameplay panel (tappable horizontal thumbnail strip showing all collected photos; hidden when empty; clears on new round; restores on boot)
+- Photo gallery FAB: camera FAB (right stack 5) with count badge; opens a swipe-dismissable gallery panel with a 3-column photo grid; hidden when no photos; clears and closes on new round; restores on boot
 - Accessibility: `prefers-reduced-motion` suppresses timerPulse animation
-- UX polish pass (March 2026): HEAT label on heat widget, curse indicator in purple counting all active curses, live lock-countdown badges on time-locked buttons, white-on-amber cost badge contrast, target name in result modal, adjLine inside distance stat card, "Setup New Round" button rename, thermometer start toast, GPS fail badge on recenter FAB, 600ms tap-dismiss guard on toasts
+- UX polish pass (March 2026): curse indicator in purple counting all active curses, live lock-countdown badges on time-locked buttons, white-on-amber cost badge contrast, target name in result modal, adjLine inside distance stat card, "Setup New Round" button rename, thermometer start toast, GPS fail badge on recenter FAB, 600ms tap-dismiss guard on toasts
+- Heat widget redesign (March 2026): replaced 190px 5-box meter with standard 46×46 flame FAB (right stack 4); icon colour shifts grey→amber→orange→red by heat level via `heat-1`–`heat-5` classes; pulse animations preserved
 
 ### Not yet implemented
 - Chain mode
@@ -59,6 +60,7 @@ That means focusing on:
 - Reveal beat added 2026-03-21: `lockInGuess()` now dismisses all toasts, shows the player→target line on the map, fits the map to both endpoints, then waits 1.8s before opening the result modal. Result HTML is persisted to localStorage before the delay to protect against mid-reveal refreshes. `window.dismissAllToasts()` added to `js/02_dom.js`.
 - Server-side auth and DB landed 2026-03-24: Supabase Google OAuth, round result sync, achievement tracking. `js/auth.js` and `js/db.js` added; loaded after `secrets.js` in the sequential loader. `login.html` and `profile.html` added as standalone pages. `js/20_guess.js` calls `window.saveRoundResult()` after scoring (silent no-op for guests). OAuth token hash cleanup happens inside `onAuthStateChange` (after Supabase processes the token, not before).
 - UX/accessibility pass landed 2026-03-26: `prefers-reduced-motion` now suppresses `timerPulse`; 600ms tap-dismiss guard on toasts (programmatic dismissal unguarded); HEAT label on heat widget; curse indicator is purple and counts all active curses via `getActiveCurses()`; live `.lockCountdown` badges on time-locked tool buttons (created in `updateUI`, refreshed every 250ms in `updateHUD`); cost badges changed to `text-white bg-amber-600`; target name (📍) in result modal; `adjLine` moved inside distance stat card; "Setup New Round" button; thermometer start toast (3.5s auto-dismiss); GPS fail badge on recenter FAB (`__setGpsFailBadge` in `js/07_geolocation.js`); photo gallery strip in `#panelGameplay` (`__refreshPhotoGalleryStrip` in `js/02_dom.js`, `window.showPhotoInModal` in `js/18_streetview_glimpse.js`).
+- Heat widget + photo gallery UI redesign landed 2026-03-26: heat widget replaced from 190px 5-box meter to standard 46×46 flame FAB at stack 4; colour driven by `heat-1`–`heat-5` CSS classes applied in `updateHUD()`. Photo gallery strip removed from `#panelGameplay`; replaced by camera FAB at stack 5 (`#btnPhotoGallery` + `#photoGalleryBadge`) opening `#panelPhotoGallery` (3-column grid, swipe-dismiss). `__refreshPhotoGalleryStrip()` now updates the FAB badge count; `__buildPhotoGalleryGrid()` builds the grid lazily on panel open. Gallery panel correctly closed by all sibling panel-open handlers, `startNewRound`, and debug `pickNewTarget`. Uncorrupt tool rebuilds grid immediately if panel is open.
 
 ## Key constants and rules snapshot
 ### Mode radii

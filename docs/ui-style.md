@@ -42,11 +42,12 @@ Submenu icon boxes should use tinted wells rather than full fills.
 Section labels in submenus should echo the tool accent color.
 
 ## FAB guidance
-### Right-side FABs
-- Recenter: dark neutral base with cyan icon
-- Gameplay: strong blue
-- Curses: dark purple base; glow when active
-- Heat widget: dark neutral base
+### Right-side FABs (stack order top to bottom)
+- Stack 1 — Recenter: dark neutral base with cyan icon
+- Stack 2 — Gameplay: strong blue
+- Stack 3 — Curses: dark purple base; glow when active
+- Stack 4 — Heat: dark neutral base; flame SVG icon; colour shifts grey→amber→orange→red (`heat-1`–`heat-5`) as heat level rises; level 5 adds a red glow
+- Stack 5 — Photo gallery: dark neutral base; camera SVG icon; hidden until photos are collected; violet count badge top-right
 
 ### Left-side FABs
 - Debug uses dark neutral styling and should not visually overpower gameplay controls.

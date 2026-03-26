@@ -9,7 +9,7 @@ styles.css                      All UI styling (dark theme, mobile-first)
 js/
   00_config.js                  Master constants, thresholds, API key reads
   01_pois.js                    POI loading, filtering, landmark category helpers
-  02_dom.js                     DOM refs, toasts (enqueueToast, dismissAllToasts), debug panel, confirmation panels, delegated gameplay menu events
+  02_dom.js                     DOM refs, toasts (enqueueToast, dismissAllToasts), debug panel, confirmation panels, delegated gameplay menu events, photo gallery FAB badge (__refreshPhotoGalleryStrip) and grid (__buildPhotoGalleryGrid)
   03_map_image.js               Leaflet map init, fog canvas setup
   04_state.js                   Master game state and globals
   05_view_transform.js          Canvas coordinate mapping
