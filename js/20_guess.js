@@ -39,17 +39,22 @@
 
   function computeGrade(distM){
     const d = Math.max(0, num(distM) ?? Infinity);
-    const radius = (typeof window.getModeTargetRadiusM === 'function') ? window.getModeTargetRadiusM() : 500;
-    const bands = (typeof GRADE_THRESHOLDS_FRAC !== 'undefined' && Array.isArray(GRADE_THRESHOLDS_FRAC))
-      ? GRADE_THRESHOLDS_FRAC
+    const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
+    const modeKey = (setup && typeof setup.length === 'string') ? setup.length.toLowerCase() : 'short';
+    const key = (modeKey === 'medium' || modeKey === 'long') ? modeKey : 'short';
+    const bands = (typeof GRADE_THRESHOLDS !== 'undefined' && Array.isArray(GRADE_THRESHOLDS))
+      ? GRADE_THRESHOLDS
       : [
-          { label:'Diamond', frac:0.04 }, { label:'Emerald', frac:0.12 },
-          { label:'Platinum', frac:0.24 }, { label:'Gold', frac:0.44 },
-          { label:'Silver', frac:0.68 }, { label:'Bronze', frac:0.92 },
-          { label:'Copper', frac:Infinity },
+          { label:'Diamond',  short:10,       medium:10,       long:10       },
+          { label:'Emerald',  short:30,       medium:30,       long:30       },
+          { label:'Platinum', short:70,       medium:70,       long:70       },
+          { label:'Gold',     short:140,      medium:140,      long:140      },
+          { label:'Silver',   short:250,      medium:400,      long:550      },
+          { label:'Bronze',   short:400,      medium:700,      long:1000     },
+          { label:'Copper',   short:Infinity, medium:Infinity, long:Infinity },
         ];
     for (const b of bands) {
-      if (d <= (num(b.frac) ?? Infinity) * radius) return String(b.label);
+      if (d <= (num(b[key]) ?? Infinity)) return String(b.label);
     }
     return 'Copper';
   }

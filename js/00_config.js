@@ -72,16 +72,18 @@ const TARGET_BAND_FAR_MIN_M = 2000;
 // Adjusted distance can optionally subtract GPS accuracy to be fair.
 const USE_ACCURACY_ADJUSTED_DISTANCE = true;
 
-// Grade thresholds as fractions of getModeTargetRadiusM() (short=500m, medium=1000m, long=1500m).
-// Copper is ~the maximum target distance for the mode; all tiers scale proportionally.
-const GRADE_THRESHOLDS_FRAC = [
-  { label: 'Diamond',  frac: 0.04 },   // short ≤20m  | medium ≤40m  | long ≤60m
-  { label: 'Emerald',  frac: 0.12 },   // short ≤60m  | medium ≤120m | long ≤180m
-  { label: 'Platinum', frac: 0.24 },   // short ≤120m | medium ≤240m | long ≤360m
-  { label: 'Gold',     frac: 0.44 },   // short ≤220m | medium ≤440m | long ≤660m
-  { label: 'Silver',   frac: 0.68 },   // short ≤340m | medium ≤680m | long ≤1020m
-  { label: 'Bronze',   frac: 0.92 },   // short ≤460m | medium ≤920m | long ≤1380m
-  { label: 'Copper',   frac: Infinity },
+// Grade thresholds in metres per game length.
+// Diamond–Gold are absolute (same value regardless of length): precision on the spot doesn't
+// get easier on a longer game. Silver–Copper scale with length: being 400m off is a worse
+// failure on a short game than a long one.
+const GRADE_THRESHOLDS = [
+  { label: 'Diamond',  short: 10,       medium: 10,       long: 10       },
+  { label: 'Emerald',  short: 30,       medium: 30,       long: 30       },
+  { label: 'Platinum', short: 70,       medium: 70,       long: 70       },
+  { label: 'Gold',     short: 140,      medium: 140,      long: 140      },
+  { label: 'Silver',   short: 250,      medium: 400,      long: 550      },
+  { label: 'Bronze',   short: 400,      medium: 700,      long: 1000     },
+  { label: 'Copper',   short: Infinity, medium: Infinity, long: Infinity },
 ];
 
 // ---- Scoring v2 (grade-based + bonuses) ----
