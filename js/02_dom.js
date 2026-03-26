@@ -176,11 +176,18 @@ function __refreshPhotoGalleryStrip() {
 
   strip.classList.remove('hidden');
 
-  // Rebuild thumbnails — only add new ones to avoid flash
-  const existingKeys = new Set(Array.from(list.querySelectorAll('[data-photo-key]')).map(el => el.dataset.photoKey));
+  // Rebuild thumbnails — only add new ones to avoid flash; update corruption class on existing ones
   for (const photo of photos) {
-    const key = photo.context || photo.kind || String(photo.ts || '');
-    if (!key || existingKeys.has(key)) continue;
+    const key = String(photo.ts || '') || photo.context || photo.kind;
+    if (!key) continue;
+
+    // Update corruption class on already-rendered thumbnails
+    const existingThumb = list.querySelector(`[data-photo-key="${CSS.escape(key)}"]`);
+    if (existingThumb) {
+      const isNowCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
+      existingThumb.classList.toggle('is-corrupted', isNowCorrupted && photo.kind !== 'starter');
+      continue;
+    }
 
     const thumb = document.createElement('img');
     thumb.className = 'photoGalleryThumb';
@@ -1178,6 +1185,7 @@ if (debugMode) {
           const b = document.getElementById('photoCorruptBlocks'); if (b) b.innerHTML = '';
         } catch(e) {}
         try { if (typeof window.updateHUD === 'function') window.updateHUD(); } catch(e) {}
+        try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
         showToast('All photos uncorrupted for this round.', true);
         noteToolOptionUsed('photo', 'uncorrupt');
         try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', 'uncorrupt')); } catch(e) {}
