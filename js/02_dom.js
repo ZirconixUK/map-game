@@ -157,62 +157,59 @@ async function copyTextToClipboard(text){
 }
 
 function __refreshPhotoGalleryStrip() {
-  const strip = document.getElementById('photoGalleryStrip');
-  const list  = document.getElementById('photoGalleryList');
-  if (!strip || !list) return;
-
+  const btn   = document.getElementById('btnPhotoGallery');
+  const badge = document.getElementById('photoGalleryBadge');
+  if (!btn) return;
   const photos = (() => {
     try {
       const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
       return (r && Array.isArray(r.photos)) ? r.photos : [];
     } catch(e) { return []; }
   })();
-
-  if (!photos.length) {
-    strip.classList.add('hidden');
-    list.innerHTML = '';
+  const count = photos.length;
+  if (count === 0) {
+    btn.classList.add('hidden');
+    if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
     return;
   }
-
-  strip.classList.remove('hidden');
-
-  // Rebuild thumbnails — only add new ones to avoid flash; update corruption class on existing ones
-  for (const photo of photos) {
-    const key = photo.ts ? String(photo.ts) : (photo.context || photo.kind || '');
-    if (!key) continue;
-
-    // Update corruption class on already-rendered thumbnails
-    const existingThumb = list.querySelector(`[data-photo-key="${CSS.escape(key)}"]`);
-    if (existingThumb) {
-      const isNowCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
-      existingThumb.classList.toggle('is-corrupted', isNowCorrupted && photo.kind !== 'starter');
-      continue;
-    }
-
-    const thumb = document.createElement('img');
-    thumb.className = 'photoGalleryThumb';
-    thumb.dataset.photoKey = key;
-    thumb.src = photo.url || '';
-    thumb.alt = photo.kind || 'Photo';
-    thumb.title = photo.kind || 'Photo';
-
-    const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
-    if (isCorrupted && photo.kind !== 'starter') {
-      thumb.classList.add('is-corrupted');
-    }
-
-    thumb.addEventListener('click', () => {
-      try {
-        if (typeof window.showPhotoInModal === 'function') {
-          window.showPhotoInModal(photo.url, photo.kind || 'Photo', photo.sourceUrl || null);
-        }
-      } catch(e) {}
-    });
-
-    list.appendChild(thumb);
-  }
+  btn.classList.remove('hidden');
+  if (badge) { badge.textContent = String(count); badge.classList.remove('hidden'); }
 }
 window.__refreshPhotoGalleryStrip = __refreshPhotoGalleryStrip;
+
+function __buildPhotoGalleryGrid() {
+  const grid  = document.getElementById('photoGalleryGrid');
+  const empty = document.getElementById('photoGalleryEmpty');
+  if (!grid) return;
+  const photos = (() => {
+    try {
+      const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+      return (r && Array.isArray(r.photos)) ? r.photos : [];
+    } catch(e) { return []; }
+  })();
+  grid.innerHTML = '';
+  if (!photos.length) {
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
+  for (const photo of photos) {
+    const item = document.createElement('div');
+    item.className = 'photoGalleryItem';
+    if (isCorrupted && photo.kind !== 'starter') item.classList.add('is-corrupted');
+    item.dataset.photoUrl    = photo.url || '';
+    item.dataset.photoKind   = photo.kind || 'Photo';
+    item.dataset.photoSource = photo.sourceUrl || '';
+    const img = document.createElement('img');
+    img.src = photo.url || '';
+    img.alt = photo.kind || 'Photo';
+    img.loading = 'lazy';
+    item.appendChild(img);
+    grid.appendChild(item);
+  }
+}
+window.__buildPhotoGalleryGrid = __buildPhotoGalleryGrid;
 
 function bindUI() {
   on("btnRecenter","click", (ev) => {

@@ -310,31 +310,14 @@ function updateHUD() {
     elTimerCurse.textContent = _count > 1 ? `⚠ CURSED ×${_count}` : '⚠ CURSED';
   }
 
-  // Heat
+  // Heat — colour flame FAB by level
   const heatEl = elHeatWidget;
   if (heatEl) {
-    const boxes = heatEl.querySelectorAll(".heatBox");
-    const vertical = heatEl.classList.contains("heatWidget--vertical");
-    // Inner fill uses continuous heatValue for smooth decay; the box glow uses locked-in heatLevel.
-    const hv = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : ((typeof heatLevel === "number" && isFinite(heatLevel)) ? heatLevel : 0);
-    const L = (typeof heatLevel === "number" && isFinite(heatLevel)) ? (heatLevel | 0) : Math.floor(hv);
-    boxes.forEach((box, i) => {
-      const fill = box.querySelector(".heatBoxFill");
-      const amt = Math.max(0, Math.min(1, hv - i)); // 0..1 in this segment
-      if (fill) {
-        const pct = `${Math.round(amt * 100)}%`;
-        if (vertical) {
-          fill.style.height = pct;
-          fill.style.width = "100%";
-        } else {
-          fill.style.width = pct;
-          fill.style.height = "100%";
-        }
-      }
-      box.classList.toggle("is-full", amt >= 0.999);
-      box.classList.toggle("is-partial", amt > 0.001 && amt < 0.999);
-      box.classList.toggle("lit", (i + 1) <= Math.max(0, Math.min(5, L)));
-    });
+    const hv  = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
+    const L   = (typeof heatLevel === "number" && isFinite(heatLevel)) ? (heatLevel | 0) : Math.floor(hv);
+    const lvl = Math.max(0, Math.min(5, L));
+    heatEl.classList.remove('heat-1','heat-2','heat-3','heat-4','heat-5');
+    if (lvl >= 1) heatEl.classList.add(`heat-${lvl}`);
   }
 
   // Thermometer progress

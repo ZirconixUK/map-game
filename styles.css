@@ -91,6 +91,7 @@ body{
 .fab--stack2{ top:calc(var(--hud-pad) + var(--hud-btn) + var(--hud-gap)); }
 .fab--stack3{ top:calc(var(--hud-pad) + (var(--hud-btn) + var(--hud-gap)) * 2); }
 .fab--stack4{ top:calc(var(--hud-pad) + (var(--hud-btn) + var(--hud-gap)) * 3); }
+.fab--stack5{ top:calc(var(--hud-pad) + (var(--hud-btn) + var(--hud-gap)) * 4); }
 
 /* ─── HUD top-center ─────────────────────────────────────────────── */
 .hudTopCenter{
@@ -245,81 +246,22 @@ body{
   width:190px;
 }
 
-/* ─── Heat widget (vertical) ─────────────────────────────────────── */
-.heatWidget{
-  position:absolute;
-  z-index:31;
-}
-.heatWidget--vertical{
-  width:44px;
-  height:190px;
-  padding:14px 9px 10px;
-}
-.heatWidget--vertical .heatBoxes{
-  display:flex;
-  flex-direction:column-reverse;
-  gap:7px;
-}
-.heatWidget--vertical .heatBox{
-  width:18px;
-  height:24px;
-  border-radius:3px;
-  border:1px solid rgba(148,163,184,.20);
-  background:rgba(148,163,184,.06);
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:box-shadow .18s ease, border-color .18s ease, background .18s ease;
-}
-.heatWidget--vertical .heatBoxInner{
-  width:8px;
-  height:calc(100% - 4px);
-  border-radius:2px;
-  background:rgba(148,163,184,.12);
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-}
-.heatWidget--vertical .heatBoxFill{
-  width:100%;
-  height:0%;
-  border-radius:2px;
+/* ─── Flame FAB heat-level colours ──────────────────────────────── */
+#heatWidget           { color: #4a627a; }
+#heatWidget.heat-1    { color: #fbbf24; }
+#heatWidget.heat-2    { color: #f97316; }
+#heatWidget.heat-3    { color: #ef4444; }
+#heatWidget.heat-4    { color: #dc2626; }
+#heatWidget.heat-5    {
+  color: #ff2222;
+  box-shadow:
+    0 0 0 1px rgba(255,34,34,.30),
+    0 0 18px rgba(255,34,34,.50),
+    0 0 36px rgba(255,34,34,.25);
 }
 
 /* ─── JS-toggled state classes ───────────────────────────────────── */
 .hidden{ display:none !important; }
-
-.heatBox.lit{
-  border-color:rgba(250,204,21,.92);
-  background:rgba(250,204,21,.14);
-  box-shadow:
-    0 0 0 1px rgba(250,204,21,.62),
-    0 0 18px rgba(250,204,21,.48),
-    0 0 34px rgba(250,204,21,.28);
-}
-.heatBox.lit::after{
-  content:"";
-  position:absolute;
-  inset:-6px;
-  border-radius:8px;
-  background:radial-gradient(circle at 50% 50%, rgba(250,204,21,.55) 0%, rgba(250,204,21,.00) 70%);
-  filter:blur(7px);
-  opacity:.95;
-  pointer-events:none;
-}
-.heatBox.is-full .heatBoxFill{ background:rgba(250,204,21,.95); }
-.heatBox.is-partial .heatBoxFill{
-  background:linear-gradient(45deg,
-    rgba(250,204,21,.40) 0%,
-    rgba(250,204,21,.40) 45%,
-    rgba(250,204,21,.85) 45%,
-    rgba(250,204,21,.85) 55%,
-    rgba(250,204,21,.40) 55%,
-    rgba(250,204,21,.40) 100%);
-  background-size:10px 10px;
-}
 
 /* ─── Curses button states ───────────────────────────────────────── */
 .fab--curse{ font-size:22px; }
@@ -566,7 +508,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 /* ─── prefers-reduced-motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
   .fab--curse.isActive{ animation:none; }
-  #heatWidget.heatPulseUp, #heatWidget.heatPulseDown, .heatBox.heatBoxPop, .timerPulse{ animation:none !important; }
+  #heatWidget.heatPulseUp, #heatWidget.heatPulseDown, .timerPulse{ animation:none !important; }
   .menuBtn.cursed .iconBox::after{ animation:none; }
 }
 
@@ -767,18 +709,17 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   #dbgHeatNew{ width:110px; }
 }
 
-/* Photo gallery strip */
-#photoGalleryStrip { border-bottom: 1px solid #172840; }
-#photoGalleryList::-webkit-scrollbar { display: none; }
-.photoGalleryThumb {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
+/* ─── Photo gallery panel grid ──────────────────────────────────── */
+.photoGalleryItem {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
   border: 1.5px solid #1e3a5f;
-  object-fit: cover;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color .15s;
+  background: #0a1628;
 }
-.photoGalleryThumb:active { border-color: #3b82f6; }
-.photoGalleryThumb.is-corrupted { filter: saturate(0.4) contrast(1.2); }
+.photoGalleryItem:active        { border-color: #3b82f6; }
+.photoGalleryItem img           { width:100%; height:100%; object-fit:cover; display:block; }
+.photoGalleryItem.is-corrupted img { filter: saturate(0.4) contrast(1.2); }

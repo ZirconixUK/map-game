@@ -194,15 +194,14 @@
     <button id="btnInfo" class="fab fab--left fab--stack3 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-slate-300 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="How to play" title="How to play">ⓘ</button>
 
     <!-- Heat widget -->
-    <button id="heatWidget" class="heatWidget heatWidget--vertical fab--right fab--stack4 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab flex flex-col items-center justify-center" aria-label="Heat" title="Heat">
-      <div class="heatBoxes" aria-hidden="true">
-        <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
-        <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
-        <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
-        <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
-        <div class="heatBox"><div class="heatBoxInner"><div class="heatBoxFill"></div></div></div>
-      </div>
-      <span class="heatWidgetLabel" style="display:block;font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#4a627a;margin-top:3px;line-height:1;">HEAT</span>
+    <button id="heatWidget" class="fab fab--right fab--stack4 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center transition-colors" aria-label="Heat" title="Heat">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+    </button>
+
+    <!-- Photo gallery FAB -->
+    <button id="btnPhotoGallery" class="fab fab--right fab--stack5 hidden rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center hover:bg-[#1a2744] transition-colors" style="position:relative" aria-label="Photo gallery" title="Photo gallery">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+      <span id="photoGalleryBadge" class="hidden" style="position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 3px;border-radius:9px;background:#7c3aed;border:1.5px solid #040810;color:#fff;font-size:10px;font-weight:700;line-height:18px;text-align:center;"></span>
     </button>
 
     <!-- Thermometer progress -->
@@ -218,14 +217,6 @@
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight text-white">Gameplay</div>
         </div>
-      </div>
-
-      <!-- Photo gallery strip: shows collected photos, hidden when empty -->
-      <div id="photoGalleryStrip" class="hidden px-3 pb-2 pt-1">
-        <div class="flex items-center gap-1.5 mb-1.5">
-          <span style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#4a627a;">Photos</span>
-        </div>
-        <div id="photoGalleryList" class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
       </div>
 
       <!-- Main tool row -->
@@ -640,6 +631,17 @@
       <div class="min-h-[160px] h-auto overflow-auto p-2.5 rounded-xl border border-[#1e3a5f] bg-[#080c14] text-xs leading-snug text-slate-300" id="log"></div>
     </div>
 
+  </div>
+
+  <!-- ── Photo gallery panel ──────────────────────────────── -->
+  <div id="panelPhotoGallery" class="panel panel--right bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Photo gallery">
+    <div class="panelHandle" aria-hidden="true"></div>
+    <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3">
+      <div class="panelTitle text-lg font-bold tracking-tight text-white">Photos</div>
+      <button id="btnPhotoGalleryClose" class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Close ✕</button>
+    </div>
+    <div id="photoGalleryGrid" class="grid gap-2" style="grid-template-columns:repeat(3,1fr);"></div>
+    <p id="photoGalleryEmpty" class="hidden text-sm text-slate-400 text-center py-6">No photos collected yet.</p>
   </div>
 
   <!-- Leaflet -->

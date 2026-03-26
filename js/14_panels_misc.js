@@ -7,6 +7,9 @@
   const panelSystem = document.getElementById("panelSystem");
   const panelInfo = document.getElementById("panelInfo");
   const panelCurseSelect = document.getElementById("panelCurseSelect");
+  const panelPhotoGallery    = document.getElementById("panelPhotoGallery");
+  const btnPhotoGallery      = document.getElementById("btnPhotoGallery");
+  const btnPhotoGalleryClose = document.getElementById("btnPhotoGalleryClose");
   const btnGameplay = document.getElementById("btnGameplay");
   const btnDebug = document.getElementById("btnDebug");
   const btnCurses = document.getElementById("btnCurses");
@@ -15,7 +18,7 @@
   const btnDbgSimCurse = document.getElementById("btnDbgSimCurse");
   const backdrop = document.getElementById("panelBackdrop");
 
-  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame, panelSystem, panelInfo, panelCurseSelect].filter(Boolean);
+  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame, panelSystem, panelInfo, panelCurseSelect, panelPhotoGallery].filter(Boolean);
 
   function syncBackdrop() {
     if (!backdrop) return;
@@ -188,6 +191,7 @@
       setOpen(panelSystem, false);
       setOpen(panelInfo, false);
       setOpen(panelCurseSelect, false);
+      setOpen(panelPhotoGallery, false);
     });
   }
 
@@ -219,6 +223,34 @@
         setOpen(panelSystem, false);
         setOpen(panelCurseSelect, false);
       }
+    });
+  }
+
+  // Photo gallery panel toggle
+  if (btnPhotoGallery && panelPhotoGallery) {
+    btnPhotoGallery.addEventListener("click", () => {
+      const willOpen = !panelPhotoGallery.classList.contains("open");
+      allPanels.forEach(p => { if (p !== panelPhotoGallery) setOpen(p, false); });
+      setOpen(panelPhotoGallery, willOpen);
+      if (willOpen) {
+        try { if (typeof window.__buildPhotoGalleryGrid === 'function') window.__buildPhotoGalleryGrid(); } catch(e) {}
+      }
+    });
+  }
+  if (btnPhotoGalleryClose && panelPhotoGallery) {
+    btnPhotoGalleryClose.addEventListener("click", () => setOpen(panelPhotoGallery, false));
+  }
+  // Delegated tap on grid items → open full-screen photo modal
+  const _galleryGrid = document.getElementById("photoGalleryGrid");
+  if (_galleryGrid) {
+    _galleryGrid.addEventListener("click", (e) => {
+      const item = e.target.closest('.photoGalleryItem');
+      if (!item) return;
+      const url    = item.dataset.photoUrl    || '';
+      const kind   = item.dataset.photoKind   || 'Photo';
+      const source = item.dataset.photoSource || null;
+      if (!url) return;
+      try { if (typeof window.showPhotoInModal === 'function') window.showPhotoInModal(url, kind, source); } catch(e) {}
     });
   }
 
