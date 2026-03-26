@@ -111,6 +111,35 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
             ts: roundStateV1.roundStartMs || Date.now(),
           });
         }
+        // Second-chance recovery: photos[] still empty and starterPhotoUrl also null — this
+        // happens when the page is refreshed AFTER __initRoundStateV1ForNewTarget saved
+        // (photos=[], starterPhotoUrl=null) but BEFORE __onStreetViewPhotoCaptured fired.
+        // The Street View image may already be in the SV localStorage cache; reconstruct the
+        // cache key the same way targetKey() does in js/18_streetview_glimpse.js and look it up.
+        if (roundStateV1.photos.length === 0) {
+          try {
+            const _svTgt = (saved.targetCustom && typeof saved.targetCustom.lat === 'number')
+              ? saved.targetCustom
+              : (typeof saved.targetIdx === 'number' && POIS && POIS[saved.targetIdx])
+                ? POIS[saved.targetIdx]
+                : null;
+            if (_svTgt) {
+              const _id = String(_svTgt.id || _svTgt.osm_id || _svTgt.name || '');
+              const _ck = `mg_sv_img_snapshot_${_id}|${String(_svTgt.lat)}|${String(_svTgt.lon)}`;
+              const _cv = localStorage.getItem(_ck);
+              if (_cv && _cv.startsWith('data:image/')) {
+                roundStateV1.starterPhotoUrl = _cv;
+                roundStateV1.photos.unshift({
+                  kind: 'starter', context: 'snapshot',
+                  url: _cv, sourceUrl: null,
+                  panoId: roundStateV1.panoId || null,
+                  lat: null, lon: null, heading: null, pitch: null, fov: null,
+                  ts: roundStateV1.roundStartMs || Date.now(),
+                });
+              }
+            }
+          } catch(e) {}
+        }
       }
     } catch(e) {}
     try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
