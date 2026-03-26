@@ -105,22 +105,32 @@ Thresholds scale with the current mode radius and should remain fair under real 
 
 ## Roadmap phases
 ### Phase A — Stabilise the loop
-Complete.
+**Status: Complete.**
+Make a single run playable end-to-end without breaking. Covers: target selection, starter photo, clue toolkit, heat/curse system, lock-in, scoring, result modal, round reset, persistence, Street View guardrails, and auth/DB as a progressive enhancement.
 
 ### Phase B — Strengthen mid-run
-Current focus.
+**Status: Current focus.**
+The single-run loop is coherent but the middle of runs can flatten out. Goals: reduce dead air, improve clue usefulness and landmark quality, keep directional clues (N/S/E/W) from trivialising deduction, make heat/curse effects feel strategically legible rather than arbitrary, and ensure at least one clear recognition moment per run.
 
 ### Phase C — Define mastery
-Complete enough for current build: difficulty rules, score bonuses, hard-mode mechanics.
+**Status: Complete enough for current build.**
+Give skilled play a meaningful ceiling. Covers: difficulty selector with scoring impact, grade-based scoring with time/length/difficulty/efficiency bonuses, hybrid absolute/per-mode grade thresholds, hard-mode mechanics, and timer pressure (v3 wall-clock expiry and curse-gated time costs).
 
 ### Phase D — Chain mode
-Not started.
+**Status: Not started.**
+A multi-run commitment mode with its own pacing and fatigue logic. Should feel like a meaningfully different session — not just a repeated normal loop. Design questions: how cumulative scoring works, how fatigue or degradation builds across the chain, and how the player decides when to stop.
 
 ### Phase E — Remote mode
-Not started.
+**Status: Not started.**
+A mode for players who cannot physically walk the area, or want to play a location remotely. Must preserve deduction and tension rather than becoming a standard map-click game. Needs structural decisions about what replaces physical movement as the core constraint.
 
 ### Phase F — Optional expansion
-Later ideas such as daily challenges, async comparison, lore, and social features.
+**Status: Not started.**
+Later-stage ideas contingent on the core game being well-established: daily challenges, async score comparison, lore layers, social or competitive features. None of these should be built before the core loop is fully proven.
+
+### Phase G — Names and flavour text pass
+**Status: Not started.**
+A dedicated pass over all user-facing strings: curse names, tier names, tool names, result modal copy, toast messages, difficulty labels, mode names, and any other text visible during play. Goal is consistency of tone, distinctiveness, and avoiding generic or placeholder-feeling language.
 
 ## Risk watchlist
 - Grade thresholds too strict for real GPS variance
