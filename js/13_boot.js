@@ -142,7 +142,6 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
         }
       }
     } catch(e) {}
-    try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
 
     // Check wall-clock expiry before restoring any in-progress game.
     // gameSetup is already restored above so getRoundTimeLimitMs() returns the right value.
@@ -198,6 +197,8 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
       window.__needsNewGameSetup = true;
       window.__suppressAutoNewGame = true;
     }
+    // Refresh FAB state now that target is restored (target must be set before this call).
+    try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
   } catch (e) {
     // Corrupted save — flag so startup flow opens the New Game panel
     window.__needsNewGameSetup = true;
