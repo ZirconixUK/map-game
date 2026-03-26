@@ -252,8 +252,8 @@ body{
 }
 .heatWidget--vertical{
   width:44px;
-  height:172px;
-  padding:14px 9px;
+  height:190px;
+  padding:14px 9px 10px;
 }
 .heatWidget--vertical .heatBoxes{
   display:flex;
