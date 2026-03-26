@@ -99,6 +99,18 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
         roundStateV1 = Object.assign({}, d, saved.roundStateV1);
         // Ensure nested objects exist
         if (!Array.isArray(roundStateV1.photos)) roundStateV1.photos = [];
+        // Synthesise a starter entry if starterPhotoUrl was saved but photos[] is missing it.
+        // This covers the case where the page was refreshed before the Street View snapshot
+        // callback fired and persisted the entry.
+        if (roundStateV1.starterPhotoUrl && !roundStateV1.photos.some(p => p && p.kind === 'starter')) {
+          roundStateV1.photos.unshift({
+            kind: 'starter', context: 'snapshot',
+            url: roundStateV1.starterPhotoUrl, sourceUrl: null,
+            panoId: roundStateV1.panoId || null,
+            lat: null, lon: null, heading: null, pitch: null, fov: null,
+            ts: roundStateV1.roundStartMs || Date.now(),
+          });
+        }
       }
     } catch(e) {}
     try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
