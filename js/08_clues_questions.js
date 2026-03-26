@@ -303,6 +303,7 @@ function pickNewTarget(verbose = true) {
         window.__initRoundStateV1ForNewTarget({ lat: player.lat, lon: player.lon }, target);
       }
     } catch(e) {}
+    try { if (typeof window.__refreshPhotoGalleryStrip === 'function') window.__refreshPhotoGalleryStrip(); } catch(e) {}
     try { saveRoundState(); } catch(e) {}
     try { if (typeof syncLeafletTargetMarker === 'function') syncLeafletTargetMarker(); } catch(e) {}
 
