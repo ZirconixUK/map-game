@@ -195,6 +195,7 @@ function startGeolocationWatch() {
     (err) => {
       // Don't kill the watch on transient errors/timeouts; just log.
       log(`Geolocation error: ${err && err.message ? err.message : err}`);
+      try { if (typeof window.__setGpsFailBadge === 'function') window.__setGpsFailBadge(true); } catch(e) {}
     },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
   );

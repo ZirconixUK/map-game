@@ -178,7 +178,7 @@ function __refreshPhotoGalleryStrip() {
 
   // Rebuild thumbnails — only add new ones to avoid flash; update corruption class on existing ones
   for (const photo of photos) {
-    const key = String(photo.ts || '') || photo.context || photo.kind;
+    const key = photo.ts ? String(photo.ts) : (photo.context || photo.kind || '');
     if (!key) continue;
 
     // Update corruption class on already-rendered thumbnails

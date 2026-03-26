@@ -30,9 +30,10 @@ Whenever a non-trivial change lands, manually check the systems most likely to d
 
 ### Tools
 - Used options show the correct feedback.
-- Locked options show correct unlock/availability feedback.
-- Cost badges match actual configured behavior.
+- Locked options show correct unlock/availability feedback and a live `.lockCountdown` badge with remaining time (updates every 250ms; disappears when unlocked).
+- Cost badges match actual configured behavior (white text on solid amber-600 pill).
 - Purchased/reopened photos obey the intended caching and free-reopen rules.
+- Thermometer start produces a toast "Thermometer started — walk Xm from here." that auto-dismisses after ~3.5s.
 
 ### Heat and curses
 - Heat changes are visible and correspond to actual usage.
@@ -56,9 +57,27 @@ Whenever a non-trivial change lands, manually check the systems most likely to d
 - Lock-in guess produces the correct grade and score breakdown.
 - Adjusted distance behavior still feels fair under GPS accuracy.
 - After locking in: reveal line appears on map, map pans/zooms to fit both endpoints, then ~1.8s later the result modal opens.
-- Result modal renders fully.
+- Result modal renders fully and shows: target name (📍) below grade flavor text; adjusted distance inside the Distance stat card (when GPS adjustment was applied).
 - Result modal can be reopened after dismiss.
 - Refresh recovery still works when expected — result HTML is persisted to localStorage before the reveal delay, so a refresh during that window still restores the modal.
+
+### Photo gallery strip
+- After viewing starter photo, a thumbnail appears in the gallery strip above the game menu.
+- After purchasing extra photos, thumbnails appear in the strip (one per purchase, including repeat near100/near200 buys).
+- Tapping a thumbnail opens `showPhotoInModal` with the correct photo.
+- Non-starter thumbnails show the greyscale/contrast `is-corrupted` filter until "Uncorrupt" is used; after uncorrupt they update immediately.
+- Starting a new round clears the gallery strip (no stale photos from prior round).
+- Reloading mid-round with collected photos restores the gallery strip correctly.
+
+### Toast and dismiss behavior
+- Toasts cannot be dismissed by tapping within the first 600ms (accidental pan protection).
+- Tapping after 600ms dismisses the toast.
+- Programmatic dismiss (`dismissAllToasts`, auto-lock expiry chain) still fires instantly.
+
+### Geolocation
+- GPS fail badge (red dot) appears on recenter FAB when location is unavailable or denied.
+- Badge clears when a GPS fix is obtained (one-shot or continuous watch).
+- Badge appears if GPS watch loses signal mid-round (not just on initial failure).
 
 ### Debug mode
 - Debug controls still open and function.
