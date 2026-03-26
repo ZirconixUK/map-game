@@ -190,6 +190,7 @@ function startGeolocationWatch() {
         persistLastGeoFix(lastGeoFix);
       } catch(e) {}
       setPlayerLatLng(pos.coords.latitude, pos.coords.longitude, { source: "gps" });
+      try { if (typeof window.__setGpsFailBadge === 'function') window.__setGpsFailBadge(false); } catch(e) {}
     },
     (err) => {
       // Don't kill the watch on transient errors/timeouts; just log.
@@ -239,6 +240,7 @@ function useLocationOnce(opts = {}) {
           manual: force ? false : undefined,
         }
       );
+      try { if (typeof window.__setGpsFailBadge === 'function') window.__setGpsFailBadge(false); } catch(e) {}
       try { if (opts && opts.centerAfterFix) centerOnPlayer(); } catch(e) {}
       if (!debugMode) startGeolocationWatch();
     },
@@ -250,11 +252,13 @@ function useLocationOnce(opts = {}) {
         log(`⚠️ Geolocation timed out; using last known fix (${Math.round((Date.now()-lastGeoFix.ts)/1000)}s old).`);
         const force = !!(opts && opts.force);
         setPlayerLatLng(lastGeoFix.lat, lastGeoFix.lon, { source: "gps-fallback", accuracy: lastGeoFix.accuracy, force, manual: force ? false : undefined });
+        try { if (typeof window.__setGpsFailBadge === 'function') window.__setGpsFailBadge(false); } catch(e) {}
         try { if (opts && opts.centerAfterFix) centerOnPlayer(); } catch(e) {}
         if (!debugMode) startGeolocationWatch();
         return;
       }
       log(`Geolocation error: ${msg}`);
+      try { if (typeof window.__setGpsFailBadge === 'function') window.__setGpsFailBadge(true); } catch(e) {}
     },
     geoOpts
   );
@@ -274,3 +278,10 @@ function enableGeolocation(opts = {}) {
   } catch(e) {}
   return useLocationOnce(opts);
 }
+
+window.__setGpsFailBadge = function(visible) {
+  try {
+    const badge = document.getElementById('gpsFailBadge');
+    if (badge) badge.classList.toggle('hidden', !visible);
+  } catch(e) {}
+};
