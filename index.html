@@ -185,21 +185,19 @@
 
     <!-- FABs (top-right) -->
     <button id="btnRecenter"  class="fab fab--right rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-cyan-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Center on me" title="Center on me">⌖<span id="gpsFailBadge" class="hidden" style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#f87171;border:1.5px solid #040810;"></span></button>
-    <button id="btnGameplay"  class="fab fab--right fab--stack2 rounded-2xl bg-blue-600 border border-blue-500 shadow-fab text-white text-lg grid place-items-center hover:bg-blue-500 transition-colors" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
-    <button id="btnCurses"    class="fab fab--right fab--stack4 fab--curse rounded-2xl bg-[#2d1a4a] border border-[#4a2d7a] shadow-fab grid place-items-center hover:bg-[#3d2560] transition-colors" aria-label="Curses" title="Curses">☠</button>
 
-    <!-- System FAB -->
-    <button id="btnSystem" class="fab fab--left fab--stack2 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-amber-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="System" title="System">⌂</button>
-    <!-- Info FAB -->
-    <button id="btnInfo" class="fab fab--left fab--stack3 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-slate-300 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="How to play" title="How to play">ⓘ</button>
-
-    <!-- Heat widget -->
-    <button id="heatWidget" class="fab fab--right fab--stack5 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center transition-colors" aria-label="Heat" title="Heat">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+    <!-- Heat widget — stack3 right, overflow-hidden required for miasma ::after clip -->
+    <button id="heatWidget" class="fab fab--right fab--stack3 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center transition-colors overflow-hidden" aria-label="Heat" title="Heat">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true" style="position:relative;z-index:1;"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
     </button>
 
-    <!-- Photo gallery FAB -->
-    <button id="btnPhotoGallery" class="fab fab--right fab--stack3 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Photo gallery" title="Photo gallery">
+    <!-- System FAB — stack1 left -->
+    <button id="btnSystem" class="fab fab--left rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-amber-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="System" title="System">⌂</button>
+    <!-- Gameplay FAB — stack2 left -->
+    <button id="btnGameplay" class="fab fab--left fab--stack2 rounded-2xl bg-blue-600 border border-blue-500 shadow-fab text-white text-lg grid place-items-center hover:bg-blue-500 transition-colors" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
+
+    <!-- Photo gallery FAB — stack2 right -->
+    <button id="btnPhotoGallery" class="fab fab--right fab--stack2 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Photo gallery" title="Photo gallery">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
       <span id="photoGalleryBadge" class="hidden" style="position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 3px;border-radius:9px;background:#7c3aed;border:1.5px solid #040810;color:#fff;font-size:10px;font-weight:700;line-height:18px;text-align:center;"></span>
     </button>
@@ -573,7 +571,6 @@
     </div>
 
     <!-- ── Debug panel ────────────────────────────────────── -->
-    <button id="btnDebug" class="fab fab--left rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-slate-400 text-lg grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Show/hide debug" title="Show/hide debug">⚙︎</button>
     <div id="panelDebug" class="panel panel--left bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Debug controls">
       <div class="panelHandle" aria-hidden="true"></div>
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3">
