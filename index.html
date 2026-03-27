@@ -461,18 +461,33 @@
       <div id="curseSelectBody" class="panelBody pt-1"></div>
     </div>
 
-    <!-- ── Curses panel ───────────────────────────────────── -->
-    <div id="panelCurses" class="panel panel--right panel--curses bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Curses">
+    <!-- ── Heat panel ─────────────────────────────────────── -->
+    <div id="panelHeat" class="panel panel--right bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Heat">
       <div class="panelHandle" aria-hidden="true"></div>
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3.5">
         <div>
-          <div class="panelTitle text-lg font-bold tracking-tight text-white">Curses</div>
-          <div class="text-xs text-slate-400 leading-snug">Status effects currently active</div>
+          <div class="panelTitle text-lg font-bold tracking-tight text-white">Heat</div>
+          <div class="text-xs text-slate-400 leading-snug">Current temperature &amp; active curses</div>
         </div>
       </div>
-      <div id="cursesBody" class="panelBody pt-3">
-        <div id="cursesEmpty" class="text-xs text-slate-400 leading-snug">No curses currently active.</div>
-        <ul id="cursesList" class="cursesList hidden"></ul>
+      <div class="panelBody pt-2 flex flex-col gap-3">
+        <!-- Heat row -->
+        <div id="heatPanelRow" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[.04] border border-white/[.07]">
+          <svg id="heatPanelFlame" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="currentColor" aria-hidden="true" style="flex-shrink:0;"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:4px;">
+              <span id="heatPanelLevel" class="text-lg font-extrabold leading-none tracking-tight text-slate-400">0 / 5</span>
+              <span id="heatPanelBadge" class="text-[10px] font-bold uppercase tracking-widest px-1.5 py-px rounded text-slate-400 bg-slate-400/10">COLD</span>
+            </div>
+            <div id="heatPanelDesc" class="text-xs text-slate-400 leading-snug">No heat — use tools freely.</div>
+          </div>
+        </div>
+        <!-- Curses section -->
+        <div class="border-t border-[#1e3a5f] pt-2.5">
+          <div class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-2">Active Curses</div>
+          <div id="cursesEmpty" class="text-xs text-slate-400 leading-snug">No curses currently active.</div>
+          <ul id="cursesList" class="cursesList hidden"></ul>
+        </div>
       </div>
     </div>
 
