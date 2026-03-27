@@ -435,6 +435,11 @@
       }
     } catch(e) {}
 
+    // Retry SV cache write after __onStreetViewPhotoCaptured (which calls saveRoundState and
+    // strips large URLs from localStorage, freeing quota). The initial write at line ~394 may
+    // have silently failed with QuotaExceededError if localStorage was near-full at that point.
+    try { if (!__loadCachedDataUrl(k, context)) __saveCachedDataUrl(k, context, dataUrl); } catch(e) {}
+
     // Cache the URL and mark as current target (we'll mark loaded on onload).
     __cachedTargetKey = k;
     __cachedImgUrl = dataUrl;
