@@ -194,24 +194,17 @@ function __buildPhotoGalleryGrid() {
     return;
   }
   if (empty) empty.classList.add('hidden');
-  // Photo URLs are stripped from the saved state to avoid localStorage quota issues.
-  // Look them up from the SV cache (mg_sv_img_{context}_{targetKey}) when url is null.
-  const _svTgtKey = (() => {
-    try {
-      const tgt = (typeof target !== 'undefined') ? target : null;
-      if (!tgt || typeof tgt.lat !== 'number') return null;
-      return String(tgt.id || tgt.osm_id || tgt.name || '') + '|' + String(tgt.lat) + '|' + String(tgt.lon);
-    } catch(e) { return null; }
-  })();
+  // Photo URLs are stripped from saved state to avoid localStorage quota issues.
+  // Recover them via the SV module's own cache lookup (same targetKey() logic as when saved).
+  const _svTgt = (() => { try { return (typeof target !== 'undefined') ? target : null; } catch(e) { return null; } })();
   const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
   for (const photo of photos) {
-    // Only use stored URL if it's a local data: URL — Google API URLs in old saves are expired/invalid.
+    // Only accept stored data: URLs — HTTP API URLs from old saves are stale/expired.
     let url = (photo.url && photo.url.startsWith('data:image/')) ? photo.url : null;
-    if (!url && _svTgtKey) {
+    if (!url && _svTgt && typeof window.__getStreetViewCachedDataUrl === 'function') {
       try {
         const ctx = (photo.context || 'snapshot').toLowerCase();
-        const cached = localStorage.getItem(`mg_sv_img_${ctx}_${_svTgtKey}`);
-        if (cached && cached.startsWith('data:image/')) url = cached;
+        url = window.__getStreetViewCachedDataUrl(_svTgt, ctx) || null;
       } catch(e) {}
     }
     const item = document.createElement('div');

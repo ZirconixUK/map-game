@@ -776,6 +776,13 @@ async function showStreetViewHorizonPhotoForTarget() {
   window.bindPhotoModal = bindPhotoModal;
   window.clearStreetViewGlimpseCache = clearCache;
   window.isStreetViewGlimpseFreeForCurrentTarget = isStreetViewGlimpseFreeForCurrentTarget;
+  // Expose cache lookup using the internal targetKey() so callers get the exact same key.
+  window.__getStreetViewCachedDataUrl = function(tgt, context) {
+    if (!tgt) return null;
+    const k = targetKey(tgt);
+    if (!k) return null;
+    return __loadCachedDataUrl(k, context || 'snapshot');
+  };
 
   window.showPhotoInModal = function(url, title, sourceUrl) {
     try {
