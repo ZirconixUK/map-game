@@ -310,15 +310,30 @@ function updateHUD() {
     elTimerCurse.textContent = _count > 1 ? `⚠ CURSED ×${_count}` : '⚠ CURSED';
   }
 
-  // Heat — colour flame FAB by level
+  // Heat — colour flame FAB and heat panel row by level
   const heatEl = elHeatWidget;
+  const hv  = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
+  const hL  = (typeof heatLevel === "number" && isFinite(heatLevel)) ? (heatLevel | 0) : Math.floor(hv);
+  const lvl = Math.max(0, Math.min(5, hL));
   if (heatEl) {
-    const hv  = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
-    const L   = (typeof heatLevel === "number" && isFinite(heatLevel)) ? (heatLevel | 0) : Math.floor(hv);
-    const lvl = Math.max(0, Math.min(5, L));
     heatEl.classList.remove('heat-1','heat-2','heat-3','heat-4','heat-5');
     if (lvl >= 1) heatEl.classList.add(`heat-${lvl}`);
   }
+  // Keep heat panel row in sync (same heat-N classes drive the colour via CSS)
+  const heatPanelRow = document.getElementById('heatPanelRow');
+  if (heatPanelRow) {
+    heatPanelRow.classList.remove('heat-1','heat-2','heat-3','heat-4','heat-5');
+    if (lvl >= 1) heatPanelRow.classList.add(`heat-${lvl}`);
+  }
+  const heatPanelLevel = document.getElementById('heatPanelLevel');
+  if (heatPanelLevel) heatPanelLevel.textContent = `${lvl} / 5`;
+  const heatPanelBadge = document.getElementById('heatPanelBadge');
+  if (heatPanelBadge) {
+    const labels = ['COLD','WARM','WARM','HOT','HOT','MAX'];
+    heatPanelBadge.textContent = labels[lvl] || 'COLD';
+  }
+  const heatPanelDesc = document.getElementById('heatPanelDesc');
+  if (heatPanelDesc) heatPanelDesc.textContent = heatConsequencesText(lvl);
 
   // Thermometer progress
   const tp     = elThermoProgress;
@@ -471,13 +486,11 @@ function __getActiveCursesForUI() {
   try { return (typeof window.getActiveCurses === "function") ? window.getActiveCurses() : []; } catch (e) { return []; }
 }
 
-function updateCursesButton(){
-  const btn = document.getElementById('btnCurses');
+function updateHeatCurseButton(){
+  const btn = document.getElementById('heatWidget');
   if (!btn) return;
   const list = __getActiveCursesForUI();
-  const isActive = Array.isArray(list) && list.length > 0;
-  btn.classList.toggle('isActive', isActive);
-  btn.classList.toggle('isInactive', !isActive);
+  btn.classList.toggle('curse-active', Array.isArray(list) && list.length > 0);
 }
 
 function __fmtRemaining(ms) {
@@ -493,7 +506,7 @@ function updateCursesPanel(){
   if (!empty || !ul) return;
 
   const list = __getActiveCursesForUI();
-  const panel = document.getElementById('panelCurses');
+  const panel = document.getElementById('panelHeat');
   if (panel) panel.classList.toggle('curse-active', Array.isArray(list) && list.length > 0);
 
   if (!Array.isArray(list) || list.length === 0) {
@@ -521,8 +534,9 @@ function updateCursesPanel(){
 }
 
 // Expose for curses system.
-window.updateCursesButton = updateCursesButton;
+window.updateHeatCurseButton = updateHeatCurseButton;
+window.updateCursesButton = updateHeatCurseButton; // back-compat for 19_curses.js
 window.updateCursesPanel = updateCursesPanel;
 
 // Default render.
-try { updateCursesButton(); updateCursesPanel(); } catch (e) {}
+try { updateHeatCurseButton(); updateCursesPanel(); } catch (e) {}
