@@ -1,24 +1,13 @@
 # UI style reference
 
 ## Visual identity
-The UI uses a dark, bold, mobile-first look inspired by the feel of Jet Lag: The Game’s app presentation:
-- deep navy surfaces
-- strong accent fills
-- clear hierarchy
-- no glassmorphism
-- no frosted panels
-- low clutter on top of the map
-
-The map remains the star. Panels and FABs should support play without overwhelming the screen.
+Dark, bold, mobile-first. Deep navy surfaces, strong accent fills, clear hierarchy. No glassmorphism. No frosted panels. Map is the star — panels and FABs support play without overwhelming the screen.
 
 ## Visual principles
-- Mobile-first readability
-- Strong contrast
-- Bold solid accent colors
-- Minimal chrome over the map
-- Clear touch targets
+- Mobile-first readability, strong contrast, bold solid accents
+- Minimal chrome over the map, clear touch targets
 - Fast-to-scan hierarchy
-- Keep panels purposeful rather than decorative
+- Panels purposeful, not decorative
 
 ## Core color tokens
 - Ambient background: `#080c14`
@@ -31,79 +20,55 @@ The map remains the star. Panels and FABs should support play without overwhelmi
 - Muted text: slate-muted / `text-slate-400`
 
 ## Tool color mapping
-Use strong, full-fill accent colors by tool:
 - Radar: blue
 - Thermometer: orange
 - N/S/E/W: cyan
 - Landmark: emerald
 - Photo: violet
 
-Submenu icon boxes should use tinted wells rather than full fills.
-Section labels in submenus should echo the tool accent color.
+Submenu icon boxes use tinted wells, not full fills. Section labels echo the tool accent color.
 
-## FAB guidance
-### Right-side FABs (stack order top to bottom)
-- Stack 1 — Recenter: dark neutral base with cyan icon
-- Stack 2 — Gameplay: strong blue
-- Stack 3 — Photo gallery: dark neutral base; camera SVG icon; hidden until photos are collected; violet count badge top-right
-- Stack 4 — Curses: dark purple base; glow when active
-- Stack 5 — Heat: dark neutral base; flame SVG icon; colour shifts grey→amber→orange→red (`heat-1`–`heat-5`) as heat level rises; level 5 adds a red glow
+## FAB layout (5 FABs)
+### Left column
+- Stack 1 — System (`#btnSystem`): dark neutral base, ⌂ icon
+- Stack 2 — Gameplay (`#btnGameplay`): strong blue, ☰ icon
 
-### Left-side FABs
-- Debug uses dark neutral styling and should not visually overpower gameplay controls.
+### Right column
+- Stack 1 — Recenter (`#btnRecenter`): dark neutral base, cyan icon
+- Stack 2 — Photo gallery (`#btnPhotoGallery`): dark neutral base, camera SVG; violet count badge top-right; permanent button (badge-only visibility logic)
+- Stack 3 — Heat (`#heatWidget`): dark neutral base; flame SVG; colour shifts grey→amber→orange→red (`heat-1`–`heat-5`); level 5 adds red glow; purple miasma rising from bottom when a curse is active (`curse-active` class)
 
 ## Action buttons
-Use bold, high-clarity action styling:
 - New Game: amber
 - Lock In Guess: cyan
-- Start / confirm progression actions: emerald
-
-Selected state for mode/difficulty choice buttons should be visibly distinct and consistent.
+- Start / confirm actions: emerald
 
 ## Panel and modal guidance
-- Panels should use dark navy backgrounds with crisp borders.
-- Avoid translucent/glassy treatment.
-- Modals should feel clean and legible, not ornamental.
-- Keep spacing comfortable for thumb use.
-- Prefer fewer, clearer sections over dense option walls.
+- Dark navy backgrounds with crisp borders.
+- No translucent/glassy treatment.
+- Comfortable thumb spacing.
+- Fewer, clearer sections over dense option walls.
 
 ## Toast guidance
-- Toasts should be legible at a glance.
-- Visual language should communicate status clearly.
-- Avoid overloading the player with stacked or overly verbose transient messaging.
+- Legible at a glance.
+- Cannot be dismissed within first 600ms (tap-guard against accidental pan dismissal).
+- Programmatic dismiss fires instantly.
 
 ## Curse styling
-- Active curse UI should be visibly distinct and a bit threatening, but still readable.
-- Purple miasma/glow treatment is appropriate.
-- The curse FAB should clearly indicate inactive vs active states.
-
-### Curse-blocked tool options
-When a curse prevents use of a specific tool option (e.g. Signal Clamp blocking radar > 250m), that button should use the `.menuBtn.curse-locked` class:
-- Purple border: `rgba(168,85,247,.50)`
-- Purple-tinted background: `rgba(88,28,135,.28)`
-- Purple-tinted icon box
-- 🔒 badge (top-right, same position as the standard `.locked` badge)
-- `cursor: not-allowed`
-
-This is distinct from the standard `.locked` class (time-gated, blue tint) and `.used` class (already consumed, grey). The curse-locked state should be toggled reactively in `updateUI()` so it clears automatically when the curse expires.
+- Active curse UI is visibly distinct and slightly threatening, but still readable.
+- Purple miasma/glow treatment on `#heatWidget` and `#panelHeat` when `curse-active`.
+- Curse-blocked tool options use `.menuBtn.curse-locked`: purple border `rgba(168,85,247,.50)`, purple-tinted bg `rgba(88,28,135,.28)`, 🔒 badge top-right, `cursor: not-allowed`.
+- Distinct from `.locked` (time-gated, blue tint) and `.used` (consumed, grey).
 
 ## Result modal guidance
-The result modal should feel rewarding and easy to parse:
-- earned medal is the hero element
-- flanking medals add flair without clutter
-- score breakdown should be easy to scan
-- distance, time, and tools-used stats should be immediately readable
-
-## Interaction guidance
-- Outside-tap to close should work predictably.
-- Closing a panel should never leave invisible blockers over the map.
-- Map panning must remain comfortable when overlays are present.
-- Avoid requiring precision taps on mobile.
+- Earned medal is the hero element; flanking medals add flair.
+- Score breakdown easy to scan.
+- Distance, time, tools-used stats immediately readable.
 
 ## Things to avoid
 - Glassmorphism or blurred acrylic styling
 - Tiny tap targets
 - Overly dense nested menus
-- Decorative animation that harms readability or responsiveness
+- Decorative animation that harms readability
 - Inconsistent tool color semantics
-- Panels that visually compete with the map instead of supporting it
+- Panels that compete with the map
