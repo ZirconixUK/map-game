@@ -210,9 +210,10 @@ function __buildPhotoGalleryGrid() {
     const item = document.createElement('div');
     item.className = 'photoGalleryItem';
     if (isCorrupted && photo.kind !== 'starter') item.classList.add('is-corrupted');
-    item.dataset.photoUrl    = url || '';
-    item.dataset.photoKind   = photo.kind || 'Photo';
-    item.dataset.photoSource = photo.sourceUrl || '';
+    item.dataset.photoUrl     = url || '';
+    item.dataset.photoKind    = photo.kind || 'Photo';
+    item.dataset.photoSource  = photo.sourceUrl || '';
+    item.dataset.photoContext = photo.context || 'snapshot';
     const img = document.createElement('img');
     img.src = url || '';
     img.alt = photo.kind || 'Photo';

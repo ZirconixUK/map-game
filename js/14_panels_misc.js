@@ -254,7 +254,12 @@
       const url    = item.dataset.photoUrl    || '';
       const kind   = item.dataset.photoKind   || 'Photo';
       const source = item.dataset.photoSource || null;
-      if (!url) return;
+      const ctx    = item.dataset.photoContext || 'snapshot';
+      if (!url) {
+        // URL not in SV cache — fetch it the same way the gameplay menu does.
+        try { if (typeof window.showStreetViewGlimpseForTarget === 'function') window.showStreetViewGlimpseForTarget({ context: ctx }); } catch(e) {}
+        return;
+      }
       try { if (typeof window.showPhotoInModal === 'function') window.showPhotoInModal(url, kind, source); } catch(e) {}
     });
   }
