@@ -2,23 +2,20 @@
 (() => {
   const panelGameplay = document.getElementById("panelGameplay");
   const panelDebug = document.getElementById("panelDebug");
-  const panelCurses = document.getElementById("panelCurses");
+  const panelHeat = document.getElementById("panelHeat");
   const panelNewGame = document.getElementById("panelNewGame");
   const panelSystem = document.getElementById("panelSystem");
-  const panelInfo = document.getElementById("panelInfo");
   const panelCurseSelect = document.getElementById("panelCurseSelect");
   const panelPhotoGallery    = document.getElementById("panelPhotoGallery");
   const btnPhotoGallery      = document.getElementById("btnPhotoGallery");
   const btnPhotoGalleryClose = document.getElementById("btnPhotoGalleryClose");
   const btnGameplay = document.getElementById("btnGameplay");
-  const btnDebug = document.getElementById("btnDebug");
-  const btnCurses = document.getElementById("btnCurses");
+  const heatWidget = document.getElementById("heatWidget");
   const btnSystem = document.getElementById("btnSystem");
-  const btnInfo = document.getElementById("btnInfo");
   const btnDbgSimCurse = document.getElementById("btnDbgSimCurse");
   const backdrop = document.getElementById("panelBackdrop");
 
-  const allPanels = [panelGameplay, panelDebug, panelCurses, panelNewGame, panelSystem, panelInfo, panelCurseSelect, panelPhotoGallery].filter(Boolean);
+  const allPanels = [panelGameplay, panelDebug, panelHeat, panelNewGame, panelSystem, panelCurseSelect, panelPhotoGallery].filter(Boolean);
 
   function syncBackdrop() {
     if (!backdrop) return;
@@ -114,9 +111,8 @@
       // Optional: don't stack overlays unless you want them
       if (willOpen) {
         setOpen(panelDebug, false);
-        setOpen(panelCurses, false);
+        setOpen(panelHeat, false);
         setOpen(panelNewGame, false);
-        setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
 
@@ -149,17 +145,16 @@
     });
   }
 
-  // Curses panel toggle
-  if (btnCurses && panelCurses) {
-    btnCurses.addEventListener("click", () => {
-      const willOpen = !panelCurses.classList.contains("open");
-      setOpen(panelCurses, willOpen);
+  // Heat panel toggle (also shows active curses)
+  if (heatWidget && panelHeat) {
+    heatWidget.addEventListener("click", () => {
+      const willOpen = !panelHeat.classList.contains("open");
+      setOpen(panelHeat, willOpen);
       if (willOpen) {
         setOpen(panelGameplay, false);
         setOpen(panelDebug, false);
         setOpen(panelNewGame, false);
         setOpen(panelSystem, false);
-        setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
         try { if (typeof updateCursesPanel === 'function') updateCursesPanel(); } catch (e) {}
@@ -175,12 +170,25 @@
       if (willOpen) {
         setOpen(panelGameplay, false);
         setOpen(panelDebug, false);
-        setOpen(panelCurses, false);
+        setOpen(panelHeat, false);
         setOpen(panelNewGame, false);
-        setOpen(panelInfo, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
       }
+    });
+  }
+
+  // Dev Tools button inside System panel — closes System, opens Debug
+  const btnSystemDevTools = document.getElementById("btnSystemDevTools");
+  if (btnSystemDevTools && panelDebug) {
+    btnSystemDevTools.addEventListener("click", () => {
+      setOpen(panelSystem, false);
+      setOpen(panelDebug, true);
+      setOpen(panelGameplay, false);
+      setOpen(panelHeat, false);
+      setOpen(panelNewGame, false);
+      setOpen(panelCurseSelect, false);
+      setOpen(panelPhotoGallery, false);
     });
   }
 
@@ -189,45 +197,11 @@
     backdrop.addEventListener("pointerdown", () => {
       setOpen(panelGameplay, false);
       setOpen(panelDebug, false);
-      setOpen(panelCurses, false);
+      setOpen(panelHeat, false);
       setOpen(panelNewGame, false);
       setOpen(panelSystem, false);
-      setOpen(panelInfo, false);
       setOpen(panelCurseSelect, false);
       setOpen(panelPhotoGallery, false);
-    });
-  }
-
-  if (btnDebug && panelDebug) {
-    btnDebug.addEventListener("click", () => {
-      const willOpen = !panelDebug.classList.contains("open");
-      setOpen(panelDebug, willOpen);
-      if (willOpen) {
-        setOpen(panelGameplay, false);
-        setOpen(panelCurses, false);
-        setOpen(panelNewGame, false);
-        setOpen(panelSystem, false);
-        setOpen(panelInfo, false);
-        setOpen(panelCurseSelect, false);
-        setOpen(panelPhotoGallery, false);
-      }
-    });
-  }
-
-  // Info panel toggle
-  if (btnInfo && panelInfo) {
-    btnInfo.addEventListener("click", () => {
-      const willOpen = !panelInfo.classList.contains("open");
-      setOpen(panelInfo, willOpen);
-      if (willOpen) {
-        setOpen(panelGameplay, false);
-        setOpen(panelDebug, false);
-        setOpen(panelCurses, false);
-        setOpen(panelNewGame, false);
-        setOpen(panelSystem, false);
-        setOpen(panelCurseSelect, false);
-        setOpen(panelPhotoGallery, false);
-      }
     });
   }
 
@@ -274,10 +248,9 @@
       if (willOpen) {
         setOpen(panelGameplay, false);
         setOpen(panelDebug, false);
-        setOpen(panelCurses, false);
+        setOpen(panelHeat, false);
         setOpen(panelNewGame, false);
         setOpen(panelSystem, false);
-        setOpen(panelInfo, false);
         // Build the curse list when opening
         try { buildCurseSelectList(); } catch (e) {}
       }
@@ -378,10 +351,9 @@
   // Start hidden (map-first)
   setOpen(panelGameplay, false);
   setOpen(panelDebug, false);
-  setOpen(panelCurses, false);
+  setOpen(panelHeat, false);
   setOpen(panelNewGame, false);
   setOpen(panelSystem, false);
-  setOpen(panelInfo, false);
   setOpen(panelCurseSelect, false);
 })();
 
