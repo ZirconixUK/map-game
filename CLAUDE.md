@@ -1,72 +1,49 @@
 # Map Game — Working instructions for Claude
 
 ## What this project is
-- Real-world walking and deduction game played on a city map.
-- Mobile browser first; desktop is secondary.
-- Solo-first, systems-led, and designed to justify a real walk.
-- The game should not drift into feeling like a generic Geoguessr clone.
-- The current proving ground is Liverpool city centre, but the UK-wide POI dataset means the game can run anywhere in the UK.
+Real-world walking/deduction game on a city map. Mobile-first. Liverpool proving ground, UK-wide POI dataset. Not a Geoguessr clone.
 
 ## Non-negotiables
-- Preserve physical movement as the core mechanic.
-- Preserve deduction as the main skill expression.
-- Preserve the starter photo as the emotional hook for each run.
-- Preserve mobile-first usability and readable touch interactions.
-- Do not reintroduce monetisation, ads, or the removed coin economy unless explicitly asked.
-- Systems first, lore second.
-- Preserve debug tools unless explicitly asked to remove or redesign them.
+- Physical movement is the core mechanic. Don't erode it.
+- Deduction is the main skill expression.
+- Starter photo is the emotional hook.
+- No monetisation/ads/coin economy unless explicitly asked.
+- Preserve debug tools unless asked to remove or redesign.
 
 ## How to approach changes
-- Prefer minimal, local diffs over broad rewrites.
-- Do not redesign gameplay systems while fixing UI unless explicitly asked.
-- Do not change script load order casually.
-- Treat touch/mobile behavior as first-class, not an afterthought.
-- Keep implementation practical and incremental.
-- Flag likely side effects before changing shared systems.
-- If a system has known gotchas, check them before editing.
+- Minimal local diffs over broad rewrites.
+- Don't redesign gameplay systems while fixing UI.
+- Don't change script load order casually.
+- Mobile/touch is first-class. Flag side effects before touching shared systems.
 
-## Critical implementation invariants
-- Script load order in `index.html` is intentional and dependency-sensitive.
-- Core state lives in `js/04_state.js`; do not scatter new source-of-truth state without reason.
-- `#panelGameplay` uses delegated events for menu navigation and submenu actions. Do not attach direct handlers to dynamically rebuilt submenu buttons.
-- `window.__allPois` is the full UK dataset. `window.POIS` is the active filtered play-area slice. Do not confuse them.
-- Landmark queries and landmark Voronoi logic use `window.__allPois`, not the live filtered slice.
-- Round persistence and result modal persistence use localStorage and must stay in sync with round reset behavior.
-- Sparse-POI mode and Street View snapping can change target generation behavior; verify radius guarantees when touching that flow.
-- Auth and DB are progressive enhancements. The game must remain fully playable without a Supabase session. All auth/DB calls must be silent no-ops for guests.
-- Do not wipe the OAuth token hash from the URL synchronously after `createClient()`. Supabase reads the hash asynchronously. Hash cleanup must happen inside `onAuthStateChange`.
+## Critical invariants
+- Script load order in `index.html` is dependency-sensitive.
+- Core state lives in `js/04_state.js`.
+- `#panelGameplay` uses delegated events — no direct handlers on dynamically rebuilt submenu buttons.
+- `window.__allPois` = full UK dataset. `window.POIS` = active filtered slice. Don't confuse them.
+- Landmark/Voronoi logic uses `window.__allPois`.
+- Auth/DB are progressive enhancements — game must work without Supabase. All auth/DB calls are silent no-ops for guests.
+- OAuth hash cleanup must happen inside `onAuthStateChange`, not synchronously after `createClient()`.
+- `QUESTION_TIME_COST_MS` in `js/00_config.js` is intentional dead code from a removed Q&A mechanic. Leave it.
 
-## Common failure modes to avoid
-- Binding direct click handlers to gameplay submenu buttons that are later destroyed and recreated.
-- Breaking round reset by leaving overlays, cached UI state, or persisted result HTML behind.
-- Updating UI cost displays in one place but not another.
+## Common failure modes
+- Direct click handlers on gameplay submenu buttons that get destroyed and recreated.
+- Round reset leaving overlays, cached UI, or persisted result HTML behind.
+- UI cost displays updated in one place but not another.
 - Confusing target seed POIs with final snapped Street View pano positions.
-- Breaking mobile map panning or tap-to-close behavior while editing menus/modals.
-- Quietly reintroducing roadmap-era systems that were intentionally removed.
-- Calling `addPenaltyMs()` for purposes other than curse-gated tool time costs — it is active when the "overcharged" curse fires. Do not repurpose it for UI or other systems.
-- Adding a new panel without wiring `setOpen(newPanel, false)` into every sibling panel-open handler, `startNewRound`, and any debug reset path that reinitialises round state.
+- `addPenaltyMs()` is only for curse-gated tool time costs. Don't repurpose it.
+- New panel added without `setOpen(newPanel, false)` in every sibling-open handler, `startNewRound`, and debug reset paths.
 
-## Known intentional dead code
-- `QUESTION_TIME_COST_MS` in `js/00_config.js` — defined but unused. Relates to a removed Q&A mechanic. Leave it unless explicitly revisiting.
+## After changes — verify
+- Panels open/close correctly; tapping outside dismisses them.
+- Map panning/zooming works on mobile.
+- New round flow is clean; heat/curses/UI feedback matches actual state.
+- Tool availability, lock states, and cost badges are correct.
+- Score, result modal, and persistence survive refresh.
 
-## What to verify after changes
-### After UI changes
-- Menus open and close correctly on mobile.
-- Tapping outside panels behaves correctly.
-- Map panning/zooming still works.
-- Debug controls still function.
-
-### After gameplay/system changes
-- New round flow works cleanly.
-- Target selection still respects mode radius rules.
-- Tool availability, lock states, and cost badges update correctly.
-- Heat/curses/UI feedback still line up with actual behavior.
-- Score, result modal, and persistence still work across refresh.
-
-## Where to look first
-- `docs/architecture.md` for code structure, state, POIs, persistence, geolocation, and auth/DB layer.
-- `docs/game-design.md` for design pillars, loop, balance stance, roadmap, and open design questions.
-- `docs/ui-style.md` for visual language, color usage, and component styling rules.
-- `docs/status.md` for implementation status, current priority, and known risks.
-- `docs/testing.md` for regression checks and qualitative playtest criteria.
-- `/Users/sierro/.claude/plans/server-auth-and-database.md` for the full Supabase schema and auth plan.
+## Docs
+- `docs/architecture.md` — code structure, state, POIs, persistence, auth/DB
+- `docs/game-design.md` — design pillars, loop, balance, roadmap
+- `docs/ui-style.md` — visual language, colour, component styling
+- `docs/status.md` — implementation status, priorities, known risks
+- `docs/testing.md` — regression checks, playtest criteria
