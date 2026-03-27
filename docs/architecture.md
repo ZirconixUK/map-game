@@ -24,7 +24,7 @@ js/
   15_tools_config.js            tools.json loading and badge updates
   16_leaflet_markers.js         Player/target markers (playerPane z-700), reveal overlay, POI pins
   17_leaflet_fog.js             Fog-of-war geometry in fogPane (z-450); setFogLayerVisible()
-  18_streetview_glimpse.js      Google Street View wrapper and photo caching
+  18_streetview_glimpse.js      Google Street View wrapper and photo caching; exposes window.__getStreetViewCachedDataUrl, window.__fetchStreetViewDataUrl (fetch+cache without modal), window.showPhotoInModal
   19_curses.js                  Curse system; debugAdvanceCurseTimersBy() for debug timer sync
   20_guess.js                   Lock-in flow, grading, scoring, reveal beat (toast dismiss → reveal line → fitBounds → 1.8s delay → modal), result modal persistence, calls saveRoundResult()
   auth.js                       Supabase client init, Google OAuth, session management, system panel auth UI
@@ -103,6 +103,9 @@ Use the right set for the right job:
 - Result HTML is written to `localStorage` before the 1.8s reveal delay, so a refresh during the reveal beat still restores the modal correctly.
 - Cached photo behavior must stay aligned with gameplay rules for free reopen vs first purchase.
 - Wall-clock timer is enforced on restore (since 2026-03-18): `roundStartMs` + `getRoundTimeLimitMs()` are compared against `Date.now()` in `js/13_boot.js`. Games expired >30 min are discarded; games already expired on load fire immediate auto-lock via `window.__roundExpiredOnLoad`.
+- `saveRoundState()` strips all `data:` URLs from `photos[]` and `starterPhotoUrl` before writing. The actual image bytes live only in the `mg_sv_img_*` localStorage keys. This avoids `QuotaExceededError` from triple-storing the same JPEG (photos[].url + starterPhotoUrl + SV cache key).
+- The SV cache write (`__saveCachedDataUrl`) in `showStreetViewGlimpseForTarget` runs before `saveRoundState`. If quota is tight, the SV write may fail silently while the stripped round state still succeeds. A retry write happens after `__onStreetViewPhotoCaptured` (which calls `saveRoundState` and frees space).
+- `__buildPhotoGalleryGrid()` auto-fetches missing thumbnails via `window.__fetchStreetViewDataUrl(context)` when the SV cache is cold. This is fire-and-forget; the spinner placeholder is replaced with the real image once the fetch resolves.
 
 ## Result modal and scoring integration
 `20_guess.js` owns lock-in, grade calculation, score breakdown, and result modal persistence.
