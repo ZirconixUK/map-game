@@ -255,11 +255,13 @@
       const kind   = item.dataset.photoKind   || 'Photo';
       const source = item.dataset.photoSource || null;
       const ctx    = item.dataset.photoContext || 'snapshot';
-      if (!url) {
-        // URL not in SV cache — fetch it the same way the gameplay menu does.
-        try { if (typeof window.showStreetViewGlimpseForTarget === 'function') window.showStreetViewGlimpseForTarget({ context: ctx }); } catch(e) {}
+      // Snapshot photos: always use the same code path as the gameplay menu button.
+      // This guarantees it works whether or not the SV cache is warm.
+      if (ctx === 'snapshot') {
+        try { if (typeof window.showStreetViewGlimpseForTarget === 'function') window.showStreetViewGlimpseForTarget({ context: 'snapshot' }); } catch(e) {}
         return;
       }
+      if (!url) return;
       try { if (typeof window.showPhotoInModal === 'function') window.showPhotoInModal(url, kind, source); } catch(e) {}
     });
   }

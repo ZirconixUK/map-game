@@ -214,11 +214,20 @@ function __buildPhotoGalleryGrid() {
     item.dataset.photoKind    = photo.kind || 'Photo';
     item.dataset.photoSource  = photo.sourceUrl || '';
     item.dataset.photoContext = photo.context || 'snapshot';
-    const img = document.createElement('img');
-    img.src = url || '';
-    img.alt = photo.kind || 'Photo';
-    img.loading = 'lazy';
-    item.appendChild(img);
+    if (url) {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = photo.kind || 'Photo';
+      img.loading = 'lazy';
+      item.appendChild(img);
+    } else {
+      // URL not yet cached — show a tappable placeholder instead of a broken image icon
+      item.classList.add('no-url');
+      const ph = document.createElement('div');
+      ph.className = 'photoGalleryPlaceholder';
+      ph.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M12 9a3 3 0 100 6 3 3 0 000-6zM2 9a7 7 0 0114 0v.5c0 .276.224.5.5.5H20a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2v-8a2 2 0 012-2h3.5A.5.5 0 008 9.5V9H2z"/></svg><span>Tap to view</span>';
+      item.appendChild(ph);
+    }
     grid.appendChild(item);
   }
 }
