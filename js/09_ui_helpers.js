@@ -462,22 +462,6 @@ function heatConsequencesText(level) {
   return "Max heat — expect the worst.";
 }
 
-function showHeatToast() {
-  const L = Math.max(0, Math.min(5, heatLevel | 0));
-  const labels = ['COLD', 'WARM', 'WARM', 'HOT', 'HOT', 'MAX'];
-  const label = labels[L] || '';
-
-  const msg = `
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span style="font-weight:800; letter-spacing:.05em;">🔥 Heat ${L}/5</span>
-      <span style="font-size:.7rem; font-weight:700; letter-spacing:.12em; opacity:.55; text-transform:uppercase;">${label}</span>
-    </div>
-    <div class="muted" style="margin-top:5px;">${heatConsequencesText(L)}</div>
-  `;
-
-  if (typeof showToast === "function") showToast(msg, L === 0);
-}
-
 
 // ---- Curses UI ----
 // Render active curses managed by js/19_curses.js

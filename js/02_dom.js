@@ -621,14 +621,6 @@ if (debugMode) {
   }
 
 
-  // Heat widget toast
-  if (elHeatWidget) {
-    elHeatWidget.addEventListener("click", () => {
-      try {
-        if (typeof showHeatToast === "function") showHeatToast();
-      } catch (e) {}
-    });
-  }
 
   // ---- Debug: show all POI pins (Leaflet) ----
   if (elDbgShowAllPois) {
