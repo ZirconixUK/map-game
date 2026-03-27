@@ -720,3 +720,5 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   align-items:center; justify-content:center; gap:5px;
   color:#4a627a; font-size:10px; text-align:center; padding:4px;
 }
+.photoGallerySpinner { animation: photoGallerySpin 1s linear infinite; }
+@keyframes photoGallerySpin { to { transform: rotate(360deg); } }

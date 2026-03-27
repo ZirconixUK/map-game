@@ -790,6 +790,43 @@ async function showStreetViewHorizonPhotoForTarget() {
     return __loadCachedDataUrl(k, context || 'snapshot');
   };
 
+  // Fetch and cache a Street View data URL for the current target without opening the modal.
+  // Returns the data URL string, or null on failure.
+  window.__fetchStreetViewDataUrl = async function(context) {
+    const ctx = (context || 'snapshot').toLowerCase();
+    const tgt = getTargetSafe();
+    if (!tgt) return null;
+    const k = targetKey(tgt);
+    if (!k) return null;
+    const cached = __loadCachedDataUrl(k, ctx);
+    if (cached) return cached;
+    // Build the URL using the same param logic as showStreetViewGlimpseForTarget
+    let heading = null, pitchUsed = null, fovUsed = null;
+    const snapshotFov = (typeof STREETVIEW_SNAPSHOT_FOV !== 'undefined') ? STREETVIEW_SNAPSHOT_FOV : 70;
+    const basePitch   = (typeof STREETVIEW_PITCH !== 'undefined') ? STREETVIEW_PITCH : 0;
+    if (ctx === 'snapshot') {
+      const ep = (tgt.snapshot_params && typeof tgt.snapshot_params === 'object') ? tgt.snapshot_params : null;
+      if (ep) {
+        heading   = (ep.heading !== undefined) ? ep.heading : null;
+        pitchUsed = (ep.pitch   !== undefined) ? ep.pitch   : basePitch;
+        fovUsed   = (ep.fov     !== undefined) ? ep.fov     : snapshotFov;
+      } else {
+        const presets = (typeof STREETVIEW_SNAPSHOT_PRESETS !== 'undefined' && Array.isArray(STREETVIEW_SNAPSHOT_PRESETS) && STREETVIEW_SNAPSHOT_PRESETS.length) ? STREETVIEW_SNAPSHOT_PRESETS : null;
+        const preset  = presets ? presets[Math.floor(Math.random() * presets.length)] : null;
+        heading   = Math.floor(Math.random() * 360);
+        pitchUsed = (preset && isFinite(preset.pitch)) ? preset.pitch : basePitch;
+        fovUsed   = (preset && isFinite(preset.fov))   ? preset.fov   : snapshotFov;
+      }
+    }
+    const built = buildStreetViewUrl(tgt, { heading, pitch: pitchUsed, fov: fovUsed });
+    if (!built || !built.ok || !built.url) return null;
+    try {
+      const dataUrl = await __fetchAsDataUrl(built.url);
+      __saveCachedDataUrl(k, ctx, dataUrl);
+      return dataUrl;
+    } catch(e) { return null; }
+  };
+
   window.showPhotoInModal = function(url, title, sourceUrl) {
     try {
       const kindLabel = {
