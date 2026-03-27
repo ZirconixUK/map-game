@@ -475,10 +475,12 @@
       if (empty) empty.classList.remove('hidden');
       if (panel) panel.classList.remove('open');
     } catch(e) {}
-    // Close gameplay panel first so the new game panel isn't hidden behind it.
+    // Close gameplay and heat panels so the new game panel isn't hidden behind them.
     try {
       const pg = document.getElementById('panelGameplay');
       if (pg) pg.classList.remove('open');
+      const ph = document.getElementById('panelHeat');
+      if (ph) ph.classList.remove('open');
     } catch(e) {}
     // Open the New Game setup panel so the player can choose length and difficulty.
     try {
