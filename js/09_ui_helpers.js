@@ -366,6 +366,12 @@ function updateHUD() {
     dbgHeatCurrent.textContent = `${Math.max(0, Math.min(5, v)).toFixed(2)}/5  (Level ${Math.max(0, Math.min(5, L))})`;
   }
 
+  // Refresh curse countdown timers in panelHeat while it's open
+  try {
+    const ph = document.getElementById('panelHeat');
+    if (ph && ph.classList.contains('open')) updateCursesPanel();
+  } catch(e) {}
+
   // Refresh lock countdown badges on time-locked tool buttons (250ms tick)
   document.querySelectorAll('.lockCountdown').forEach(badge => {
     try {

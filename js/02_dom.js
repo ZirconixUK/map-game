@@ -474,11 +474,9 @@ function bindUI() {
   }
 
   function openNewGamePanel() {
-    const panelGameplay = document.getElementById("panelGameplay");
-    const panelSystem = document.getElementById("panelSystem");
+    const ids = ["panelGameplay","panelSystem","panelHeat","panelDebug","panelCurseSelect","panelPhotoGallery"];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
     const panelNewGame = document.getElementById("panelNewGame");
-    if (panelGameplay) panelGameplay.classList.remove("open");
-    if (panelSystem) panelSystem.classList.remove("open");
     if (panelNewGame) panelNewGame.classList.add("open");
   }
 
