@@ -157,16 +157,10 @@ async function copyTextToClipboard(text){
 }
 
 function __refreshPhotoGalleryStrip() {
-  const btn   = document.getElementById('btnPhotoGallery');
+  // Photo gallery FAB is always visible (permanent like other FABs).
+  // Only manage the badge count.
   const badge = document.getElementById('photoGalleryBadge');
-  if (!btn) return;
-  // Show FAB whenever a round is active (target is set) — not dependent on photo count,
-  // because photos[] may be empty during the async gap between target init and snapshot.
-  let hasActiveRound = false;
-  try {
-    const tgt = (typeof target !== 'undefined') ? target : null;
-    hasActiveRound = !!(tgt && typeof tgt.lat === 'number');
-  } catch(e) {}
+  if (!badge) return;
   const photos = (() => {
     try {
       const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
@@ -174,16 +168,12 @@ function __refreshPhotoGalleryStrip() {
     } catch(e) { return []; }
   })();
   const count = photos.length;
-  if (!hasActiveRound && count === 0) {
-    btn.classList.add('hidden');
-    if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
-    return;
-  }
-  btn.classList.remove('hidden');
   if (count > 0) {
-    if (badge) { badge.textContent = String(count); badge.classList.remove('hidden'); }
+    badge.textContent = String(count);
+    badge.classList.remove('hidden');
   } else {
-    if (badge) { badge.textContent = ''; badge.classList.add('hidden'); }
+    badge.textContent = '';
+    badge.classList.add('hidden');
   }
 }
 window.__refreshPhotoGalleryStrip = __refreshPhotoGalleryStrip;
@@ -215,7 +205,8 @@ function __buildPhotoGalleryGrid() {
   })();
   const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
   for (const photo of photos) {
-    let url = photo.url || null;
+    // Only use stored URL if it's a local data: URL — Google API URLs in old saves are expired/invalid.
+    let url = (photo.url && photo.url.startsWith('data:image/')) ? photo.url : null;
     if (!url && _svTgtKey) {
       try {
         const ctx = (photo.context || 'snapshot').toLowerCase();
