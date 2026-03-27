@@ -644,6 +644,7 @@ async function showStreetViewExtraPhotoForTarget({ tier = 'near100' } = {}){
   let dataUrl = null;
   try {
     dataUrl = await __fetchAsDataUrl(urlObj.url);
+    try { const _k = targetKey(getTargetSafe()); if (_k) __saveCachedDataUrl(_k, kind, dataUrl); } catch(e) {}
   } catch(e) {
     dataUrl = urlObj.url;
   }

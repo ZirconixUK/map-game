@@ -119,7 +119,7 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
                   url: null, sourceUrl: null,
                   panoId: roundStateV1.panoId || null,
                   lat: null, lon: null, heading: null, pitch: null, fov: null,
-                  ts: roundStateV1.roundStartMs || Date.now(),
+                  ts: (typeof roundStartMs !== 'undefined' ? roundStartMs : null) || Date.now(),
                 });
               }
             }
