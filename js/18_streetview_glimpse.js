@@ -26,7 +26,37 @@
     try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
   }
 
-
+  // Canvas mosaic: scales image down to a coarse grid then back up with no smoothing.
+  // Returns a Promise<dataURL>. Falls back to the original dataUrl on any error.
+  function pixelateImage(dataUrl, cellSize) {
+    return new Promise(function(resolve) {
+      var cs = (typeof cellSize === 'number' && cellSize > 0) ? Math.round(cellSize) : 16;
+      var img = new Image();
+      img.onload = function() {
+        try {
+          var w = img.naturalWidth  || img.width  || 640;
+          var h = img.naturalHeight || img.height || 640;
+          cs = Math.max(2, Math.min(w, Math.min(h, cs)));
+          var sw = Math.max(1, Math.floor(w / cs));
+          var sh = Math.max(1, Math.floor(h / cs));
+          var canvas = document.createElement('canvas');
+          canvas.width  = w;
+          canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          // Draw tiny
+          ctx.drawImage(img, 0, 0, sw, sh);
+          // Scale back up with nearest-neighbour (no smoothing → hard mosaic blocks)
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(canvas, 0, 0, sw, sh, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.88));
+        } catch(e) {
+          resolve(dataUrl); // fallback: show original on canvas error
+        }
+      };
+      img.onerror = function() { resolve(dataUrl); }; // fallback: cross-origin or load failure
+      img.src = dataUrl;
+    });
+  }
 
   function __svCacheKey(targetKeyStr, context){
     const ctx = (context || 'glimpse').toLowerCase();
