@@ -405,11 +405,7 @@ function askRadar(metersOverride) {
   } catch (e) {}
 
   if (!isFinite(dist)) {
-    // Fallback to our haversine helper (expects {lat,lon} objects)
-    dist = haversineMeters(
-      { lat: player.lat, lon: player.lon },
-      { lat: target.lat, lon: target.lon }
-    );
+    dist = haversineMeters(player.lat, player.lon, target.lat, target.lon);
   }
 
   const ok = dist <= meters;
@@ -508,10 +504,7 @@ function askDistanceBucket() {
     }
   } catch(e) {}
   if (!isFinite(dist)) {
-    dist = haversineMeters(
-      { lat: player.lat, lon: player.lon },
-      { lat: target.lat, lon: target.lon }
-    );
+    dist = haversineMeters(player.lat, player.lon, target.lat, target.lon);
   }
 
   const ok = dist >= bucket.min && dist < bucket.max;
@@ -544,7 +537,7 @@ function askThermometer() {
         return window.leafletMap.distance(L.latLng(aLat,aLon), L.latLng(bLat,bLon));
       }
     } catch(e) {}
-    return haversineMeters({lat:aLat, lon:aLon}, {lat:bLat, lon:bLon});
+    return haversineMeters(aLat, aLon, bLat, bLon);
   };
 
   const d0 = distFn(thermoBaseline.lat, thermoBaseline.lon, target.lat, target.lon);

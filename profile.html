@@ -194,7 +194,7 @@
             <div class="round-grade" style="color:${gc}">${r.grade_label || '—'}</div>
             <div class="round-meta">
               <div class="round-target">${r.target_name || 'Random target'}</div>
-              <div class="round-detail">${r.target_lat != null ? `${r.target_lat.toFixed(4)}, ${r.target_lon.toFixed(4)} · ` : ''}${fmtDist(r.distance_m)} · ${r.game_length || ''} · ${fmtDate(r.played_at)}</div>
+              <div class="round-detail">${r.target_lat != null && r.target_lon != null ? `${r.target_lat.toFixed(4)}, ${r.target_lon.toFixed(4)} · ` : ''}${fmtDist(r.distance_m)} · ${r.game_length || ''} · ${fmtDate(r.played_at)}</div>
             </div>
             <div class="round-score">${r.score_total != null ? r.score_total.toLocaleString() : '—'}</div>
           </div>`;
