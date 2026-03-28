@@ -423,8 +423,10 @@ function setPenaltyMs(ms) {
 }
 
 function addPenaltyMs(ms) {
-  setPenaltyMs(penaltyMs + (ms | 0));
-  // Visual feedback: shake + red flash on #timerMain
+  const delta = ms | 0;
+  setPenaltyMs(penaltyMs + delta);
+  if (delta <= 0) return;
+  // Visual feedback: shake + red flash on #timerMain (only when time is actually deducted)
   try {
     const el = document.getElementById('timerMain');
     if (el) {

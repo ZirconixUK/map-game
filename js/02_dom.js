@@ -830,6 +830,13 @@ if (debugMode) {
         showToast(msg, false, { kind: 'curse' });
         try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
       }
+      for (const key of ['timePenMinor', 'timePenModerate', 'timePenMajor']) {
+        const res = curseRoll && curseRoll[key];
+        if (res && res.curse && res.curse.penaltyAppliedMs > 0) {
+          const label = __formatTimeCost(res.curse.penaltyAppliedMs);
+          showToast(`<b>${res.curse.name}</b> — <span class="text-red-400">⏱ ${label} lost from your timer.</span>`, false, { kind: 'curse' });
+        }
+      }
     } catch(e) {}
   }
 

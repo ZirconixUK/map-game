@@ -40,6 +40,30 @@
     "4": 0.20,
     "5": 0.28
   },
+  "timePenMinorChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0.12,
+    "3": 0.18,
+    "4": 0.24,
+    "5": 0.30
+  },
+  "timePenModerateChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0.08,
+    "4": 0.14,
+    "5": 0.20
+  },
+  "timePenMajorChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0.05,
+    "5": 0.10
+  },
   "tiers": {
     "1": {
       "id": "heat1",
@@ -98,6 +122,24 @@
       "name": "Ghost Walk",
       "description": "Your presence fades from the map. You are here, but invisible.",
       "durationMs": 180000
+    },
+    "timepen_minor": {
+      "id": "timepen_minor",
+      "name": "Time Slip",
+      "kind": "instant_time_penalty",
+      "timePenaltyMs": { "short": 60000, "medium": 180000, "long": 300000 }
+    },
+    "timepen_moderate": {
+      "id": "timepen_moderate",
+      "name": "Temporal Bleed",
+      "kind": "instant_time_penalty",
+      "timePenaltyMs": { "short": 120000, "medium": 300000, "long": 600000 }
+    },
+    "timepen_major": {
+      "id": "timepen_major",
+      "name": "Void Collapse",
+      "kind": "instant_time_penalty",
+      "timePenaltyMs": { "short": 300000, "medium": 600000, "long": 900000 }
     }
   }
 }

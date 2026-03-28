@@ -114,6 +114,19 @@
     if (!id) return { curse: null, isNew: false };
 
     const def = getCurseDefById(id);
+
+    // Instant time penalty: subtract time immediately, don't persist in active list
+    if (def && def.kind === 'instant_time_penalty') {
+      try {
+        const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+        const length = (setup && setup.length) || 'short';
+        const penMs = (def.timePenaltyMs && typeof def.timePenaltyMs[length] === 'number') ? def.timePenaltyMs[length] : 0;
+        if (penMs > 0 && typeof addPenaltyMs === 'function') addPenaltyMs(penMs);
+        return { curse: { id, name: def.name, penaltyAppliedMs: penMs }, isNew: true };
+      } catch (e) {
+        return { curse: null, isNew: false };
+      }
+    }
     const dur = (typeof durationMs === "number" && isFinite(durationMs))
       ? durationMs
       : (def && typeof def.durationMs === "number" ? def.durationMs : (CURSES_CONFIG && CURSES_CONFIG.defaultDurationMs) || DEFAULT_DURATION_MS);
@@ -267,7 +280,12 @@
       // Fifth independent roll: Ghost (player dot hidden)
       const ghostResult = __rollCurse('ghostChanceByHeatLevel', 'ghost', level, diff);
 
-      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult };
+      // Independent rolls: instant time penalties (scale with game length)
+      const timePenMinorResult    = __rollCurse('timePenMinorChanceByHeatLevel',    'timepen_minor',    level, diff);
+      const timePenModerateResult = __rollCurse('timePenModerateChanceByHeatLevel', 'timepen_moderate', level, diff);
+      const timePenMajorResult    = __rollCurse('timePenMajorChanceByHeatLevel',    'timepen_major',    level, diff);
+
+      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult, timePenMinor: timePenMinorResult, timePenModerate: timePenModerateResult, timePenMajor: timePenMajorResult };
     } catch (e) {
       console.error(e);
       return { triggered: false, reason: 'error' };
