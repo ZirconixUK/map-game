@@ -341,7 +341,15 @@
         const tip = (context === 'snapshot')
           ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
           : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
-        setPhoto(__cachedImgUrl, tip, context);
+        let fallbackDisplayUrl = __cachedImgUrl;
+        try {
+          const __uncFb = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+          if (!__uncFb && __cachedImgUrl) {
+            const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 16;
+            fallbackDisplayUrl = await pixelateImage(__cachedImgUrl, cellSize);
+          }
+        } catch(e) {}
+        setPhoto(fallbackDisplayUrl, tip, context);
       }
       if (typeof window.log === 'function') window.log('📷 Photo Glimpse: re-opened cached image (no extra cost).');
       return { ok:true, cached:true };
