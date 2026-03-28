@@ -247,8 +247,16 @@
       if (typeof window.saveRoundResult === 'function') {
         const _tgt = getTargetLatLng();
         const _round = getRound();
+        const _tgtNameForSave = (() => {
+          try {
+            const t = (typeof getTarget === 'function') ? getTarget() : (window.target || null);
+            const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+            const label = (r && r.targetName) || (t && (t.debug_label || (t.debug_poi && t.debug_poi.name) || t.name)) || null;
+            return label && String(label).trim() ? String(label).trim() : null;
+          } catch(e) { return null; }
+        })();
         window.saveRoundResult({
-          target_name:         _round?.targetName || null,
+          target_name:         _tgtNameForSave,
           target_lat:          _tgt?.lat          ?? null,
           target_lon:          _tgt?.lon          ?? null,
           game_length:         (typeof window.getSelectedGameLength     === 'function') ? window.getSelectedGameLength()     : null,
