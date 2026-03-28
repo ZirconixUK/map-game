@@ -59,23 +59,20 @@ async function __streetViewMetadata(lat, lon, radiusM) {
 function __nearestPoiTo(lat, lon) {
   // Pick the nearest POI for debugging / landmark tools.
   // Linear scan is fine at "new target" time.
-  console.log('[nearestPoi-debug] POIS.length:', POIS.length, 'sample:', JSON.stringify(POIS[0]));
   if (!Array.isArray(POIS) || POIS.length === 0) return null;
 
-  // This file loads before js/12_geo_helpers.js in index.html, so we cannot
-  // assume haversineMeters() exists yet. Provide a tiny local fallback.
+  // haversineMeters(lat1, lon1, lat2, lon2) — 4 flat args, matches 12_geo_helpers.js.
+  // Local fallback uses the same signature in case this runs before that script loads.
   const hav = (typeof haversineMeters === 'function')
     ? haversineMeters
-    : function(a, b) {
+    : function(lat1, lon1, lat2, lon2) {
         const R = 6371000;
         const toRad = (deg) => deg * Math.PI / 180;
-        const dLat = toRad(b.lat - a.lat);
-        const dLon = toRad(b.lon - a.lon);
-        const lat1 = toRad(a.lat);
-        const lat2 = toRad(b.lat);
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
         const s1 = Math.sin(dLat/2);
         const s2 = Math.sin(dLon/2);
-        const h = s1*s1 + Math.cos(lat1)*Math.cos(lat2)*s2*s2;
+        const h = s1*s1 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*s2*s2;
         return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
       };
   let best = null;
@@ -83,7 +80,7 @@ function __nearestPoiTo(lat, lon) {
   for (let i = 0; i < POIS.length; i++) {
     const p = POIS[i];
     if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') continue;
-    const d = hav({ lat, lon }, { lat: p.lat, lon: p.lon });
+    const d = hav(lat, lon, p.lat, p.lon);
     if (d < bestD) { bestD = d; best = p; }
   }
   if (!best) return null;

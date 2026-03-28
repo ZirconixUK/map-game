@@ -256,10 +256,8 @@
             const label = (r && r.targetName) || (t && (t.debug_label || (t.debug_poi && t.debug_poi.name) || t.name)) || null;
             const str = label ? String(label).trim() : null;
             // Don't persist the internal placeholder name — treat as no-name
-            const result = (str && str !== 'Hidden Node') ? str : null;
-            console.log('[db-debug] target obj:', JSON.stringify(t), '| label:', label, '| result:', result);
-            return result;
-          } catch(e) { console.log('[db-debug] error:', e); return null; }
+            return (str && str !== 'Hidden Node') ? str : null;
+          } catch(e) { return null; }
         })();
         window.saveRoundResult({
           target_name:         _tgtNameForSave,
