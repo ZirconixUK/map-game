@@ -115,6 +115,7 @@
         setOpen(panelDebug, false);
         setOpen(panelHeat, false);
         setOpen(panelNewGame, false);
+        setOpen(panelSystem, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
         setOpen(panelProfile, false);
