@@ -8,6 +8,7 @@
   const panelCurseSelect = document.getElementById("panelCurseSelect");
   const panelPhotoGallery    = document.getElementById("panelPhotoGallery");
   const panelHowToPlay       = document.getElementById("panelHowToPlay");
+  const panelProfile         = document.getElementById("panelProfile");
   const btnPhotoGallery      = document.getElementById("btnPhotoGallery");
   const btnPhotoGalleryClose = document.getElementById("btnPhotoGalleryClose");
   const btnGameplay = document.getElementById("btnGameplay");
@@ -16,7 +17,7 @@
   const btnDbgSimCurse = document.getElementById("btnDbgSimCurse");
   const backdrop = document.getElementById("panelBackdrop");
 
-  const allPanels = [panelGameplay, panelDebug, panelHeat, panelNewGame, panelSystem, panelCurseSelect, panelPhotoGallery, panelHowToPlay].filter(Boolean);
+  const allPanels = [panelGameplay, panelDebug, panelHeat, panelNewGame, panelSystem, panelCurseSelect, panelPhotoGallery, panelHowToPlay, panelProfile].filter(Boolean);
 
   function syncBackdrop() {
     if (!backdrop) return;
@@ -116,6 +117,7 @@
         setOpen(panelNewGame, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
+        setOpen(panelProfile, false);
 
         // Reset gameplay menus when opening so we never land on an empty submenu state
         const gameMenu = document.getElementById("gameMenu");
@@ -158,6 +160,7 @@
         setOpen(panelSystem, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
+        setOpen(panelProfile, false);
         try { if (typeof updateCursesPanel === 'function') updateCursesPanel(); } catch (e) {}
       }
     });
@@ -176,6 +179,7 @@
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
         setOpen(panelHowToPlay, false);
+        setOpen(panelProfile, false);
       }
     });
   }
@@ -192,6 +196,7 @@
       setOpen(panelNewGame, false);
       setOpen(panelCurseSelect, false);
       setOpen(panelPhotoGallery, false);
+      setOpen(panelProfile, false);
     });
   }
 
@@ -207,6 +212,7 @@
       setOpen(panelCurseSelect, false);
       setOpen(panelPhotoGallery, false);
       setOpen(panelHowToPlay, false);
+      setOpen(panelProfile, false);
     });
   }
 
@@ -221,6 +227,7 @@
       setOpen(panelCurseSelect, false);
       setOpen(panelPhotoGallery, false);
       setOpen(panelHowToPlay, false);
+      setOpen(panelProfile, false);
     });
   }
 
@@ -384,6 +391,146 @@
   setOpen(panelSystem, false);
   setOpen(panelCurseSelect, false);
   setOpen(panelHowToPlay, false);
+  setOpen(panelProfile, false);
+
+  // Profile panel — open from System panel button
+  const btnSystemProfileLink = document.getElementById("systemProfileLink");
+  const btnProfileClose = document.getElementById("btnProfileClose");
+  if (btnSystemProfileLink && panelProfile) {
+    btnSystemProfileLink.addEventListener("click", () => {
+      setOpen(panelSystem, false);
+      setOpen(panelGameplay, false);
+      setOpen(panelDebug, false);
+      setOpen(panelHeat, false);
+      setOpen(panelNewGame, false);
+      setOpen(panelCurseSelect, false);
+      setOpen(panelPhotoGallery, false);
+      setOpen(panelHowToPlay, false);
+      setOpen(panelProfile, true);
+      try { if (typeof window.__loadProfilePanel === 'function') window.__loadProfilePanel(); } catch(e) {}
+    });
+  }
+  if (btnProfileClose && panelProfile) {
+    btnProfileClose.addEventListener("click", () => setOpen(panelProfile, false));
+  }
+})();
+
+
+// ---- Profile panel data loading ----
+(() => {
+  const GRADE_COLORS = {
+    Diamond: '#a5f3fc', Emerald: '#34d399', Platinum: '#e2e8f0',
+    Gold: '#fbbf24', Silver: '#94a3b8', Bronze: '#f97316', Copper: '#ef4444',
+  };
+  const GRADE_ORDER = ['Diamond','Emerald','Platinum','Gold','Silver','Bronze','Copper'];
+  const ALL_ACHIEVEMENTS = [
+    { id: 'first_round',   name: 'First Steps',   desc: 'Complete any round' },
+    { id: 'first_diamond', name: 'Diamond Hunter', desc: 'Score a Diamond grade' },
+    { id: 'no_tools',      name: 'Naked Eye',      desc: 'Complete a round using no tools' },
+    { id: 'ten_rounds',    name: 'Committed',      desc: 'Complete 10 rounds' },
+    { id: 'hard_diamond',  name: 'Elite',          desc: 'Diamond on Hard difficulty' },
+    { id: 'long_run',      name: 'The Long Walk',  desc: 'Complete a Long round' },
+  ];
+
+  function fmtDist(m) {
+    if (m == null) return '—';
+    return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+  }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+  }
+  function initials(name) {
+    return (name || '').split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase() || '?';
+  }
+  function showGuest() {
+    const player = document.getElementById('profilePanelPlayer');
+    if (player) player.innerHTML = '<div class="text-xs text-slate-400 leading-snug">Sign in to see your profile and round history.<br><a href="./login.html" class="text-cyan-400 underline mt-1 inline-block">Sign in</a></div>';
+    ['ppStatRounds','ppStatBestScore','ppStatBestGrade','ppStatAvgDist'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = '—';
+    });
+    const ach = document.getElementById('ppAchievements');
+    if (ach) ach.innerHTML = '<div class="text-xs text-slate-400 col-span-2">Sign in to track achievements.</div>';
+    const hist = document.getElementById('ppHistory');
+    if (hist) hist.innerHTML = '<div class="text-xs text-slate-400">No history yet.</div>';
+  }
+
+  window.__loadProfilePanel = async function() {
+    if (!window.__supabase) { showGuest(); return; }
+    const { data: { session } } = await window.__supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    if (!session) { showGuest(); return; }
+
+    const user = session.user;
+    const meta = user.user_metadata || {};
+
+    // Player row
+    const player = document.getElementById('profilePanelPlayer');
+    if (player) {
+      const avatarInner = meta.avatar_url
+        ? `<img src="${meta.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+        : initials(meta.full_name || user.email || '');
+      player.innerHTML = `
+        <div style="width:44px;height:44px;border-radius:50%;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:#67e8f9;flex-shrink:0;overflow:hidden;">${avatarInner}</div>
+        <div>
+          <div class="text-sm font-bold text-white">${meta.full_name || 'Player'}</div>
+          <div class="text-xs text-slate-500 mt-0.5">${user.email || ''}</div>
+        </div>`;
+    }
+
+    // Fetch rounds + achievements in parallel
+    const [{ data: rounds }, { data: earnedRows }] = await Promise.all([
+      window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
+      window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id),
+    ]);
+    const rs = rounds || [];
+
+    // Stats
+    const scores = rs.map(r => r.score_total).filter(Boolean);
+    const el = (id) => document.getElementById(id);
+    if (el('ppStatRounds')) el('ppStatRounds').textContent = rs.length;
+    if (el('ppStatBestScore')) el('ppStatBestScore').textContent = scores.length ? Math.max(...scores).toLocaleString() : '—';
+    const bestIdx = rs.reduce((best, r) => {
+      const idx = GRADE_ORDER.indexOf(r.grade_label);
+      return (idx !== -1 && (best === -1 || idx < best)) ? idx : best;
+    }, -1);
+    if (el('ppStatBestGrade') && bestIdx !== -1) {
+      const g = GRADE_ORDER[bestIdx];
+      el('ppStatBestGrade').textContent = g;
+      el('ppStatBestGrade').style.color = GRADE_COLORS[g] || '#67e8f9';
+    }
+    const dists = rs.map(r => r.distance_m).filter(v => v != null);
+    if (el('ppStatAvgDist')) el('ppStatAvgDist').textContent = dists.length ? fmtDist(dists.reduce((a, b) => a + b, 0) / dists.length) : '—';
+
+    // Achievements
+    const earnedSet = new Set((earnedRows || []).map(r => r.achievement_id));
+    if (el('ppAchievements')) {
+      el('ppAchievements').innerHTML = ALL_ACHIEVEMENTS.map(a => `
+        <div style="padding:10px;background:#0f1729;border:1px solid ${earnedSet.has(a.id) ? '#4ade80' : '#1e3a5f'};border-radius:10px;opacity:${earnedSet.has(a.id) ? '1' : '0.35'};">
+          <div class="text-xs font-bold" style="color:${earnedSet.has(a.id) ? '#4ade80' : '#f1f5f9'};">${a.name}</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">${a.desc}</div>
+        </div>`).join('');
+    }
+
+    // History
+    if (el('ppHistory')) {
+      if (!rs.length) {
+        el('ppHistory').innerHTML = '<div class="text-xs text-slate-400">No rounds yet — get out there.</div>';
+      } else {
+        el('ppHistory').innerHTML = rs.slice(0, 20).map(r => {
+          const gc = GRADE_COLORS[r.grade_label] || '#94a3b8';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0f1729;border:1px solid #1e3a5f;border-radius:12px;">
+            <div style="font-size:0.8rem;font-weight:700;min-width:56px;color:${gc};">${r.grade_label || '—'}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="text-xs font-semibold text-slate-200 truncate">${r.target_name || 'Random target'}</div>
+              <div class="text-[10px] text-slate-500 mt-0.5"><span style="color:#7a9e7e">${fmtDist(r.distance_m)}</span> · <span style="color:#9b8fb5">${r.game_length || ''}</span> · <span style="color:#b5956b">${fmtDate(r.played_at)}</span></div>
+            </div>
+            <div class="font-mono text-xs font-bold text-slate-400 flex-shrink-0">${r.score_total != null ? r.score_total.toLocaleString() : '—'}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+  };
 })();
 
 

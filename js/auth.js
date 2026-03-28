@@ -20,8 +20,7 @@
       const name = user?.user_metadata?.full_name || user?.email || null;
       lbl.textContent = name ? `Profile — ${name.split(' ')[0]}` : 'Profile / Sign in';
     }
-    const link = document.getElementById('systemProfileLink');
-    if (link) link.href = user ? './profile.html' : './login.html';
+    // systemProfileLink is now a button — panel handles routing based on auth state
     const signOut = document.getElementById('btnSystemSignOut');
     if (signOut) signOut.classList.toggle('hidden', !user);
   }

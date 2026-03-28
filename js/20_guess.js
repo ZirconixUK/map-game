@@ -491,7 +491,7 @@
     } catch(e) {}
     // Close all sibling panels so the new game panel isn't hidden behind them.
     try {
-      ['panelGameplay','panelHeat','panelSystem','panelDebug','panelCurseSelect','panelHowToPlay'].forEach(id => {
+      ['panelGameplay','panelHeat','panelSystem','panelDebug','panelCurseSelect','panelHowToPlay','panelProfile'].forEach(id => {
         const el = document.getElementById(id); if (el) el.classList.remove('open');
       });
     } catch(e) {}

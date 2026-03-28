@@ -106,10 +106,10 @@ window.__setPlayerFromCurrentLocation = function __setPlayerFromCurrentLocation(
               reject(err2 || new Error('geo_error'));
             }
           },
-          { enableHighAccuracy: false, maximumAge: 30000, timeout: 10000 }
+          { enableHighAccuracy: false, maximumAge: 30000, timeout: 6000 }
         );
       },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
     );
   });
 };
@@ -197,7 +197,7 @@ function startGeolocationWatch() {
       log(`Geolocation error: ${err && err.message ? err.message : err}`);
       try { if (typeof window.__setGpsFailBadge === 'function') window.__setGpsFailBadge(true); } catch(e) {}
     },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
   );
 }
 
@@ -214,8 +214,8 @@ function useLocationOnce(opts = {}) {
   // Recenter button should be responsive even indoors: prefer cached, allow lower accuracy.
   const quick = (opts && typeof opts.quick === "boolean") ? opts.quick : true;
   const geoOpts = quick
-    ? { enableHighAccuracy: false, maximumAge: 60000, timeout: 10000 }
-    : { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 };
+    ? { enableHighAccuracy: false, maximumAge: 60000, timeout: 6000 }
+    : { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 };
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
