@@ -27,6 +27,8 @@
   }
 
   // Canvas mosaic: scales image down to a coarse grid then back up with no smoothing.
+  // Uses two separate canvases to avoid self-draw (the Canvas spec says drawing a canvas
+  // onto itself via drawImage produces undefined results).
   // Returns a Promise<dataURL>. Falls back to the original dataUrl on any error.
   function pixelateImage(dataUrl, cellSize) {
     return new Promise(function(resolve) {
@@ -39,15 +41,20 @@
           cs = Math.max(2, Math.min(w, Math.min(h, cs)));
           var sw = Math.max(1, Math.floor(w / cs));
           var sh = Math.max(1, Math.floor(h / cs));
+          // Step 1: draw the image at tiny size on a small canvas
+          var small = document.createElement('canvas');
+          small.width  = sw;
+          small.height = sh;
+          var smallCtx = small.getContext('2d');
+          smallCtx.drawImage(img, 0, 0, sw, sh);
+          // Step 2: scale the tiny canvas back up onto a full-size canvas using
+          // nearest-neighbour (imageSmoothingEnabled = false → hard mosaic blocks)
           var canvas = document.createElement('canvas');
           canvas.width  = w;
           canvas.height = h;
           var ctx = canvas.getContext('2d');
-          // Draw tiny
-          ctx.drawImage(img, 0, 0, sw, sh);
-          // Scale back up with nearest-neighbour (no smoothing → hard mosaic blocks)
           ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(canvas, 0, 0, sw, sh, 0, 0, w, h);
+          ctx.drawImage(small, 0, 0, sw, sh, 0, 0, w, h);
           resolve(canvas.toDataURL('image/jpeg', 0.88));
         } catch(e) {
           resolve(dataUrl); // fallback: show original on canvas error
