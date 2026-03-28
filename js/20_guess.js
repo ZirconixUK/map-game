@@ -249,10 +249,14 @@
         const _round = getRound();
         const _tgtNameForSave = (() => {
           try {
-            const t = (typeof getTarget === 'function') ? getTarget() : (window.target || null);
+            // `target` is a `let` in 04_state.js — accessible by bare name but NOT as window.target
+            const t = (typeof getTarget === 'function') ? getTarget()
+                    : (typeof target !== 'undefined' ? target : null);
             const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
             const label = (r && r.targetName) || (t && (t.debug_label || (t.debug_poi && t.debug_poi.name) || t.name)) || null;
-            return label && String(label).trim() ? String(label).trim() : null;
+            const str = label ? String(label).trim() : null;
+            // Don't persist the internal placeholder name — treat as no-name
+            return (str && str !== 'Hidden Node') ? str : null;
           } catch(e) { return null; }
         })();
         window.saveRoundResult({
@@ -302,10 +306,12 @@
     const _targetName = (() => {
       try {
         const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
-        const tgt = (typeof getTarget === 'function') ? getTarget() : (window.target || null);
+        const tgt = (typeof getTarget === 'function') ? getTarget()
+                  : (typeof target !== 'undefined' ? target : null);
         // Prefer debug label (nearest POI name for pano targets)
         const label = (r && r.targetName) || (tgt && (tgt.debug_label || (tgt.debug_poi && tgt.debug_poi.name) || tgt.name)) || null;
-        return label && String(label).trim() ? String(label).trim() : null;
+        const str = label ? String(label).trim() : null;
+        return (str && str !== 'Hidden Node') ? str : null;
       } catch(e) { return null; }
     })();
 
