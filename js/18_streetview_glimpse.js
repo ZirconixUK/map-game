@@ -428,7 +428,18 @@
       }
     }
 
-    setPhoto(dataUrl, tip, context);
+    // Pixelate before display (unless uncorrupted). Keep original dataUrl in __cachedImgUrl
+    // so the uncorrupt tool can still reveal the clean image.
+    let displayUrl = dataUrl;
+    try {
+      const __uncPx = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+      if (!__uncPx) {
+        const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 16;
+        displayUrl = await pixelateImage(dataUrl, cellSize);
+      }
+    } catch(e) {}
+
+    setPhoto(displayUrl, tip, context);
     // Add a glitchy "corruption" layer (stronger for snapshot than for optional glimpses).
     try {
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
