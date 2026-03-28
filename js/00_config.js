@@ -96,9 +96,11 @@ const SCORE_LENGTH_BONUS     = { short: 0, medium: 50, long: 100 };
 const SCORE_DIFFICULTY_BONUS = { easy: 0, normal: 50, hard: 100 };
 const SCORE_TOOL_EFFICIENCY  = [100, 90, 75, 60, 45, 30, 15, 0]; // index = tools used (capped at 7)
 
-// Visual "corruption" overlay for the snapshot (CSS-only, no pixel access).
-// 0..1 (higher = more glitch blocks)
+// Visual "corruption" — canvas mosaic + CSS glitch overlay.
+// CELL_SIZE: mosaic grid size in px (higher = chunkier, more obscuring). 16 is the baseline.
+// 0..1 intensity controls CSS glitch blocks (higher = more glitch blocks).
 const STREETVIEW_CORRUPTION_ENABLED = true;
+const STREETVIEW_CORRUPTION_CELL_SIZE = 16;
 const STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT = 0.85;
 const STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE = 0.60;
 
