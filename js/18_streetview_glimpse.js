@@ -429,6 +429,7 @@
     if (!dataUrl) {
       try {
         dataUrl = await __fetchAsDataUrl(built.url);
+        // Persist the original (pre-pixelation) URL so the uncorrupt tool can reveal the clean image after a reload.
         __saveCachedDataUrl(k, context, dataUrl);
       } catch (e) {
         // Fallback to direct URL if fetch fails
