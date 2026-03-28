@@ -482,11 +482,11 @@
     const [{ data: rounds }, { data: earnedRows }] = await Promise.all([
       window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
       window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id),
-    ]);
+    ]).catch(() => [{ data: null }, { data: null }]);
     const rs = rounds || [];
 
     // Stats
-    const scores = rs.map(r => r.score_total).filter(Boolean);
+    const scores = rs.map(r => r.score_total).filter(v => v != null);
     const el = (id) => document.getElementById(id);
     if (el('ppStatRounds')) el('ppStatRounds').textContent = rs.length;
     if (el('ppStatBestScore')) el('ppStatBestScore').textContent = scores.length ? Math.max(...scores).toLocaleString() : '—';

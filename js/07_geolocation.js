@@ -85,7 +85,7 @@ window.__setPlayerFromCurrentLocation = function __setPlayerFromCurrentLocation(
       resolve(fix);
     }
 
-    // Try high accuracy first (12s). On timeout, retry with low accuracy (cell/WiFi, near-instant).
+    // Try high accuracy first (5s). On timeout, retry with low accuracy (cell/WiFi, near-instant).
     navigator.geolocation.getCurrentPosition(
       (pos) => applyFix({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy, ts: Date.now() }),
       (err) => {
