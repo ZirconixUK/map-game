@@ -59,6 +59,7 @@ async function __streetViewMetadata(lat, lon, radiusM) {
 function __nearestPoiTo(lat, lon) {
   // Pick the nearest POI for debugging / landmark tools.
   // Linear scan is fine at "new target" time.
+  console.log('[nearestPoi-debug] POIS.length:', POIS.length, 'sample:', JSON.stringify(POIS[0]));
   if (!Array.isArray(POIS) || POIS.length === 0) return null;
 
   // This file loads before js/12_geo_helpers.js in index.html, so we cannot
