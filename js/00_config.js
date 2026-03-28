@@ -117,14 +117,14 @@ const ROUND_TIME_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
 // Each entry is { m: distanceInMeters, heat: heatCost }.
 // Order = button order (smallest → largest). Heat scales with radius.
 const RADAR_OPTIONS_BY_MODE = {
-  short:  [ {m:50,heat:0.2}, {m:100,heat:0.3}, {m:150,heat:0.4}, {m:250,heat:0.6}, {m:350,heat:0.8}, {m:400,heat:1.0} ],
-  medium: [ {m:50,heat:0.2}, {m:100,heat:0.3}, {m:250,heat:0.4}, {m:400,heat:0.6}, {m:650,heat:0.8}, {m:800,heat:1.0} ],
-  long:   [ {m:50,heat:0.2}, {m:100,heat:0.3}, {m:250,heat:0.4}, {m:500,heat:0.6}, {m:900,heat:0.8}, {m:1200,heat:1.0} ],
+  short:  [ {m:50,heat:0.4}, {m:100,heat:0.6}, {m:150,heat:0.8}, {m:250,heat:1.2}, {m:350,heat:1.6}, {m:400,heat:2.0} ],
+  medium: [ {m:50,heat:0.4}, {m:100,heat:0.6}, {m:250,heat:0.8}, {m:400,heat:1.2}, {m:650,heat:1.6}, {m:800,heat:2.0} ],
+  long:   [ {m:50,heat:0.4}, {m:100,heat:0.6}, {m:250,heat:0.8}, {m:500,heat:1.2}, {m:900,heat:1.6}, {m:1200,heat:2.0} ],
 };
 
 // ---- Question costs (placeholder; can be individualized later) ----
 const QUESTION_TIME_COST_MS = 5 * 60 * 1000; // 5 minutes
-const QUESTION_HEAT_COST = 0.5;
+const QUESTION_HEAT_COST = 1.0;
 
 // ---- V3: Overcharged curse time cost ----
 // When the "overcharged" curse is active, each tool use costs 90s × stacks.
@@ -135,7 +135,7 @@ const OVERCHARGED_COST_PER_STACK_S = 90;
 // Each entry is { m: distanceInMeters, heat: heatCost }.
 // Shorter distances are more precise clues → cost more heat.
 const THERMO_OPTIONS_BY_MODE = {
-  short:  [ {m:100, heat:0.4}, {m:140, heat:0.3}, {m:180, heat:0.2} ],
-  medium: [ {m:150, heat:0.4}, {m:220, heat:0.3}, {m:300, heat:0.2} ],
-  long:   [ {m:200, heat:0.4}, {m:350, heat:0.3}, {m:500, heat:0.2} ],
+  short:  [ {m:100, heat:0.8}, {m:140, heat:0.6}, {m:180, heat:0.4} ],
+  medium: [ {m:150, heat:0.8}, {m:220, heat:0.6}, {m:300, heat:0.4} ],
+  long:   [ {m:200, heat:0.8}, {m:350, heat:0.6}, {m:500, heat:0.4} ],
 };
