@@ -305,9 +305,19 @@ function updateHUD() {
   const elTimerCurse = (typeof elTimerCurseIndicator !== 'undefined') ? elTimerCurseIndicator : document.getElementById('timerCurseIndicator');
   if (elTimerCurse) {
     const _curses = (typeof window.getActiveCurses === 'function') ? window.getActiveCurses() : [];
-    const _count = Array.isArray(_curses) ? _curses.length : 0;
-    elTimerCurse.classList.toggle('hidden', _count <= 0);
-    elTimerCurse.textContent = _count > 1 ? `⚠ CURSED ×${_count}` : '⚠ CURSED';
+    const _active = Array.isArray(_curses) ? _curses : [];
+    if (_active.length <= 0) {
+      elTimerCurse.classList.add('hidden');
+    } else {
+      const _maxExpiry = Math.max(..._active.map(c => (typeof c.expiresAt === 'number' ? c.expiresAt : 0)));
+      const _msLeft = Math.max(0, _maxExpiry - Date.now());
+      const _sec = Math.ceil(_msLeft / 1000);
+      const _mm = Math.floor(_sec / 60);
+      const _ss = String(_sec % 60).padStart(2, '0');
+      const _countdown = document.getElementById('timerCurseCountdown');
+      if (_countdown) _countdown.textContent = `${_mm}:${_ss}`;
+      elTimerCurse.classList.remove('hidden');
+    }
   }
 
   // Heat — colour flame FAB and heat panel row by level

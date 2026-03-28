@@ -474,7 +474,7 @@ function bindUI() {
   }
 
   function openNewGamePanel() {
-    const ids = ["panelGameplay","panelSystem","panelHeat","panelDebug","panelCurseSelect","panelPhotoGallery"];
+    const ids = ["panelGameplay","panelSystem","panelHeat","panelDebug","panelCurseSelect","panelPhotoGallery","panelHowToPlay"];
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.add("open");

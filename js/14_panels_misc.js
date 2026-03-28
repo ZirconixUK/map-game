@@ -7,6 +7,7 @@
   const panelSystem = document.getElementById("panelSystem");
   const panelCurseSelect = document.getElementById("panelCurseSelect");
   const panelPhotoGallery    = document.getElementById("panelPhotoGallery");
+  const panelHowToPlay       = document.getElementById("panelHowToPlay");
   const btnPhotoGallery      = document.getElementById("btnPhotoGallery");
   const btnPhotoGalleryClose = document.getElementById("btnPhotoGalleryClose");
   const btnGameplay = document.getElementById("btnGameplay");
@@ -15,7 +16,7 @@
   const btnDbgSimCurse = document.getElementById("btnDbgSimCurse");
   const backdrop = document.getElementById("panelBackdrop");
 
-  const allPanels = [panelGameplay, panelDebug, panelHeat, panelNewGame, panelSystem, panelCurseSelect, panelPhotoGallery].filter(Boolean);
+  const allPanels = [panelGameplay, panelDebug, panelHeat, panelNewGame, panelSystem, panelCurseSelect, panelPhotoGallery, panelHowToPlay].filter(Boolean);
 
   function syncBackdrop() {
     if (!backdrop) return;
@@ -174,7 +175,23 @@
         setOpen(panelNewGame, false);
         setOpen(panelCurseSelect, false);
         setOpen(panelPhotoGallery, false);
+        setOpen(panelHowToPlay, false);
       }
+    });
+  }
+
+  // How to Play button inside System panel — closes System, opens How to Play
+  const btnSystemHowToPlay = document.getElementById("btnSystemHowToPlay");
+  if (btnSystemHowToPlay && panelHowToPlay) {
+    btnSystemHowToPlay.addEventListener("click", () => {
+      setOpen(panelSystem, false);
+      setOpen(panelHowToPlay, true);
+      setOpen(panelGameplay, false);
+      setOpen(panelDebug, false);
+      setOpen(panelHeat, false);
+      setOpen(panelNewGame, false);
+      setOpen(panelCurseSelect, false);
+      setOpen(panelPhotoGallery, false);
     });
   }
 
@@ -189,6 +206,7 @@
       setOpen(panelNewGame, false);
       setOpen(panelCurseSelect, false);
       setOpen(panelPhotoGallery, false);
+      setOpen(panelHowToPlay, false);
     });
   }
 
@@ -202,6 +220,7 @@
       setOpen(panelSystem, false);
       setOpen(panelCurseSelect, false);
       setOpen(panelPhotoGallery, false);
+      setOpen(panelHowToPlay, false);
     });
   }
 
