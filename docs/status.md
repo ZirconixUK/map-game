@@ -22,7 +22,7 @@
 - Remote mode
 
 ## Current priority
-Strengthen the middle of runs: clue tuning, N/S/E/W balance, landmark quality, heat/curse strategic legibility, reduce dead air.
+Phase C is complete. Phase D (Chain mode) is next.
 
 ## Key constants
 ### Mode radii / timers
@@ -42,9 +42,9 @@ Bonuses: time (up to 300), length (short 0 / medium 50 / long 100), difficulty (
 
 ## Roadmap phases
 - **Phase A — Stabilise the loop**: Complete.
-- **Phase B — Strengthen mid-run**: Current focus. Reduce dead air, improve clue/landmark quality, directional clue balance, heat/curse legibility.
+- **Phase B — Strengthen mid-run**: Complete. N/S/E/W gated behind 50% timer; curses in good shape; dead air reduced.
 - **Phase C — Define mastery**: Complete enough. Difficulty selector, grade-based scoring, v3 timer (wall-clock expiry, curse-gated time costs).
-- **Phase D — Chain mode**: Not started. Multi-run commitment with its own pacing and fatigue logic.
+- **Phase D — Chain mode**: Current focus. Multi-run commitment with its own pacing and fatigue logic.
 - **Phase E — Remote mode**: Not started. Preserves deduction without physical walking.
 - **Phase F — Optional expansion**: Not started. Daily challenges, async score comparison, social features.
 - **Phase G — Names/flavour text pass**: Not started. Polish all user-facing strings for consistency and tone.

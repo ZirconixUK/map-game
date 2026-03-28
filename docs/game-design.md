@@ -39,9 +39,9 @@ Deciding **where to move next**. Tools support that decision, not replace it.
 - Extra photo tools: visual confirmation and pacing variety.
 
 ## Balance questions
-- N/S and E/W may be too strong if available too early or too often.
+- N/S and E/W: gated behind 50% timer elapsed — resolved.
 - Landmark clue quality depends on POI richness and category usefulness.
-- Mid-run dead air is the biggest experiential risk.
+- Mid-run dead air: addressed in Phase B.
 - Timer v3 is live: Overcharged curse adds time costs; time bonus is 300. Monitor for too-harsh timeout rates.
 
 ## Timer principles
@@ -56,19 +56,16 @@ Deciding **where to move next**. Tools support that decision, not replace it.
 - Effects should feel tough but not arbitrary.
 
 ## Current priority
-Strengthen the middle of the run: clue tuning, N/S/E/W balance, landmark quality, heat/curse legibility, reduce dead air.
+Chain mode (Phase D): multi-run commitment with its own pacing and fatigue logic.
 
 ## Open design questions
 - Should every clue be one-use, or can some be reusable?
-- Should N/S and E/W stay in default play or move to late-game/hard-mode roles?
 - What curse effects best change play without feeling arbitrary?
 - How should chain mode create its own rhythm vs repeated normal rounds?
 - How should remote mode preserve the game's identity without becoming a map-click game?
 
 ## Known design risks
 - **Solved meta**: same opener every game → no strategic texture.
-- **Mid-run dead air**: middle of runs can flatten out. Biggest current risk.
-- **Overpowered directional clues**: N/S and E/W can collapse too much search space.
 - **GPS fairness**: scoring must feel fair under real-world GPS jitter.
 - **Curse arbitrariness**: if curses feel random, they undermine trust.
 
