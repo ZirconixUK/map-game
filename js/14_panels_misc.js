@@ -293,7 +293,7 @@
       }
       if (cfg.special) {
         // Find the minimum heat level (>0 chance) for each special curse's own table.
-        const specialTableKeys = { overcharged: "overchargedChanceByHeatLevel", veil: "veilChanceByHeatLevel", blackout: "blackoutChanceByHeatLevel", ghost: "ghostChanceByHeatLevel" };
+        const specialTableKeys = { overcharged: "overchargedChanceByHeatLevel", veil: "veilChanceByHeatLevel", blackout: "blackoutChanceByHeatLevel", ghost: "ghostChanceByHeatLevel", timepen_minor: "timePenMinorChanceByHeatLevel", timepen_moderate: "timePenModerateChanceByHeatLevel", timepen_major: "timePenMajorChanceByHeatLevel" };
         for (const k of Object.keys(cfg.special)) {
           const c = cfg.special[k];
           if (!c || !c.id) continue;
@@ -310,15 +310,18 @@
     } else {
       // Fallback hardcoded list matching known curse IDs
       const fallback = [
-        { id: "heat1", name: "Accelerant", description: "Every question costs +0.25 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 1" },
-        { id: "heat2", name: "Fever Surge", description: "Every question costs +0.5 extra heat for 5 minutes.", durationMs: 300000, heatLabel: "Heat 2" },
-        { id: "heat3", name: "Compass Rot", description: "N/S/E/W is locked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 3" },
-        { id: "heat4", name: "Signal Clamp", description: "Radar is limited to 250m for 5 minutes.", durationMs: 300000, heatLabel: "Heat 4" },
-        { id: "heat5", name: "Burned Lens", description: "Extra photos are blocked for 5 minutes.", durationMs: 300000, heatLabel: "Heat 5" },
+        { id: "heat1", name: "Accelerant", description: "Every question costs +0.25 extra heat.", durationMs: 300000, heatLabel: "Heat 1" },
+        { id: "heat2", name: "Fever Surge", description: "Every question costs +0.5 extra heat.", durationMs: 300000, heatLabel: "Heat 2" },
+        { id: "heat3", name: "Compass Rot", description: "N/S/E/W is locked.", durationMs: 300000, heatLabel: "Heat 3" },
+        { id: "heat4", name: "Signal Clamp", description: "Radar is limited to 250m.", durationMs: 300000, heatLabel: "Heat 4" },
+        { id: "heat5", name: "Burned Lens", description: "Extra photos are blocked.", durationMs: 300000, heatLabel: "Heat 5" },
         { id: "overcharged", name: "Overcharged", description: "Tool use costs time while active.", durationMs: 240000, heatLabel: "Heat 2+" },
         { id: "veil", name: "Veil of Ignorance", description: "The map fades to nothing.", durationMs: 300000, heatLabel: "Heat 3+" },
         { id: "blackout", name: "The Blackout", description: "All visual reference vanishes. Only your position remains.", durationMs: 300000, heatLabel: "Heat 3+" },
         { id: "ghost", name: "Ghost Walk", description: "Your presence fades from the map.", durationMs: 180000, heatLabel: "Heat 3+" },
+        { id: "timepen_minor", name: "Time Slip", description: "", durationMs: 0, heatLabel: "Heat 2+" },
+        { id: "timepen_moderate", name: "Temporal Bleed", description: "", durationMs: 0, heatLabel: "Heat 3+" },
+        { id: "timepen_major", name: "Void Collapse", description: "", durationMs: 0, heatLabel: "Heat 4+" },
       ];
       curses.push(...fallback);
     }
@@ -357,9 +360,15 @@
           const result = window.applyCurse(id, { durationMs: dur });
           if (result && result.curse && typeof showToast === "function") {
             const c = result.curse;
-            const durMins = Math.round(dur / 60000);
-            const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : `<br><span class="muted">(${durMins} minutes)</span>`;
-            showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse' });
+            if (c.penaltyAppliedMs > 0) {
+              // Instant time-penalty curse — show amount lost, not a duration
+              const s = Math.round(c.penaltyAppliedMs / 1000);
+              const label = s >= 60 ? `${Math.floor(s/60)}m${s%60?' '+s%60+'s':''}`.trim() : `${s}s`;
+              showToast(`<b>${c.name}</b> — <span class="text-red-400">⏱ ${label} lost from your timer.</span>`, false, { kind: 'curse' });
+            } else {
+              const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
+              showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse' });
+            }
           }
         }
       } catch (e) {}
@@ -374,6 +383,7 @@
   setOpen(panelNewGame, false);
   setOpen(panelSystem, false);
   setOpen(panelCurseSelect, false);
+  setOpen(panelHowToPlay, false);
 })();
 
 

@@ -312,7 +312,7 @@ function updateHUD() {
       const _maxExpiry = Math.max(..._active.map(c => (typeof c.expiresAt === 'number' ? c.expiresAt : 0)));
       const _msLeft = Math.max(0, _maxExpiry - Date.now());
       const _sec = Math.ceil(_msLeft / 1000);
-      const _mm = Math.floor(_sec / 60);
+      const _mm = String(Math.floor(_sec / 60)).padStart(2, '0');
       const _ss = String(_sec % 60).padStart(2, '0');
       const _countdown = document.getElementById('timerCurseCountdown');
       if (_countdown) _countdown.textContent = `${_mm}:${_ss}`;

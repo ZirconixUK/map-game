@@ -817,8 +817,7 @@ if (debugMode) {
     try {
       if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
         const c = curseRoll.applied.curse;
-        const dur = c.expiresAt && c.appliedAt ? Math.round((c.expiresAt - c.appliedAt) / 60000) : 5;
-        const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : `<br><span class="muted">(${dur} minutes)</span>`;
+        const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
         showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse' });
       }
       if (curseRoll && curseRoll.overcharged && curseRoll.overcharged.curse) {

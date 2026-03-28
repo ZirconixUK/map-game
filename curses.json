@@ -68,31 +68,31 @@
     "1": {
       "id": "heat1",
       "name": "Accelerant",
-      "description": "Every question costs +0.25 extra heat for 5 minutes.",
+      "description": "Every question costs +0.25 extra heat.",
       "durationMs": 300000
     },
     "2": {
       "id": "heat2",
       "name": "Fever Surge",
-      "description": "Every question costs +0.5 extra heat for 5 minutes.",
+      "description": "Every question costs +0.5 extra heat.",
       "durationMs": 300000
     },
     "3": {
       "id": "heat3",
       "name": "Compass Rot",
-      "description": "N/S/E/W is locked for 5 minutes.",
+      "description": "N/S/E/W is locked.",
       "durationMs": 300000
     },
     "4": {
       "id": "heat4",
       "name": "Signal Clamp",
-      "description": "Radar is limited to 250m for 5 minutes.",
+      "description": "Radar is limited to 250m.",
       "durationMs": 300000
     },
     "5": {
       "id": "heat5",
       "name": "Burned Lens",
-      "description": "Extra photos are blocked for 5 minutes.",
+      "description": "Extra photos are blocked.",
       "durationMs": 300000
     }
   },
