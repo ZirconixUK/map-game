@@ -249,15 +249,17 @@ function updateHUD() {
       elTimerMain.textContent = formatMMSS(Math.max(0, frozenMs));
       elTimerMain.style.color = '#fbbf24'; // amber — locked
     } else {
-      const start = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
+      // When gauntlet is active, use chainTimerStartMs instead of per-target roundStartMs
+      const _gauntletChainStart = (typeof window.isGauntletActive === 'function' && window.isGauntletActive() && typeof window.getGauntletChainStartMs === 'function') ? window.getGauntletChainStartMs() : null;
+      const start = _gauntletChainStart || ((typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null);
       const elapsed = start ? (Date.now() - start) : 0;
       const limit = (typeof window.getRoundTimeLimitMs === "function") ? window.getRoundTimeLimitMs() : (((typeof ROUND_TIME_LIMIT_MS === "number" && isFinite(ROUND_TIME_LIMIT_MS)) ? ROUND_TIME_LIMIT_MS : (30 * 60 * 1000)));
       const penalty = (typeof penaltyMs === 'number' && isFinite(penaltyMs)) ? penaltyMs : 0;
       const remaining = Math.max(0, limit - elapsed - penalty);
       elTimerMain.textContent = formatMMSS(remaining);
 
-      // Reset phase tracking on new round
-      const curRoundStart = (typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null;
+      // Track chain start when gauntlet active so __timerExpiredFired doesn't reset between targets
+      const curRoundStart = _gauntletChainStart || ((typeof roundStartMs === "number" && isFinite(roundStartMs)) ? roundStartMs : null);
       if (curRoundStart !== __timerLastRoundStartMs) {
         __timerLastRoundStartMs = curRoundStart;
         __timerLastPhase = null;
