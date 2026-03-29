@@ -471,6 +471,11 @@
     // Brief pause so the player can see the reveal line on the map before the modal appears
     await new Promise(r => setTimeout(r, 1800));
 
+    // Capture gauntlet state BEFORE dispatching — the event handler runs synchronously
+    // and may set gauntletState.complete = true (on the last target), which would make
+    // isGauntletActive() return false by the time we check it below.
+    const _gauntletActive = (typeof window.isGauntletActive === 'function') ? window.isGauntletActive() : false;
+
     // Fire guesslocked event so gauntlet module can intercept before result modal
     try {
       window.dispatchEvent(new CustomEvent('guesslocked', {
@@ -485,7 +490,6 @@
     } catch(e) {}
 
     // Suppress normal result modal when gauntlet is active — it shows its own modals
-    const _gauntletActive = (typeof window.isGauntletActive === 'function') ? window.isGauntletActive() : false;
     if (!_gauntletActive) {
       openResultModal(html);
     }
