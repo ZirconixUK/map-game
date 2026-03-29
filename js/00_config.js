@@ -6,7 +6,8 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-03-29.thumb-pixelate';
+const BUILD_ID = '2026-03-29.zoom-fix';
+(function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
 const BBOX = {

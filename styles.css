@@ -731,7 +731,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   background: #0a1628;
 }
 .photoGalleryItem:active        { border-color: #3b82f6; }
-.photoGalleryItem img           { width:100%; height:100%; object-fit:cover; display:block; }
+.photoGalleryItem img           { width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.28); }
 .photoGalleryItem.is-corrupted img { filter: blur(2px) saturate(0.4) contrast(1.2); }
 .photoGalleryPlaceholder {
   width:100%; height:100%; display:flex; flex-direction:column;
