@@ -491,6 +491,12 @@ function bindUI() {
   }
 
   function __startLocationPickMode() {
+    // Clear any stale pick-mode click handler from a previous invocation
+    if (window.leafletMap && __pickModeClickHandler) {
+      try { window.leafletMap.off('click', __pickModeClickHandler); } catch(e) {}
+      __pickModeClickHandler = null;
+    }
+
     const banner      = document.getElementById('locationPickBanner');
     const bannerText  = document.getElementById('locationPickBannerText');
     const confirmBar  = document.getElementById('locationPickConfirmBar');
@@ -514,8 +520,9 @@ function bindUI() {
       if (banner)     banner.classList.add('hidden');
       if (confirmBar) confirmBar.classList.add('hidden');
       _removePinIfExists();
-      if (window.leafletMap) {
-        try { window.leafletMap.off('click', _onMapClick); } catch(e) {}
+      if (window.leafletMap && __pickModeClickHandler) {
+        try { window.leafletMap.off('click', __pickModeClickHandler); } catch(e) {}
+        __pickModeClickHandler = null;
       }
     }
 
@@ -529,6 +536,9 @@ function bindUI() {
       if (bannerText)  bannerText.textContent = 'Drag the pin to adjust';
       if (confirmBar)  confirmBar.classList.remove('hidden');
     }
+
+    // assign to module-level so _cleanup() and re-entry guard can reference it
+    __pickModeClickHandler = _onMapClick;
 
     if (window.leafletMap) {
       try { window.leafletMap.on('click', _onMapClick); } catch(e) {}
@@ -744,6 +754,7 @@ if (debugMode) {
   let __newGameLocationMode = 'current'; // 'current' | 'picked' — resets to 'current' each page load
   let __pickedAreaSeed = null;           // { lat, lon } | null
   let __pickModeMarker = null;           // Leaflet marker during pick mode
+  let __pickModeClickHandler = null;     // active Leaflet click handler for pick mode
 
   function selectChoice(groupSelector, attrName, value) {
     document.querySelectorAll(groupSelector).forEach(btn => {
