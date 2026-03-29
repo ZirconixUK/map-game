@@ -59,14 +59,7 @@
           var ctx = canvas.getContext('2d');
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(small, 0, 0, sw, sh, 0, 0, w, h);
-          // Blur pass: read the pixelated pixels back, then redraw with blur filter
-          var blurCanvas = document.createElement('canvas');
-          blurCanvas.width  = w;
-          blurCanvas.height = h;
-          var blurCtx = blurCanvas.getContext('2d');
-          blurCtx.filter = 'blur(6px)';
-          blurCtx.drawImage(canvas, 0, 0);
-          resolve(blurCanvas.toDataURL('image/jpeg', 0.85));
+          resolve(canvas.toDataURL('image/jpeg', 0.88));
         } catch(e) {
           resolve(dataUrl); // fallback: show original on canvas error
         }
@@ -228,7 +221,7 @@
     const ucClass = uncorrupted ? 'is-uncorrupted' : '';
     // Blur is baked into imgUrl via pixelateImage canvas, but also apply CSS filter inline
     // as a fallback for Safari (position:fixed + overflow:auto breaks CSS var inheritance).
-    const blurStyle = uncorrupted ? '' : ' style="filter:blur(10px) saturate(1.2) contrast(1.1)"';
+    const blurStyle = uncorrupted ? '' : ' style="filter:blur(3px) saturate(1.1) contrast(1.05)"';
     const glitchEnabled = (typeof STREETVIEW_GLITCH_ENABLED === 'undefined') ? true : !!STREETVIEW_GLITCH_ENABLED;
     const rgbHtml = (!uncorrupted && glitchEnabled)
       ? `<img class="photo-glimpse-img rgb rgb-a" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
