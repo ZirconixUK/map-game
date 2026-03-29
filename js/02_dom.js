@@ -475,6 +475,7 @@ function bindUI() {
       // Refresh live POIs from Overpass based on player location + mode radius.
       try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') await window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
       // By design: player location first, map centre second, then target pick based on that player location.
+      try { if (typeof window.__initGauntletIfNeeded === 'function') window.__initGauntletIfNeeded(); } catch(e) {}
       await pickNewTarget(true);
     } finally {
       if (btnStart) {
@@ -500,6 +501,7 @@ function bindUI() {
         window.setGameSetupSelection({
           length: selectedGameLength,
           difficulty: selectedGameDifficulty,
+          mode: selectedGameMode,
         });
       }
     } catch (e) {}
@@ -654,9 +656,10 @@ if (debugMode) {
   const panelNewGame = document.getElementById("panelNewGame");
   const savedGameSetup = (typeof window.getGameSetupSelection === 'function')
     ? window.getGameSetupSelection()
-    : { length: 'short', difficulty: 'normal' };
+    : { length: 'short', difficulty: 'normal', mode: 'normal' };
   let selectedGameLength = ((savedGameSetup && savedGameSetup.length) || 'short').toLowerCase();
   let selectedGameDifficulty = ((savedGameSetup && savedGameSetup.difficulty) || 'normal').toLowerCase();
+  let selectedGameMode = ((savedGameSetup && savedGameSetup.mode) || 'normal').toLowerCase();
 
   function selectChoice(groupSelector, attrName, value) {
     document.querySelectorAll(groupSelector).forEach(btn => {
@@ -668,6 +671,44 @@ if (debugMode) {
 
   selectChoice('[data-game-length]', 'data-game-length', selectedGameLength);
   selectChoice('[data-game-difficulty]', 'data-game-difficulty', selectedGameDifficulty);
+  selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
+
+  function __applyGauntletLengthConstraints(mode) {
+    const lengthBtns = document.querySelectorAll('[data-game-length]');
+    const infoBlock = document.getElementById('gauntletModeInfo');
+    if (mode === 'gauntlet') {
+      lengthBtns.forEach(btn => {
+        const v = btn.getAttribute('data-game-length') || '';
+        if (v === 'medium' || v === 'long') {
+          btn.classList.add('opacity-40', 'pointer-events-none');
+          btn.setAttribute('aria-disabled', 'true');
+        }
+      });
+      if (selectedGameLength === 'medium' || selectedGameLength === 'long') {
+        selectedGameLength = 'short';
+        selectChoice('[data-game-length]', 'data-game-length', selectedGameLength);
+        try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ length: selectedGameLength }); } catch(e) {}
+      }
+      if (infoBlock) infoBlock.classList.remove('hidden');
+    } else {
+      lengthBtns.forEach(btn => {
+        btn.classList.remove('opacity-40', 'pointer-events-none');
+        btn.removeAttribute('aria-disabled');
+      });
+      if (infoBlock) infoBlock.classList.add('hidden');
+    }
+  }
+
+  __applyGauntletLengthConstraints(selectedGameMode);
+
+  document.querySelectorAll('[data-game-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedGameMode = (btn.getAttribute('data-game-mode') || 'normal').toLowerCase();
+      selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
+      __applyGauntletLengthConstraints(selectedGameMode);
+      try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: selectedGameMode }); } catch(e) {}
+    });
+  });
 
   document.querySelectorAll('[data-game-length]').forEach(btn => {
     btn.addEventListener('click', () => {
