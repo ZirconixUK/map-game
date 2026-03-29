@@ -170,6 +170,7 @@ function stopGeolocationWatch() {
 }
 
 function startGeolocationWatch() {
+  if (window.__holdGeoWatch) return;
   if (debugMode) return;
   if (!navigator.geolocation) {
     log("Geolocation not available in this browser.");
