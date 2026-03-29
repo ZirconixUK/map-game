@@ -358,7 +358,7 @@ function bindUI() {
   });
   on("btnCenter","click",(ev)=>{ try{ if(ev&&ev.preventDefault) ev.preventDefault(); }catch(e){} try{ log("🎯 Center clicked."); }catch(e){} if (typeof centerOnPlayer==="function") centerOnPlayer(); });
   on("btnClear","click",clearClues);
-  async function positionPlayerForNewGame() {
+  async function positionPlayerForNewGame(opts = {}) {
     // In debug mode with a location already set, keep it — skip GPS override.
     if (debugMode && player && typeof player.lat === 'number' && typeof player.lon === 'number') {
       try { log(`📍 Debug mode: keeping location (${player.lat.toFixed(6)}, ${player.lon.toFixed(6)})`); } catch(e) {}
@@ -374,7 +374,7 @@ function bindUI() {
         const fix = await window.__setPlayerFromCurrentLocation({
           source: 'new-game-start',
           force: true,
-          centerAfterFix: true,
+          centerAfterFix: opts.centerAfterFix !== false,
           geoOpts: { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
         });
         try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
@@ -414,7 +414,9 @@ function bindUI() {
           });
         }
       } catch (e) {}
-      try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch (e) {}
+      if (opts.centerAfterFix !== false) {
+        try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch (e) {}
+      }
       try { log(`📍 New game start location: ${fix.lat.toFixed(6)}, ${fix.lon.toFixed(6)}${(typeof fix.accuracy === "number" && isFinite(fix.accuracy)) ? ` (±${Math.round(fix.accuracy)}m)` : ""}`); } catch (e) {}
       try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
       return true;
@@ -425,7 +427,9 @@ function bindUI() {
       try {
         if (typeof DEFAULT_START_LATLNG !== 'undefined' && DEFAULT_START_LATLNG && typeof setPlayerLatLng === 'function') {
           setPlayerLatLng(DEFAULT_START_LATLNG.lat, DEFAULT_START_LATLNG.lon, { manual: true, source: 'fallback:default-start', force: true });
-          try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch (e) {}
+          if (opts.centerAfterFix !== false) {
+            try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch (e) {}
+          }
           try { log(`📍 New game fallback start: ${DEFAULT_START_LATLNG.lat.toFixed(6)}, ${DEFAULT_START_LATLNG.lon.toFixed(6)} (Lime Street)`); } catch (e) {}
         }
       } catch (e) {}
@@ -660,6 +664,9 @@ if (debugMode) {
   let selectedGameLength = ((savedGameSetup && savedGameSetup.length) || 'short').toLowerCase();
   let selectedGameDifficulty = ((savedGameSetup && savedGameSetup.difficulty) || 'normal').toLowerCase();
   let selectedGameMode = ((savedGameSetup && savedGameSetup.mode) || 'normal').toLowerCase();
+  let __newGameLocationMode = 'current'; // 'current' | 'picked' — resets to 'current' each page load
+  let __pickedAreaSeed = null;           // { lat, lon } | null
+  let __pickModeMarker = null;           // Leaflet marker during pick mode
 
   function selectChoice(groupSelector, attrName, value) {
     document.querySelectorAll(groupSelector).forEach(btn => {
@@ -672,6 +679,7 @@ if (debugMode) {
   selectChoice('[data-game-length]', 'data-game-length', selectedGameLength);
   selectChoice('[data-game-difficulty]', 'data-game-difficulty', selectedGameDifficulty);
   selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
+  selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
 
   function __applyGauntletLengthConstraints(mode) {
     const lengthBtns = document.querySelectorAll('[data-game-length]');
@@ -730,6 +738,13 @@ if (debugMode) {
       selectedGameDifficulty = (btn.getAttribute('data-game-difficulty') || 'normal').toLowerCase();
       selectChoice('[data-game-difficulty]', 'data-game-difficulty', selectedGameDifficulty);
       try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ difficulty: selectedGameDifficulty }); } catch (e) {}
+    });
+  });
+
+  document.querySelectorAll('[data-start-location]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      __newGameLocationMode = (btn.getAttribute('data-start-location') || 'current').toLowerCase();
+      selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
     });
   });
 
