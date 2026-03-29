@@ -243,8 +243,10 @@
     });
 
     // Persist round result to server (no-op if not signed in; errors swallowed in db.js)
+    // Skip per-target saves in gauntlet mode — summary is saved as one row instead
+    const _skipDbSave = (typeof window.isGauntletActive === 'function') ? window.isGauntletActive() : false;
     try {
-      if (typeof window.saveRoundResult === 'function') {
+      if (!_skipDbSave && typeof window.saveRoundResult === 'function') {
         const _tgt = getTargetLatLng();
         const _round = getRound();
         const _tgtNameForSave = (() => {
