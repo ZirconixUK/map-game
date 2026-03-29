@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-03-29.glitch-fix';
+const BUILD_ID = '2026-03-29.gauntlet-constants';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
@@ -119,6 +119,8 @@ const DEFAULT_START_LATLNG = { lat: 53.40744, lon: -2.97785 };
 
 // Default round timer (mode-specific later).
 const ROUND_TIME_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+const GAUNTLET_TARGET_COUNT  = 5;
+const GAUNTLET_TIME_LIMIT_MS = 90 * 60 * 1000; // 90 minutes
 
 // ---- Radar options per game mode ----
 // Each entry is { m: distanceInMeters, heat: heatCost }.
