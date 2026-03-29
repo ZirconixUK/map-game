@@ -471,7 +471,24 @@
     // Brief pause so the player can see the reveal line on the map before the modal appears
     await new Promise(r => setTimeout(r, 1800));
 
-    openResultModal(html);
+    // Fire guesslocked event so gauntlet module can intercept before result modal
+    try {
+      window.dispatchEvent(new CustomEvent('guesslocked', {
+        detail: {
+          grade,
+          distanceM: rawD,
+          adjustedDistanceM: adjD,
+          guessLatLng: { lat: guess.lat, lon: guess.lon },
+          targetLatLng: tgt,
+        }
+      }));
+    } catch(e) {}
+
+    // Suppress normal result modal when gauntlet is active — it shows its own modals
+    const _gauntletActive = (typeof window.isGauntletActive === 'function') ? window.isGauntletActive() : false;
+    if (!_gauntletActive) {
+      openResultModal(html);
+    }
 
   }
 
