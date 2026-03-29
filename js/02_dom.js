@@ -218,7 +218,7 @@ function __buildPhotoGalleryGrid() {
     img.alt = photo.kind || 'Photo';
     img.loading = 'lazy';
 
-    const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 15;
+    const cellSize = (typeof STREETVIEW_CORRUPTION_THUMB_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_THUMB_CELL_SIZE : 64;
     const applyThumbPixelation = isCorrupted && typeof window.__pixelateImage === 'function';
 
     function setThumbSrc(rawUrl) {
