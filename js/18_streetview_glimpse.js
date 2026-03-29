@@ -275,7 +275,7 @@
       const inten = (ctx === 'snapshot')
         ? ((typeof STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT !== 'undefined') ? STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT : 0.85)
         : ((typeof STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE !== 'undefined') ? STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE : 0.60);
-      try { seedCorruption(inten, imgUrl, context); } catch(e) {}
+      try { seedCorruption(inten, displayUrl, context); } catch(e) {}
     }
   }
 
