@@ -587,12 +587,16 @@ function bindUI() {
           __pickedAreaSeed = { lat: ll.lat, lon: ll.lng };
         } catch(e) { return; }
         _cleanup();
-        startNewGameFromMenuOrDebug(__pickedAreaSeed);
+        const _seed = __pickedAreaSeed;
+        __pickedAreaSeed = null;
+        startNewGameFromMenuOrDebug(_seed);
       };
     }
+    window.__cancelPickModeIfActive = _cleanup;
   }
 
   function openNewGamePanel() {
+    try { if (typeof window.__cancelPickModeIfActive === 'function') window.__cancelPickModeIfActive(); } catch(e) {}
     const ids = ["panelGameplay","panelSystem","panelHeat","panelDebug","panelCurseSelect","panelPhotoGallery","panelHowToPlay","panelProfile"];
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
     const panelNewGame = document.getElementById("panelNewGame");

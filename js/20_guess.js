@@ -513,6 +513,7 @@
       if (panel) panel.classList.remove('open');
     } catch(e) {}
     // Close all sibling panels so the new game panel isn't hidden behind them.
+    try { if (typeof window.__cancelPickModeIfActive === 'function') window.__cancelPickModeIfActive(); } catch(e) {}
     try {
       ['panelGameplay','panelHeat','panelSystem','panelDebug','panelCurseSelect','panelHowToPlay','panelProfile'].forEach(id => {
         const el = document.getElementById(id); if (el) el.classList.remove('open');
