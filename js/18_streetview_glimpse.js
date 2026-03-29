@@ -51,13 +51,22 @@
           smallCtx.drawImage(img, 0, 0, sw, sh);
           // Step 2: scale the tiny canvas back up onto a full-size canvas using
           // nearest-neighbour (imageSmoothingEnabled = false → hard mosaic blocks)
+          // Also bake in a blur so the effect is visible even when CSS filter fails
+          // (e.g. Safari inside position:fixed / overflow:auto containers).
           var canvas = document.createElement('canvas');
           canvas.width  = w;
           canvas.height = h;
           var ctx = canvas.getContext('2d');
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(small, 0, 0, sw, sh, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.88));
+          // Blur pass: read the pixelated pixels back, then redraw with blur filter
+          var blurCanvas = document.createElement('canvas');
+          blurCanvas.width  = w;
+          blurCanvas.height = h;
+          var blurCtx = blurCanvas.getContext('2d');
+          blurCtx.filter = 'blur(6px)';
+          blurCtx.drawImage(canvas, 0, 0);
+          resolve(blurCanvas.toDataURL('image/jpeg', 0.85));
         } catch(e) {
           resolve(dataUrl); // fallback: show original on canvas error
         }
@@ -217,10 +226,12 @@
     const frameClass = (ctx === 'snapshot') ? 'is-snapshot' : 'is-glimpse';
     const uncorrupted = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
     const ucClass = uncorrupted ? 'is-uncorrupted' : '';
-    // Crop + light blur + heavy "glitch" corruption (CSS-only, no pixel access)
+    // Blur is baked into imgUrl via pixelateImage canvas, but also apply CSS filter inline
+    // as a fallback for Safari (position:fixed + overflow:auto breaks CSS var inheritance).
+    const blurStyle = uncorrupted ? '' : ' style="filter:blur(10px) saturate(1.2) contrast(1.1)"';
     const html = `
       <div class="photo-glimpse-frame ${frameClass} ${ucClass}">
-        <img class="photo-glimpse-img base" src="${imgUrl}" alt="Street View snapshot" loading="lazy" />
+        <img class="photo-glimpse-img base" src="${imgUrl}" alt="Street View snapshot" loading="lazy"${blurStyle} />
         <img class="photo-glimpse-img rgb rgb-a" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
         <img class="photo-glimpse-img rgb rgb-b" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
         <div class="photo-glitch-slices" id="photoGlitchSlices" aria-hidden="true"></div>
