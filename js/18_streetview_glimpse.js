@@ -214,13 +214,14 @@
     setModal(`<div class="muted">${msg}</div>`, 'Imagery © Google');
   }
 
-  async function setPhoto(imgUrl, tipText, context){
+  // cacheable: true → capture body.innerHTML into __cachedHtml once the base img loads
+  async function setPhoto(imgUrl, tipText, context, { cacheable = false } = {}) {
     const ctx = (context || 'glimpse').toLowerCase();
     const frameClass = (ctx === 'snapshot') ? 'is-snapshot' : 'is-glimpse';
     const uncorrupted = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
     const ucClass = uncorrupted ? 'is-uncorrupted' : '';
-    // Pixelate the image here so every call path gets corruption, not just the main glimpse.
-    // Keep the caller-supplied URL untouched (it's the original stored in __cachedImgUrl).
+    // Pixelate the image so every call path gets corruption, not just the main glimpse.
+    // imgUrl stays as the original (stored in __cachedImgUrl) for the uncorrupt tool.
     let displayUrl = imgUrl;
     if (!uncorrupted && imgUrl) {
       try {
@@ -228,8 +229,7 @@
         displayUrl = await pixelateImage(imgUrl, cellSize);
       } catch(e) {}
     }
-    // Apply CSS blur inline as a belt-and-suspenders fallback for Safari
-    // (position:fixed + overflow:auto stacking contexts can drop CSS var inheritance).
+    // CSS blur inline as Safari fallback (position:fixed + overflow:auto drops var() inheritance).
     const blurStyle = uncorrupted ? '' : ' style="filter:blur(1px) saturate(1.1) contrast(1.05)"';
     const glitchEnabled = (typeof STREETVIEW_GLITCH_ENABLED === 'undefined') ? true : !!STREETVIEW_GLITCH_ENABLED;
     const rgbHtml = (!uncorrupted && glitchEnabled)
@@ -247,6 +247,36 @@
       <div class="muted" style="margin-top:10px;">${tipText || 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.'}</div>
     `;
     setModal(html, 'Imagery © Google');
+
+    // Wire up img callbacks on the freshly-rendered element (must be after setModal writes the DOM).
+    const renderedImg = document.querySelector('#photoModalBody img.photo-glimpse-img.base');
+    if (renderedImg) {
+      if (cacheable) {
+        const onLoad = () => {
+          try {
+            const body = document.getElementById('photoModalBody');
+            __cachedHtml = body ? body.innerHTML : null;
+            __cachedLoaded = true;
+            try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
+          } catch(e) {}
+        };
+        // data URLs may be complete synchronously before onload fires
+        if (renderedImg.complete) { onLoad(); } else { renderedImg.onload = onLoad; }
+      }
+      renderedImg.onerror = () => {
+        setError('Could not load Street View imagery for this target right now (no coverage, quota, or network issue).');
+        if (typeof window.log === 'function') window.log('📷 Photo Glimpse: Street View image failed to load.');
+        clearCache();
+      };
+    }
+
+    // Seed glitch overlays after the DOM is ready — callers must NOT call seedCorruption separately.
+    if (!uncorrupted) {
+      const inten = (ctx === 'snapshot')
+        ? ((typeof STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT !== 'undefined') ? STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT : 0.85)
+        : ((typeof STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE !== 'undefined') ? STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE : 0.60);
+      try { seedCorruption(inten, imgUrl, context); } catch(e) {}
+    }
   }
 
   function seedCorruption(intensity, imgUrl, context){
@@ -351,25 +381,16 @@
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
       setTitle(context === 'snapshot' ? 'Circle Snapshot' : 'Photo Glimpse');
       openModal();
+      const tip = (context === 'snapshot')
+        ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
+        : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
       if (__unc && __cachedImgUrl) {
-        const tip = (context === 'snapshot')
-          ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
-          : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
-        setPhoto(__cachedImgUrl, tip, context);
-        try {
-          const s = document.getElementById('photoGlitchSlices');
-          if (s) s.innerHTML = '';
-          const b = document.getElementById('photoCorruptBlocks');
-          if (b) b.innerHTML = '';
-        } catch(e) {}
+        await setPhoto(__cachedImgUrl, tip, context);
       } else if (__cachedHtml) {
         setModal(__cachedHtml, 'Imagery © Google');
       } else {
-        // Fallback: no cached HTML, just re-render from cached image URL.
-        const tip = (context === 'snapshot')
-          ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
-          : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
-        setPhoto(__cachedImgUrl, tip, context);
+        // Fallback: no cached HTML, re-render from cached image URL.
+        await setPhoto(__cachedImgUrl, tip, context, { cacheable: true });
       }
       if (typeof window.log === 'function') window.log('📷 Photo Glimpse: re-opened cached image (no extra cost).');
       return { ok:true, cached:true };
@@ -457,25 +478,7 @@
       }
     }
 
-    setPhoto(dataUrl, tip, context);
-    // Add a glitchy "corruption" layer (stronger for snapshot than for optional glimpses).
-    try {
-      const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-      if (__unc) {
-        // Ensure any previously seeded corruption is cleared.
-        try {
-          const s = document.getElementById('photoGlitchSlices');
-          if (s) s.innerHTML = '';
-          const b = document.getElementById('photoCorruptBlocks');
-          if (b) b.innerHTML = '';
-        } catch(e) {}
-      } else {
-      const inten = (context === 'snapshot')
-        ? ((typeof STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT !== 'undefined') ? STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT : 0.85)
-        : ((typeof STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE !== 'undefined') ? STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE : 0.60);
-      seedCorruption(inten, dataUrl, context);
-      }
-    } catch (e) {}
+    await setPhoto(dataUrl, tip, context, { cacheable: true });
 
     // Register the photo with Phase 1 RoundState v1 (starter snapshot + future gallery).
     try {
@@ -499,28 +502,10 @@
     // have silently failed with QuotaExceededError if localStorage was near-full at that point.
     try { if (!__loadCachedDataUrl(k, context)) __saveCachedDataUrl(k, context, dataUrl); } catch(e) {}
 
-    // Cache the URL and mark as current target (we'll mark loaded on onload).
+    // Cache the URL and mark as current target (setPhoto's cacheable onload sets __cachedLoaded).
     __cachedTargetKey = k;
     __cachedImgUrl = dataUrl;
     __cachedLoaded = false;
-
-    // Attach a one-time error handler to show a friendly message if the image fails.
-    const img = document.querySelector('#photoModalBody img.photo-glimpse-img.base');
-    if (img) {
-      img.onload = () => {
-        try {
-          const body = document.getElementById('photoModalBody');
-          __cachedHtml = body ? body.innerHTML : null;
-          __cachedLoaded = true;
-          try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
-        } catch(e) {}
-      };
-      img.onerror = () => {
-        setError('Could not load Street View imagery for this target right now (no coverage, quota, or network issue).');
-        if (typeof window.log === 'function') window.log('📷 Photo Glimpse: Street View image failed to load.');
-        clearCache();
-      };
-    }
 
     if (typeof window.log === 'function') window.log('📷 Photo Glimpse: Street View image loaded (or loading).');
     // Treat persisted data-URL loads as cached so callers can avoid charging.
@@ -622,9 +607,7 @@ async function showStreetViewExtraPhotoForTarget({ tier = 'near100' } = {}){
       openModal();
       setTitle(kind === 'near100' ? 'Extra photo (≤100m)' : 'Extra photo (≤200m)');
       const tip = (kind === 'near100') ? 'A nearby angle (within 100m of the target pano).' : 'A wider nearby angle (within 200m of the target pano).';
-      setPhoto(existing.url, tip, 'glimpse');
-      const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-      if (!__unc) try { seedCorruption(0.55, existing.url, 'glimpse'); } catch(e) {}
+      await setPhoto(existing.url, tip, 'glimpse');
       if (typeof window.log === 'function') window.log(`📷 Extra photo: re-opened cached (${kind}).`);
       return { ok:true, cached:true };
     }
@@ -715,9 +698,7 @@ async function showStreetViewExtraPhotoForTarget({ tier = 'near100' } = {}){
 
 
   const tip = (kind === 'near100') ? 'A nearby angle (within 100m of the target pano).' : 'A wider nearby angle (within 200m of the target pano).';
-  setPhoto(dataUrl, tip, 'glimpse');
-  const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-  if (!__unc) try { seedCorruption(0.55, dataUrl, 'glimpse'); } catch(e) {}
+  await setPhoto(dataUrl, tip, 'glimpse');
 
   // Register in round photos cache/state
   try {
@@ -751,9 +732,7 @@ async function showStreetViewHorizonPhotoForTarget() {
     openModal();
     setTitle('Horizon photo');
     const tip = 'The skyline as seen from the target, facing toward you.';
-    setPhoto(existing.url, tip, 'glimpse');
-    const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-    if (!__unc) try { seedCorruption(0.55, existing.url, 'glimpse'); } catch(e) {}
+    await setPhoto(existing.url, tip, 'glimpse');
     if (typeof window.log === 'function') window.log('📷 Horizon photo: re-opened cached (no extra cost).');
     return { ok: true, cached: true };
   }
@@ -807,9 +786,7 @@ async function showStreetViewHorizonPhotoForTarget() {
   }
 
   const tip = 'The skyline as seen from the target, facing toward you.';
-  setPhoto(dataUrl, tip, 'glimpse');
-  const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-  if (!__unc) try { seedCorruption(0.55, dataUrl, 'glimpse'); } catch(e) {}
+  await setPhoto(dataUrl, tip, 'glimpse');
 
   // Register in round state so re-open is free
   try {
@@ -902,11 +879,7 @@ async function showStreetViewHorizonPhotoForTarget() {
         : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
       openModal();
       setTitle(displayTitle);
-      const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-      setPhoto(url, tipText, context);
-      if (!__unc && context !== 'snapshot') {
-        try { seedCorruption(0.55, url, context); } catch(e) {}
-      }
+      await setPhoto(url, tipText, context);
     } catch(e) {}
   };
 })();
