@@ -221,7 +221,7 @@
     const ucClass = uncorrupted ? 'is-uncorrupted' : '';
     // Blur is baked into imgUrl via pixelateImage canvas, but also apply CSS filter inline
     // as a fallback for Safari (position:fixed + overflow:auto breaks CSS var inheritance).
-    const blurStyle = uncorrupted ? '' : ' style="filter:blur(3px) saturate(1.1) contrast(1.05)"';
+    const blurStyle = uncorrupted ? '' : ' style="filter:blur(1.5px) saturate(1.1) contrast(1.05)"';
     const glitchEnabled = (typeof STREETVIEW_GLITCH_ENABLED === 'undefined') ? true : !!STREETVIEW_GLITCH_ENABLED;
     const rgbHtml = (!uncorrupted && glitchEnabled)
       ? `<img class="photo-glimpse-img rgb rgb-a" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />

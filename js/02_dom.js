@@ -209,7 +209,7 @@ function __buildPhotoGalleryGrid() {
     }
     const item = document.createElement('div');
     item.className = 'photoGalleryItem';
-    if (isCorrupted && photo.kind !== 'starter') item.classList.add('is-corrupted');
+    if (isCorrupted) item.classList.add('is-corrupted');
     item.dataset.photoUrl     = url || '';
     item.dataset.photoKind    = photo.kind || 'Photo';
     item.dataset.photoSource  = photo.sourceUrl || '';
