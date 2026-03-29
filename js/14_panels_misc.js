@@ -480,11 +480,21 @@
     }
 
     // Fetch rounds + achievements in parallel
-    const [{ data: rounds }, { data: earnedRows }] = await Promise.all([
+    const [{ data: rounds }, { data: earnedRows }, { data: gauntletRuns }] = await Promise.all([
       window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
       window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id),
-    ]).catch(() => [{ data: null }, { data: null }]);
+      window.__supabase.from('gauntlet_runs').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
+    ]).catch(() => [{ data: null }, { data: null }, { data: null }]);
     const rs = rounds || [];
+    const gauntletAsRounds = (gauntletRuns || []).map(g => ({
+      grade_label:  g.overall_grade,
+      target_name:  'Gauntlet',
+      distance_m:   g.avg_distance_m,
+      score_total:  g.overall_score,
+      game_length:  null,
+      played_at:    g.played_at,
+    }));
+    const allHistory = [...rs, ...gauntletAsRounds].sort((a, b) => new Date(b.played_at) - new Date(a.played_at));
 
     // Stats
     const scores = rs.map(r => r.score_total).filter(v => v != null);
@@ -515,10 +525,10 @@
 
     // History
     if (el('ppHistory')) {
-      if (!rs.length) {
+      if (!allHistory.length) {
         el('ppHistory').innerHTML = '<div class="text-xs text-slate-400">No rounds yet — get out there.</div>';
       } else {
-        el('ppHistory').innerHTML = rs.slice(0, 20).map(r => {
+        el('ppHistory').innerHTML = allHistory.slice(0, 20).map(r => {
           const gc = GRADE_COLORS[r.grade_label] || '#94a3b8';
           return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0f1729;border:1px solid #1e3a5f;border-radius:12px;">
             <div style="font-size:0.8rem;font-weight:700;min-width:56px;color:${gc};">${r.grade_label || '—'}</div>
