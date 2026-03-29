@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-03-29.thumb-corrupt';
+const BUILD_ID = '2026-03-29.thumb-pixelate';
 
 // ---- Config ----
 const BBOX = {
@@ -103,7 +103,7 @@ const SCORE_TOOL_EFFICIENCY  = [100, 90, 75, 60, 45, 30, 15, 0]; // index = tool
 // 0..1 intensity controls CSS glitch blocks (higher = more glitch blocks).
 const STREETVIEW_CORRUPTION_ENABLED = true;
 const STREETVIEW_GLITCH_ENABLED = false; // false = pixelation/blur only (no RGB split or glitch blocks)
-const STREETVIEW_CORRUPTION_CELL_SIZE = 20;
+const STREETVIEW_CORRUPTION_CELL_SIZE = 15;
 const STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT = 0.85;
 const STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE = 0.60;
 

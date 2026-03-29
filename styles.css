@@ -407,9 +407,9 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 .photo-glimpse-frame{
   width:100%; aspect-ratio:1/1; overflow:hidden; border-radius:12px;
   background:rgba(0,0,0,.08); position:relative;
-  --blur:1.5px; --zoom:1.28; --sat:1.12; --con:1.06;
+  --blur:1px; --zoom:1.28; --sat:1.12; --con:1.06;
 }
-.photo-glimpse-frame.is-snapshot{ --blur:1.5px; --zoom:1.36; }
+.photo-glimpse-frame.is-snapshot{ --blur:1px; --zoom:1.36; }
 .photo-glimpse-frame.is-uncorrupted{ --blur:0px; --sat:1.00; --con:1.00; }
 .photo-glimpse-frame.is-uncorrupted .photo-glimpse-img{ filter:none !important; animation:none !important; }
 .photo-glimpse-frame.is-uncorrupted .photo-glimpse-img.rgb{ display:none !important; }

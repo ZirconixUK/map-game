@@ -217,8 +217,20 @@ function __buildPhotoGalleryGrid() {
     const img = document.createElement('img');
     img.alt = photo.kind || 'Photo';
     img.loading = 'lazy';
+
+    const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 15;
+    const applyThumbPixelation = isCorrupted && typeof window.__pixelateImage === 'function';
+
+    function setThumbSrc(rawUrl) {
+      if (applyThumbPixelation) {
+        window.__pixelateImage(rawUrl, cellSize).then(px => { img.src = px; }).catch(() => { img.src = rawUrl; });
+      } else {
+        img.src = rawUrl;
+      }
+    }
+
     if (url) {
-      img.src = url;
+      setThumbSrc(url);
     } else {
       // Fetch thumbnail in background; show a spinner until it arrives
       item.classList.add('no-url');
@@ -234,9 +246,9 @@ function __buildPhotoGalleryGrid() {
           if (!fetched) return;
           item.dataset.photoUrl = fetched;
           item.classList.remove('no-url');
-          img.src = fetched;
           img.style.display = '';
           ph.remove();
+          setThumbSrc(fetched);
         }).catch(() => {});
       }
     }
