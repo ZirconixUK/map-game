@@ -34,6 +34,8 @@
     return new Promise(function(resolve) {
       var cs = (typeof cellSize === 'number' && cellSize > 0) ? Math.round(cellSize) : 16;
       var img = new Image();
+      // crossOrigin needed so Google SV URLs don't taint the canvas (would cause toDataURL to throw)
+      img.crossOrigin = 'anonymous';
       img.onload = function() {
         try {
           var w = img.naturalWidth  || img.width  || 640;
@@ -884,7 +886,7 @@ async function showStreetViewHorizonPhotoForTarget() {
     } catch(e) { return null; }
   };
 
-  window.showPhotoInModal = function(url, title, sourceUrl) {
+  window.showPhotoInModal = async function(url, title, sourceUrl) {
     try {
       const kindLabel = {
         starter: 'Circle Snapshot',
@@ -899,8 +901,15 @@ async function showStreetViewHorizonPhotoForTarget() {
         : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
       openModal();
       setTitle(displayTitle);
-      setPhoto(url, tipText, context);
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
+      let displayUrl = url;
+      if (!__unc) {
+        try {
+          const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 16;
+          displayUrl = await pixelateImage(url, cellSize);
+        } catch(e) {}
+      }
+      setPhoto(displayUrl, tipText, context);
       if (!__unc && context !== 'snapshot') {
         try { seedCorruption(0.55, url, context); } catch(e) {}
       }
