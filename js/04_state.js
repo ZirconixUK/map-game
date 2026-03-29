@@ -79,6 +79,9 @@ window.getModeTargetRadiusM = () => {
 window.getRoundTimeLimitMs = () => {
   try {
     const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
+    if (setup && setup.mode === 'gauntlet') {
+      return (typeof GAUNTLET_TIME_LIMIT_MS === 'number' && isFinite(GAUNTLET_TIME_LIMIT_MS)) ? GAUNTLET_TIME_LIMIT_MS : (90 * 60 * 1000);
+    }
     const length = setup && typeof setup.length === 'string' ? setup.length.toLowerCase() : 'short';
     if (length === 'medium') return 45 * 60 * 1000;
     if (length === 'long') return 60 * 60 * 1000;
@@ -149,6 +152,7 @@ window.isToolLockedByTime = (toolId, optionId) => {
 let gameSetup = {
   length: 'short',
   difficulty: 'normal',
+  mode: 'normal',
 };
 
 function __normalizeGameLength(v) {
@@ -161,11 +165,17 @@ function __normalizeGameDifficulty(v) {
   return (x === 'easy' || x === 'normal' || x === 'hard') ? x : 'normal';
 }
 
+function __normalizeGameMode(v) {
+  const x = String(v == null ? '' : v).trim().toLowerCase();
+  return (x === 'gauntlet') ? 'gauntlet' : 'normal';
+}
+
 function __normalizeGameSetup(src) {
   const o = (src && typeof src === 'object') ? src : {};
   return {
     length: __normalizeGameLength(o.length),
     difficulty: __normalizeGameDifficulty(o.difficulty),
+    mode: __normalizeGameMode(o.mode),
   };
 }
 
@@ -379,6 +389,7 @@ function saveRoundState() {
       recentPanoKeys,
       fogActions: (typeof getFogActions === 'function') ? getFogActions() : null,
       gameSetup: __normalizeGameSetup(gameSetup),
+      gauntletState: (typeof window.getGauntletStateForPersistence === 'function') ? window.getGauntletStateForPersistence() : null,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch (e) {
