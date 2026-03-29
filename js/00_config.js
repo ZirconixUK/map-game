@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-03-29.thumb-36';
+const BUILD_ID = '2026-03-29.glitch-on';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
@@ -103,7 +103,7 @@ const SCORE_TOOL_EFFICIENCY  = [100, 90, 75, 60, 45, 30, 15, 0]; // index = tool
 // CELL_SIZE: mosaic grid size in px (higher = chunkier, more obscuring). 16 is the baseline.
 // 0..1 intensity controls CSS glitch blocks (higher = more glitch blocks).
 const STREETVIEW_CORRUPTION_ENABLED = true;
-const STREETVIEW_GLITCH_ENABLED = false; // false = pixelation/blur only (no RGB split or glitch blocks)
+const STREETVIEW_GLITCH_ENABLED = true;
 const STREETVIEW_CORRUPTION_CELL_SIZE = 15;
 const STREETVIEW_CORRUPTION_THUMB_CELL_SIZE = 36; // larger cells needed — thumbnails display at ~90px vs 640px source
 const STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT = 0.85;
