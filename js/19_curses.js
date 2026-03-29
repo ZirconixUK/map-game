@@ -268,22 +268,28 @@
       let applied = null;
       if (triggered) applied = applyTierCurse(level);
 
-      // Second independent roll: Overcharged (time-penalty curse)
-      const overchargedResult = __rollCurse('overchargedChanceByHeatLevel', 'overcharged', level, diff);
+      // Only one curse may fire per tool use. Each roll is skipped once any curse has triggered.
+      let _hit = triggered && !!(applied && applied.curse);
 
-      // Third independent roll: Veil (canvas overlay hidden)
-      const veilResult = __rollCurse('veilChanceByHeatLevel', 'veil', level, diff);
+      const overchargedResult   = _hit ? null : __rollCurse('overchargedChanceByHeatLevel',    'overcharged',     level, diff);
+      _hit = _hit || !!(overchargedResult && overchargedResult.curse);
 
-      // Fourth independent roll: Blackout (map tiles + canvas hidden)
-      const blackoutResult = __rollCurse('blackoutChanceByHeatLevel', 'blackout', level, diff);
+      const veilResult          = _hit ? null : __rollCurse('veilChanceByHeatLevel',            'veil',            level, diff);
+      _hit = _hit || !!(veilResult && veilResult.curse);
 
-      // Fifth independent roll: Ghost (player dot hidden)
-      const ghostResult = __rollCurse('ghostChanceByHeatLevel', 'ghost', level, diff);
+      const blackoutResult      = _hit ? null : __rollCurse('blackoutChanceByHeatLevel',        'blackout',        level, diff);
+      _hit = _hit || !!(blackoutResult && blackoutResult.curse);
 
-      // Independent rolls: instant time penalties (scale with game length)
-      const timePenMinorResult    = __rollCurse('timePenMinorChanceByHeatLevel',    'timepen_minor',    level, diff);
-      const timePenModerateResult = __rollCurse('timePenModerateChanceByHeatLevel', 'timepen_moderate', level, diff);
-      const timePenMajorResult    = __rollCurse('timePenMajorChanceByHeatLevel',    'timepen_major',    level, diff);
+      const ghostResult         = _hit ? null : __rollCurse('ghostChanceByHeatLevel',           'ghost',           level, diff);
+      _hit = _hit || !!(ghostResult && ghostResult.curse);
+
+      const timePenMinorResult    = _hit ? null : __rollCurse('timePenMinorChanceByHeatLevel',    'timepen_minor',    level, diff);
+      _hit = _hit || !!(timePenMinorResult && timePenMinorResult.curse);
+
+      const timePenModerateResult = _hit ? null : __rollCurse('timePenModerateChanceByHeatLevel', 'timepen_moderate', level, diff);
+      _hit = _hit || !!(timePenModerateResult && timePenModerateResult.curse);
+
+      const timePenMajorResult    = _hit ? null : __rollCurse('timePenMajorChanceByHeatLevel',    'timepen_major',    level, diff);
 
       return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult, timePenMinor: timePenMinorResult, timePenModerate: timePenModerateResult, timePenMajor: timePenMajorResult };
     } catch (e) {

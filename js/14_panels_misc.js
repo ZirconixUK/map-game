@@ -458,6 +458,7 @@
   }
 
   window.__loadProfilePanel = async function() {
+    try {
     if (!window.__supabase) { showGuest(); return; }
     const { data: { session } } = await window.__supabase.auth.getSession().catch(() => ({ data: { session: null } }));
     if (!session) { showGuest(); return; }
@@ -479,12 +480,13 @@
         </div>`;
     }
 
-    // Fetch rounds + achievements in parallel
-    const [{ data: rounds }, { data: earnedRows }, { data: gauntletRuns }] = await Promise.all([
+    // Fetch rounds + achievements in parallel; gauntlet_runs is optional (table may not exist yet)
+    const [roundsResult, earnedResult, gauntletResult] = await Promise.all([
       window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).catch(() => ({ data: null })),
       window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id).catch(() => ({ data: null })),
       window.__supabase.from('gauntlet_runs').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).catch(() => ({ data: null })),
     ]);
+    const [{ data: rounds }, { data: earnedRows }, { data: gauntletRuns }] = [roundsResult, earnedResult, gauntletResult];
     const rs = rounds || [];
     const gauntletAsRounds = (gauntletRuns || []).map(g => ({
       grade_label:  g.overall_grade,
@@ -541,6 +543,7 @@
         }).join('');
       }
     }
+    } catch(e) { console.error('[profile] load failed:', e); showGuest(); }
   };
 })();
 

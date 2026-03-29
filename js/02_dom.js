@@ -617,7 +617,7 @@ function bindUI() {
     } catch (e) {}
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.remove("open");
-    if (__newGameLocationMode === 'picked') {
+    if (__newGameLocationMode === 'pick') {
       __startLocationPickMode();
     } else {
       startNewGameFromMenuOrDebug();
