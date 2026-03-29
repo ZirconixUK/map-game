@@ -112,7 +112,38 @@
     }
   }
 
+  async function saveGauntletRun(data) {
+    try {
+      const auth = await _getAuthedClient();
+      if (!auth) return;
+      const { client, userId } = auth;
+
+      console.log('[db] saving gauntlet run for user', userId);
+      const { error } = await client.from('gauntlet_runs').insert({
+        user_id:        userId,
+        difficulty:     data.difficulty      || null,
+        overall_grade:  data.overall_grade   || null,
+        overall_score:  data.overall_score   ?? null,
+        avg_distance_m: data.avg_distance_m  ?? null,
+        time_bonus:     data.time_bonus      ?? null,
+        remaining_ms:   data.remaining_ms    ?? null,
+        elapsed_ms:     data.elapsed_ms      ?? null,
+        target_count:   data.target_count    ?? 5,
+        results_json:   data.results_json    || null,
+      });
+
+      if (error) {
+        console.warn('[db] saveGauntletRun error', error);
+      } else {
+        console.log('[db] gauntlet run saved successfully');
+      }
+    } catch (e) {
+      // swallow — DB is a progressive enhancement
+    }
+  }
+
   window.saveRoundResult = saveRoundResult;
+  window.saveGauntletRun = saveGauntletRun;
   window.getRoundHistory = getRoundHistory;
   window.getAchievements = getAchievements;
 })();
