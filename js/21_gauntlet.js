@@ -419,6 +419,25 @@
 
       body.innerHTML = html;
       try { localStorage.setItem(GAUNTLET_SUMMARY_KEY, html); } catch (e) {}
+
+      // Persist to database (no-op for guests)
+      try {
+        if (typeof window.saveGauntletRun === 'function') {
+          const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+          window.saveGauntletRun({
+            difficulty:     (setup && setup.difficulty) || 'normal',
+            overall_grade:  overallGrade,
+            overall_score:  overallScore,
+            avg_distance_m: avgDist,
+            time_bonus:     timeBonus,
+            remaining_ms:   remainingMs,
+            elapsed_ms:     gauntletState.chainTimerStartMs ? (Date.now() - gauntletState.chainTimerStartMs) : null,
+            target_count:   gauntletState.totalTargets,
+            results_json:   gauntletState.results,
+          });
+        }
+      } catch (e) {}
+
       __wireGauntletSummaryButtons();
       modal.classList.remove('hidden');
     } catch (e) {}
