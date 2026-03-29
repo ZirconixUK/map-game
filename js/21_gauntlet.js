@@ -454,6 +454,7 @@
         __closeGauntletSummary();
         __deactivateGauntlet();
         try { localStorage.removeItem(GAUNTLET_SUMMARY_KEY); } catch (e) {}
+        try { if (typeof window.__resetGameModeToNormal === 'function') window.__resetGameModeToNormal(); } catch (e) {}
         if (typeof window.startNewRound === 'function') window.startNewRound();
       };
     } catch (e) {}

@@ -710,6 +710,13 @@ if (debugMode) {
     });
   });
 
+  window.__resetGameModeToNormal = function () {
+    selectedGameMode = 'normal';
+    selectChoice('[data-game-mode]', 'data-game-mode', 'normal');
+    __applyGauntletLengthConstraints('normal');
+    try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: 'normal' }); } catch(e) {}
+  };
+
   document.querySelectorAll('[data-game-length]').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedGameLength = (btn.getAttribute('data-game-length') || 'short').toLowerCase();

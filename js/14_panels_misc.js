@@ -481,10 +481,10 @@
 
     // Fetch rounds + achievements in parallel
     const [{ data: rounds }, { data: earnedRows }, { data: gauntletRuns }] = await Promise.all([
-      window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
-      window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id),
-      window.__supabase.from('gauntlet_runs').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
-    ]).catch(() => [{ data: null }, { data: null }, { data: null }]);
+      window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).catch(() => ({ data: null })),
+      window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id).catch(() => ({ data: null })),
+      window.__supabase.from('gauntlet_runs').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).catch(() => ({ data: null })),
+    ]);
     const rs = rounds || [];
     const gauntletAsRounds = (gauntletRuns || []).map(g => ({
       grade_label:  g.overall_grade,
