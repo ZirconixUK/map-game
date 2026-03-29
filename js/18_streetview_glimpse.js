@@ -229,11 +229,15 @@
     // Blur is baked into imgUrl via pixelateImage canvas, but also apply CSS filter inline
     // as a fallback for Safari (position:fixed + overflow:auto breaks CSS var inheritance).
     const blurStyle = uncorrupted ? '' : ' style="filter:blur(10px) saturate(1.2) contrast(1.1)"';
+    const glitchEnabled = (typeof STREETVIEW_GLITCH_ENABLED === 'undefined') ? true : !!STREETVIEW_GLITCH_ENABLED;
+    const rgbHtml = (!uncorrupted && glitchEnabled)
+      ? `<img class="photo-glimpse-img rgb rgb-a" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
+        <img class="photo-glimpse-img rgb rgb-b" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />`
+      : '';
     const html = `
       <div class="photo-glimpse-frame ${frameClass} ${ucClass}">
         <img class="photo-glimpse-img base" src="${imgUrl}" alt="Street View snapshot" loading="lazy"${blurStyle} />
-        <img class="photo-glimpse-img rgb rgb-a" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
-        <img class="photo-glimpse-img rgb rgb-b" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
+        ${rgbHtml}
         <div class="photo-glitch-slices" id="photoGlitchSlices" aria-hidden="true"></div>
         <div class="photo-corrupt-overlay" aria-hidden="true"></div>
         <div class="photo-corrupt-blocks" id="photoCorruptBlocks" aria-hidden="true"></div>
@@ -246,6 +250,8 @@
   function seedCorruption(intensity, imgUrl, context){
     const enabled = (typeof STREETVIEW_CORRUPTION_ENABLED !== 'undefined') ? !!STREETVIEW_CORRUPTION_ENABLED : true;
     if (!enabled) return;
+    const glitchEnabled = (typeof STREETVIEW_GLITCH_ENABLED === 'undefined') ? true : !!STREETVIEW_GLITCH_ENABLED;
+    if (!glitchEnabled) return;
     // If the round has been "uncorrupted", never add corruption layers.
     try {
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;

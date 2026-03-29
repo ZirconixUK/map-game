@@ -6,6 +6,8 @@
  *   transformed along with the map.
  */
 
+const BUILD_ID = '2026-03-29.2549e84';
+
 // ---- Config ----
 const BBOX = {
   nw: { lat: 53.414443210551035, lon: -3.0047607421875 },
@@ -100,6 +102,7 @@ const SCORE_TOOL_EFFICIENCY  = [100, 90, 75, 60, 45, 30, 15, 0]; // index = tool
 // CELL_SIZE: mosaic grid size in px (higher = chunkier, more obscuring). 16 is the baseline.
 // 0..1 intensity controls CSS glitch blocks (higher = more glitch blocks).
 const STREETVIEW_CORRUPTION_ENABLED = true;
+const STREETVIEW_GLITCH_ENABLED = false; // false = pixelation/blur only (no RGB split or glitch blocks)
 const STREETVIEW_CORRUPTION_CELL_SIZE = 40;
 const STREETVIEW_CORRUPTION_INTENSITY_SNAPSHOT = 0.85;
 const STREETVIEW_CORRUPTION_INTENSITY_GLIMPSE = 0.60;

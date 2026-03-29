@@ -164,6 +164,7 @@
   <div id="mapShell">
     <div id="panelBackdrop" aria-hidden="true"></div>
     <div id="leafletMap" aria-label="Leaflet map"></div>
+    <div id="buildBadge" style="position:fixed;bottom:22px;right:4px;z-index:500;font-size:9px;font-family:monospace;color:rgba(255,255,255,0.45);pointer-events:none;line-height:1;"></div>
     <canvas id="view"></canvas>
 
     <!-- Toast -->
@@ -722,5 +723,14 @@
     crossorigin=""
   ></script>
   <script src="https://unpkg.com/martinez-polygon-clipping@0.7.4/dist/martinez.min.js"></script>
+  <script>
+    (function(){
+      var el = document.getElementById('buildBadge');
+      if (el) {
+        var v = (typeof BUILD_ID !== 'undefined') ? BUILD_ID : ('cb:' + (window.__cb || '?'));
+        el.textContent = v;
+      }
+    })();
+  </script>
 </body>
 </html>
