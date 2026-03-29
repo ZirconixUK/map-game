@@ -214,22 +214,31 @@
     setModal(`<div class="muted">${msg}</div>`, 'Imagery © Google');
   }
 
-  function setPhoto(imgUrl, tipText, context){
+  async function setPhoto(imgUrl, tipText, context){
     const ctx = (context || 'glimpse').toLowerCase();
     const frameClass = (ctx === 'snapshot') ? 'is-snapshot' : 'is-glimpse';
     const uncorrupted = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
     const ucClass = uncorrupted ? 'is-uncorrupted' : '';
-    // Blur is baked into imgUrl via pixelateImage canvas, but also apply CSS filter inline
-    // as a fallback for Safari (position:fixed + overflow:auto breaks CSS var inheritance).
+    // Pixelate the image here so every call path gets corruption, not just the main glimpse.
+    // Keep the caller-supplied URL untouched (it's the original stored in __cachedImgUrl).
+    let displayUrl = imgUrl;
+    if (!uncorrupted && imgUrl) {
+      try {
+        const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 15;
+        displayUrl = await pixelateImage(imgUrl, cellSize);
+      } catch(e) {}
+    }
+    // Apply CSS blur inline as a belt-and-suspenders fallback for Safari
+    // (position:fixed + overflow:auto stacking contexts can drop CSS var inheritance).
     const blurStyle = uncorrupted ? '' : ' style="filter:blur(1px) saturate(1.1) contrast(1.05)"';
     const glitchEnabled = (typeof STREETVIEW_GLITCH_ENABLED === 'undefined') ? true : !!STREETVIEW_GLITCH_ENABLED;
     const rgbHtml = (!uncorrupted && glitchEnabled)
-      ? `<img class="photo-glimpse-img rgb rgb-a" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />
-        <img class="photo-glimpse-img rgb rgb-b" src="${imgUrl}" alt="" aria-hidden="true" loading="lazy" />`
+      ? `<img class="photo-glimpse-img rgb rgb-a" src="${displayUrl}" alt="" aria-hidden="true" loading="lazy" />
+        <img class="photo-glimpse-img rgb rgb-b" src="${displayUrl}" alt="" aria-hidden="true" loading="lazy" />`
       : '';
     const html = `
       <div class="photo-glimpse-frame ${frameClass} ${ucClass}">
-        <img class="photo-glimpse-img base" src="${imgUrl}" alt="Street View snapshot" loading="lazy"${blurStyle} />
+        <img class="photo-glimpse-img base" src="${displayUrl}" alt="Street View snapshot" loading="lazy"${blurStyle} />
         ${rgbHtml}
         <div class="photo-glitch-slices" id="photoGlitchSlices" aria-hidden="true"></div>
         <div class="photo-corrupt-overlay" aria-hidden="true"></div>
@@ -360,15 +369,7 @@
         const tip = (context === 'snapshot')
           ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
           : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
-        let fallbackDisplayUrl = __cachedImgUrl;
-        try {
-          const __uncFb = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-          if (!__uncFb && __cachedImgUrl) {
-            const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 16;
-            fallbackDisplayUrl = await pixelateImage(__cachedImgUrl, cellSize);
-          }
-        } catch(e) {}
-        setPhoto(fallbackDisplayUrl, tip, context);
+        setPhoto(__cachedImgUrl, tip, context);
       }
       if (typeof window.log === 'function') window.log('📷 Photo Glimpse: re-opened cached image (no extra cost).');
       return { ok:true, cached:true };
@@ -456,18 +457,7 @@
       }
     }
 
-    // Pixelate before display (unless uncorrupted). Keep original dataUrl in __cachedImgUrl
-    // so the uncorrupt tool can still reveal the clean image.
-    let displayUrl = dataUrl;
-    try {
-      const __uncPx = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-      if (!__uncPx) {
-        const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 16;
-        displayUrl = await pixelateImage(dataUrl, cellSize);
-      }
-    } catch(e) {}
-
-    setPhoto(displayUrl, tip, context);
+    setPhoto(dataUrl, tip, context);
     // Add a glitchy "corruption" layer (stronger for snapshot than for optional glimpses).
     try {
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
@@ -913,14 +903,7 @@ async function showStreetViewHorizonPhotoForTarget() {
       openModal();
       setTitle(displayTitle);
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
-      let displayUrl = url;
-      if (!__unc) {
-        try {
-          const cellSize = (typeof STREETVIEW_CORRUPTION_CELL_SIZE !== 'undefined') ? STREETVIEW_CORRUPTION_CELL_SIZE : 16;
-          displayUrl = await pixelateImage(url, cellSize);
-        } catch(e) {}
-      }
-      setPhoto(displayUrl, tipText, context);
+      setPhoto(url, tipText, context);
       if (!__unc && context !== 'snapshot') {
         try { seedCorruption(0.55, url, context); } catch(e) {}
       }
