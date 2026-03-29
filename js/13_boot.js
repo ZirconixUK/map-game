@@ -173,10 +173,12 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
       } catch (e) {}
 
       __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
+      try { if (typeof window.restoreGauntletState === 'function' && saved.gauntletState) window.restoreGauntletState(saved.gauntletState); } catch(e) {}
     } else if (saved && typeof saved.targetIdx === "number" && POIS && POIS[saved.targetIdx]) {
       targetIdx = saved.targetIdx;
       target = POIS[targetIdx];
       __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
+      try { if (typeof window.restoreGauntletState === 'function' && saved.gauntletState) window.restoreGauntletState(saved.gauntletState); } catch(e) {}
     } else {
       // No saved game — flag so startup flow opens the New Game panel
       window.__needsNewGameSetup = true;
@@ -264,9 +266,15 @@ setTimeout(async function __autoStartup() {
   // rare restore glitch where hasGuessed is stale/false despite a result existing.
   if (!window.__needsNewGameSetup) {
     try {
-      const _savedResult = localStorage.getItem('mapgame_result_html_v1');
-      if (_savedResult && typeof window.reopenResultModal === 'function') {
-        window.reopenResultModal();
+      // Gauntlet summary takes priority over normal result modal
+      const _savedGauntletSummary = localStorage.getItem('mapgame_gauntlet_summary_v1');
+      if (_savedGauntletSummary && typeof window.reopenGauntletSummary === 'function') {
+        window.reopenGauntletSummary();
+      } else {
+        const _savedResult = localStorage.getItem('mapgame_result_html_v1');
+        if (_savedResult && typeof window.reopenResultModal === 'function') {
+          window.reopenResultModal();
+        }
       }
     } catch(e) {}
   }

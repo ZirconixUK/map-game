@@ -543,7 +543,12 @@
     try {
       const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
       if (over) {
-        if (typeof window.reopenResultModal === 'function') window.reopenResultModal();
+        const _gauntletDone = typeof window.isGauntletComplete === 'function' && window.isGauntletComplete();
+        if (_gauntletDone && typeof window.reopenGauntletSummary === 'function') {
+          window.reopenGauntletSummary();
+        } else if (typeof window.reopenResultModal === 'function') {
+          window.reopenResultModal();
+        }
       } else {
         if (typeof showToast === 'function') {
           showToast('Find the target before the timer runs out — once this reaches zero, your location will be locked in for scoring.', true);
