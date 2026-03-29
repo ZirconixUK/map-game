@@ -34,6 +34,9 @@ Real-world walking/deduction game on a city map. Mobile-first. Liverpool proving
 - `addPenaltyMs()` is only for curse-gated tool time costs. Don't repurpose it.
 - New panel added without `setOpen(newPanel, false)` in every sibling-open handler, `startNewRound`, and debug reset paths.
 
+## After every change — always do this
+- Update `BUILD_ID` in `js/00_config.js` to `YYYY-MM-DD.<short-slug>` describing the change. Do this before committing.
+
 ## After changes — verify
 - Panels open/close correctly; tapping outside dismisses them.
 - Map panning/zooming works on mobile.
