@@ -490,6 +490,79 @@ function bindUI() {
     }
   }
 
+  function __startLocationPickMode() {
+    const banner      = document.getElementById('locationPickBanner');
+    const bannerText  = document.getElementById('locationPickBannerText');
+    const confirmBar  = document.getElementById('locationPickConfirmBar');
+    const cancelBtn   = document.getElementById('locationPickCancel');
+    const repickBtn   = document.getElementById('locationPickRepick');
+    const confirmBtn  = document.getElementById('locationPickConfirm');
+
+    // Show banner, hide confirm bar
+    if (banner)      banner.classList.remove('hidden');
+    if (bannerText)  bannerText.textContent = 'Tap the map to set start area';
+    if (confirmBar)  confirmBar.classList.add('hidden');
+
+    function _removePinIfExists() {
+      if (__pickModeMarker && window.leafletMap) {
+        try { window.leafletMap.removeLayer(__pickModeMarker); } catch(e) {}
+        __pickModeMarker = null;
+      }
+    }
+
+    function _cleanup() {
+      if (banner)     banner.classList.add('hidden');
+      if (confirmBar) confirmBar.classList.add('hidden');
+      _removePinIfExists();
+      if (window.leafletMap) {
+        try { window.leafletMap.off('click', _onMapClick); } catch(e) {}
+      }
+    }
+
+    function _onMapClick(e) {
+      // Drop or move the pin
+      _removePinIfExists();
+      try {
+        __pickModeMarker = L.marker([e.latlng.lat, e.latlng.lng], { draggable: true })
+          .addTo(window.leafletMap);
+      } catch(e) {}
+      if (bannerText)  bannerText.textContent = 'Drag the pin to adjust';
+      if (confirmBar)  confirmBar.classList.remove('hidden');
+    }
+
+    if (window.leafletMap) {
+      try { window.leafletMap.on('click', _onMapClick); } catch(e) {}
+    }
+
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        _cleanup();
+        const p = document.getElementById('panelNewGame');
+        if (p) p.classList.add('open');
+      };
+    }
+
+    if (repickBtn) {
+      repickBtn.onclick = () => {
+        _removePinIfExists();
+        if (bannerText)  bannerText.textContent = 'Tap the map to set start area';
+        if (confirmBar)  confirmBar.classList.add('hidden');
+      };
+    }
+
+    if (confirmBtn) {
+      confirmBtn.onclick = () => {
+        if (!__pickModeMarker) return;
+        try {
+          const ll = __pickModeMarker.getLatLng();
+          __pickedAreaSeed = { lat: ll.lat, lon: ll.lng };
+        } catch(e) { return; }
+        _cleanup();
+        startNewGameFromMenuOrDebug(__pickedAreaSeed);
+      };
+    }
+  }
+
   function openNewGamePanel() {
     const ids = ["panelGameplay","panelSystem","panelHeat","panelDebug","panelCurseSelect","panelPhotoGallery","panelHowToPlay","panelProfile"];
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
@@ -511,7 +584,11 @@ function bindUI() {
     } catch (e) {}
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.remove("open");
-    startNewGameFromMenuOrDebug();
+    if (__newGameLocationMode === 'picked') {
+      __startLocationPickMode();
+    } else {
+      startNewGameFromMenuOrDebug();
+    }
   });
   on("btnNewGameCancel","click", () => {
     const panelNewGame = document.getElementById("panelNewGame");
