@@ -454,7 +454,7 @@ function bindUI() {
     }
   }
 
-  async function startNewGameFromMenuOrDebug() {
+  async function startNewGameFromMenuOrDebug(areaOverride = null) {
     const btnStart = document.getElementById("btnNewGameStartReal");
     const originalLabel = btnStart ? btnStart.textContent : null;
     try {
@@ -474,13 +474,31 @@ function bindUI() {
       // Rebuild radar and thermometer menus for the newly-selected mode before the round starts.
       try { if (typeof window.updateRadarMenuForMode === 'function') window.updateRadarMenuForMode(); } catch(e) {}
       try { if (typeof window.updateThermoMenuForMode === 'function') window.updateThermoMenuForMode(); } catch(e) {}
-      await positionPlayerForNewGame();
+      if (areaOverride && typeof areaOverride.lat === 'number' && typeof areaOverride.lon === 'number') {
+        // Seeded path: hold GPS watch, get real fix without centering, then override position to seed.
+        window.__holdGeoWatch = true;
+        try { if (typeof stopGeolocationWatch === 'function') stopGeolocationWatch(); } catch(e) {}
+        await positionPlayerForNewGame({ centerAfterFix: false });
+        try {
+          if (typeof setPlayerLatLng === 'function') {
+            setPlayerLatLng(areaOverride.lat, areaOverride.lon, { source: 'area-seed', force: true });
+          }
+        } catch(e) {}
+        try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch(e) {}
+      } else {
+        await positionPlayerForNewGame();
+      }
       clearClues();
       // Refresh live POIs from Overpass based on player location + mode radius.
       try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') await window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
       // By design: player location first, map centre second, then target pick based on that player location.
       try { if (typeof window.__initGauntletIfNeeded === 'function') window.__initGauntletIfNeeded(); } catch(e) {}
       await pickNewTarget(true);
+      // Release GPS watch hold after full setup so live tracking begins with correct player position.
+      if (areaOverride) {
+        window.__holdGeoWatch = false;
+        try { if (typeof startGeolocationWatch === 'function') startGeolocationWatch(); } catch(e) {}
+      }
     } finally {
       if (btnStart) {
         btnStart.disabled = false;
