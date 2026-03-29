@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-03-29.2549e84';
+const BUILD_ID = '2026-03-29.caa748a';
 
 // ---- Config ----
 const BBOX = {
