@@ -6,10 +6,9 @@ let leafletPlayerMarker = null;
 let leafletPlayerAccuracyCircle = null;
 let leafletMarkersLayer = null;
 
-// Debug: show all POI pins (independent of target/player)
+// POI pins layer (always visible, viewport-culled)
 let leafletPoiLayer = null;
 let leafletPoiMarkers = [];
-let showAllPoiPins = false;
 let __poiMapListenersAttached = false;
 
 function __poiCategoryColor(p) {
@@ -129,13 +128,8 @@ function rebuildViewportPoiPins() {
   }
 }
 
-function setAllPoiPinsVisible(on) {
-  showAllPoiPins = !!on;
-  if (!showAllPoiPins) {
-    clearAllPoiPins();
-    return;
-  }
-  rebuildAllPoiPins();
+function setAllPoiPinsVisible() {
+  // no-op: POI dots are always visible. Debug toggle retained for UI compatibility.
 }
 
 function syncLeafletTargetMarker() {
