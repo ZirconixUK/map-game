@@ -37,7 +37,7 @@ function __poiCategoryColor(p) {
     return { fillColor: '#4ade80', color: 'rgba(0,0,0,0.4)' };
 
   if (['pub', 'bar', 'cafe', 'restaurant', 'fast_food'].includes(amenity))
-    return { fillColor: '#fb923c', color: 'rgba(0,0,0,0.4)' };
+    return { fillColor: '#f43f5e', color: 'rgba(0,0,0,0.4)' };
 
   if (['hospital', 'clinic', 'doctors', 'pharmacy'].includes(amenity))
     return { fillColor: '#f87171', color: 'rgba(0,0,0,0.4)' };
