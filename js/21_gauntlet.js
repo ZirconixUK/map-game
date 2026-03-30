@@ -104,15 +104,7 @@
 
   window.reopenGauntletSummary = function () {
     try {
-      const saved = localStorage.getItem(GAUNTLET_SUMMARY_KEY);
-      const modal = document.getElementById('gauntletSummaryModal');
-      const body = document.getElementById('gauntletSummaryBody');
-      if (!modal) return;
-      if (body && saved && !body.innerHTML.trim()) {
-        body.innerHTML = saved;
-        __wireGauntletSummaryButtons();
-      }
-      modal.classList.remove('hidden');
+      __showGauntletSummary();
     } catch (e) {}
   };
 
@@ -418,7 +410,9 @@
         </div>`;
 
       body.innerHTML = html;
-      try { localStorage.setItem(GAUNTLET_SUMMARY_KEY, html); } catch (e) {}
+
+      // Write sentinel so boot.js knows to reopen summary on refresh
+      try { localStorage.setItem(GAUNTLET_SUMMARY_KEY, '1'); } catch (e) {}
 
       // Persist to database (no-op for guests)
       try {

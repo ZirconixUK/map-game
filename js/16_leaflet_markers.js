@@ -8,8 +8,12 @@ let leafletMarkersLayer = null;
 
 // POI pins layer (always visible, viewport-culled)
 let leafletPoiLayer = null;
-let leafletPoiMarkers = [];
+let leafletPoiMarkers = new Map();
 let __poiMapListenersAttached = false;
+let __poiBuckets = null;
+let __poiBucketSource = null;
+const __POI_BUCKET_DEG = 0.02;
+const __POI_BOUNDS_PAD = 0.1;
 
 function __poiCategoryColor(p) {
   const tag = (k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
@@ -89,44 +93,119 @@ function ensureLeafletPoiLayer() {
 }
 
 function clearAllPoiPins() {
+  __poiBuckets = null;
+  __poiBucketSource = null;
   try {
     if (!leafletPoiLayer) return;
     leafletPoiMarkers.forEach(m => {
       try { leafletPoiLayer.removeLayer(m); } catch(e) {}
     });
-    leafletPoiMarkers = [];
+    leafletPoiMarkers = new Map();
   } catch (e) {
-    leafletPoiMarkers = [];
+    leafletPoiMarkers = new Map();
   }
+}
+
+function __poiMarkerKey(p) {
+  if (!p) return null;
+  const id = p.id || p.osm_id || p.name || '';
+  const lat = typeof p.lat === 'number' ? p.lat.toFixed(6) : '';
+  const lon = typeof p.lon === 'number' ? p.lon.toFixed(6) : '';
+  return `${id}|${lat}|${lon}`;
+}
+
+function __poiBucketKey(lat, lon) {
+  const row = Math.floor(lat / __POI_BUCKET_DEG);
+  const col = Math.floor(lon / __POI_BUCKET_DEG);
+  return `${row}:${col}`;
+}
+
+function __buildPoiBuckets(source) {
+  const buckets = new Map();
+  for (const p of source || []) {
+    if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') continue;
+    const key = __poiBucketKey(p.lat, p.lon);
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(p);
+  }
+  __poiBuckets = buckets;
+  __poiBucketSource = source;
+}
+
+function __getPoiBucketsForSource(source) {
+  if (!Array.isArray(source)) return new Map();
+  if (__poiBuckets && __poiBucketSource === source) return __poiBuckets;
+  __buildPoiBuckets(source);
+  return __poiBuckets || new Map();
+}
+
+function __queryPoisInBounds(source, bounds) {
+  const bucketed = __getPoiBucketsForSource(source);
+  const south = bounds.getSouth();
+  const west = bounds.getWest();
+  const north = bounds.getNorth();
+  const east = bounds.getEast();
+  const rowMin = Math.floor(south / __POI_BUCKET_DEG);
+  const rowMax = Math.floor(north / __POI_BUCKET_DEG);
+  const colMin = Math.floor(west / __POI_BUCKET_DEG);
+  const colMax = Math.floor(east / __POI_BUCKET_DEG);
+  const results = [];
+  const seen = new Set();
+
+  for (let row = rowMin; row <= rowMax; row++) {
+    for (let col = colMin; col <= colMax; col++) {
+      const bucket = bucketed.get(`${row}:${col}`);
+      if (!bucket) continue;
+      for (const p of bucket) {
+        const key = __poiMarkerKey(p);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        if (bounds.contains([p.lat, p.lon])) results.push(p);
+      }
+    }
+  }
+
+  return results;
+}
+
+function __createPoiMarker(p) {
+  const { fillColor, color } = __poiCategoryColor(p);
+  const m = L.circleMarker([p.lat, p.lon], {
+    radius: 5,
+    weight: 1,
+    color,
+    fillColor,
+    fillOpacity: 0.8,
+    interactive: true,
+  });
+  if (p.name) m.bindPopup(p.name);
+  return m;
 }
 
 function rebuildViewportPoiPins() {
   if (!window.leafletMap) return;
   if (!ensureLeafletPoiLayer()) return;
-  clearAllPoiPins();
 
-  const bounds = window.leafletMap.getBounds();
+  const bounds = window.leafletMap.getBounds().pad(__POI_BOUNDS_PAD);
   const source = (Array.isArray(window.__allPois) && window.__allPois.length) ? window.__allPois : (window.POIS || []);
-  const list = source.filter(p =>
-    p && typeof p.lat === 'number' && typeof p.lon === 'number' &&
-    bounds.contains([p.lat, p.lon])
-  );
-  if (!list.length) return;
+  const list = __queryPoisInBounds(source, bounds);
+  const nextKeys = new Set();
 
   for (const p of list) {
-    const { fillColor, color } = __poiCategoryColor(p);
-    const m = L.circleMarker([p.lat, p.lon], {
-      radius: 5,
-      weight: 1,
-      color,
-      fillColor,
-      fillOpacity: 0.8,
-      interactive: true,
-    });
-    if (p.name) m.bindPopup(p.name);
-    m.addTo(leafletPoiLayer);
-    leafletPoiMarkers.push(m);
+    const key = __poiMarkerKey(p);
+    if (!key) continue;
+    nextKeys.add(key);
+    if (leafletPoiMarkers.has(key)) continue;
+    const marker = __createPoiMarker(p);
+    marker.addTo(leafletPoiLayer);
+    leafletPoiMarkers.set(key, marker);
   }
+
+  leafletPoiMarkers.forEach((marker, key) => {
+    if (nextKeys.has(key)) return;
+    try { leafletPoiLayer.removeLayer(marker); } catch (e) {}
+    leafletPoiMarkers.delete(key);
+  });
 }
 
 function setAllPoiPinsVisible() {

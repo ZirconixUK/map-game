@@ -249,8 +249,36 @@ function __panoKey(panoId, lat, lon){
   return `latlon:${la},${lo}`;
 }
 
+function __normalizePhotoKind(v) {
+  const kind = String(v == null ? '' : v).trim().toLowerCase();
+  return kind || 'near100';
+}
+
+function __photoCacheContextFromKind(kind) {
+  return kind === 'starter' ? 'snapshot' : kind;
+}
+
+function __photoEntryOwnsAsset(entry, kind) {
+  if (!entry) return false;
+  const normalizedKind = __normalizePhotoKind(kind);
+  if (__normalizePhotoKind(entry.kind) !== normalizedKind) return false;
+  if (typeof entry.url === 'string' && entry.url.startsWith('data:image/')) return true;
+  try {
+    const tgt = (typeof target !== 'undefined' && target) ? target : null;
+    if (!tgt || typeof window.__getStreetViewCachedDataUrl !== 'function') return false;
+    return !!window.__getStreetViewCachedDataUrl(tgt, __photoCacheContextFromKind(normalizedKind));
+  } catch (e) {
+    return false;
+  }
+}
+
 window.getRoundStateV1 = () => roundStateV1;
 window.__defaultRoundStateV1 = __defaultRoundStateV1;
+window.__photoEntryOwnsAsset = __photoEntryOwnsAsset;
+window.__hasOwnedPhotoKind = (kind) => {
+  const photos = (roundStateV1 && Array.isArray(roundStateV1.photos)) ? roundStateV1.photos : [];
+  return photos.some((entry) => __photoEntryOwnsAsset(entry, kind));
+};
 
 window.__arePhotosUncorrupted = () => {
   try { return !!(roundStateV1 && roundStateV1.photosUncorrupted); } catch(e) { return false; }
@@ -319,7 +347,15 @@ window.__onStreetViewPhotoCaptured = (info) => {
       roundStateV1.photos = (roundStateV1.photos || []).filter(p => p && p.kind !== 'starter');
       roundStateV1.photos.unshift(entry);
     } else {
-      roundStateV1.photos = (roundStateV1.photos || []);
+      roundStateV1.photos = (roundStateV1.photos || []).filter((p) => {
+        if (!p) return false;
+        if (__normalizePhotoKind(p.kind) !== __normalizePhotoKind(entry.kind)) return true;
+        const samePano = p.panoId && entry.panoId && String(p.panoId) === String(entry.panoId);
+        const sameCoords = typeof p.lat === 'number' && typeof p.lon === 'number' &&
+          typeof entry.lat === 'number' && typeof entry.lon === 'number' &&
+          Math.abs(p.lat - entry.lat) < 1e-7 && Math.abs(p.lon - entry.lon) < 1e-7;
+        return !(samePano || sameCoords);
+      });
       roundStateV1.photos.push(entry);
     }
 

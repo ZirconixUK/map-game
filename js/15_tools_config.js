@@ -176,7 +176,9 @@ function updateCostBadgesFromConfig() {
           }
 
           if (id === 'near100' || id === 'near200') {
-            const owned = photos.some(p => p && String(p.kind) === id && p.url);
+            const owned = (typeof window.__hasOwnedPhotoKind === 'function')
+              ? window.__hasOwnedPhotoKind(id)
+              : photos.some(p => p && String(p.kind) === id && p.url);
             if (owned) cost = { heat_cost: 0 };
           }
 
@@ -186,7 +188,9 @@ function updateCostBadgesFromConfig() {
           }
 
           if (id === 'horizon') {
-            const owned = photos.some(p => p && String(p.kind) === 'horizon' && p.url);
+            const owned = (typeof window.__hasOwnedPhotoKind === 'function')
+              ? window.__hasOwnedPhotoKind('horizon')
+              : photos.some(p => p && String(p.kind) === 'horizon' && p.url);
             if (owned) cost = { heat_cost: 0 };
           }
 

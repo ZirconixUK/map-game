@@ -53,9 +53,20 @@ function __showNextToast(){
 
   __toastShowing = true;
 
-  const { msg, ok, kind, autoDismissMs, resolve } = item;
+  const { msg, ok, kind, autoDismissMs, htmlContent, resolve } = item;
   const icon = (kind === "curse") ? "🟣" : (ok ? "✅" : "❌");
-  toast.innerHTML = `<div class="toastIcon">${icon}</div><div>${msg}</div>`;
+  toast.replaceChildren();
+  const iconEl = document.createElement('div');
+  iconEl.className = 'toastIcon';
+  iconEl.textContent = icon;
+  const msgEl = document.createElement('div');
+  if (htmlContent) {
+    msgEl.innerHTML = String(msg == null ? '' : msg);
+  } else {
+    msgEl.textContent = String(msg == null ? '' : msg);
+  }
+  toast.appendChild(iconEl);
+  toast.appendChild(msgEl);
   toast.classList.remove("hidden","good","bad","curse");
   if (kind === "curse") toast.classList.add("curse");
   else toast.classList.add(ok ? "good" : "bad");
@@ -93,7 +104,8 @@ function enqueueToast(msg, ok, opts = null){
   return new Promise((resolve) => {
     const kind = (opts && opts.kind) ? String(opts.kind) : "";
     const autoDismissMs = (opts && opts.autoDismissMs > 0) ? opts.autoDismissMs : 0;
-    __toastQueue.push({ msg, ok: !!ok, kind, autoDismissMs, resolve });
+    const htmlContent = !!(opts && opts.html);
+    __toastQueue.push({ msg, ok: !!ok, kind, autoDismissMs, htmlContent, resolve });
     if (!__toastShowing) __showNextToast();
   });
 }
@@ -468,6 +480,7 @@ function bindUI() {
       // Clear any persisted result from the previous round so a refresh mid-game
       // doesn't restore a stale result modal instead of resuming the live game.
       try { localStorage.removeItem('mapgame_result_html_v1'); } catch(e) {}
+      try { localStorage.removeItem('mapgame_result_payload_v1'); } catch(e) {}
       try { const m = document.getElementById('resultModal'); if (m) m.classList.add('hidden'); } catch(e) {}
       __landmarkLiveCache = {};
       __landmarkPoiPoolCache = {};
@@ -1040,7 +1053,10 @@ if (debugMode) {
       ? `<div class="text-red-400 text-xs mt-1">⚠ Time cursed — costs <span class="font-semibold">⏱ ${timeDisplay}</span> from your timer${stacks > 1 ? ` (${stacks}× stacked)` : ''}.</div>`
       : '';
     const costRow = heatRow + timeRow;
-    const restore = () => { menu.innerHTML = savedHTML; };
+    const restore = () => {
+      menu.innerHTML = savedHTML;
+      try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
+    };
     menu.innerHTML = `
       <div class="flex justify-between mb-3">
         <button class="__tcBack px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
