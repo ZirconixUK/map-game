@@ -10,6 +10,7 @@ let leafletMarkersLayer = null;
 let leafletPoiLayer = null;
 let leafletPoiMarkers = [];
 let showAllPoiPins = false;
+let __poiMapListenersAttached = false;
 
 function __poiCategoryColor(p) {
   const tag = (k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
@@ -79,6 +80,11 @@ function ensureLeafletPoiLayer() {
   if (!window.leafletMap) return false;
   if (!leafletPoiLayer) {
     leafletPoiLayer = L.layerGroup().addTo(window.leafletMap);
+  }
+  if (!__poiMapListenersAttached) {
+    window.leafletMap.on('moveend', rebuildViewportPoiPins);
+    window.leafletMap.on('zoomend', rebuildViewportPoiPins);
+    __poiMapListenersAttached = true;
   }
   return true;
 }
