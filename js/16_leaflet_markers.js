@@ -11,6 +11,52 @@ let leafletPoiLayer = null;
 let leafletPoiMarkers = [];
 let showAllPoiPins = false;
 
+function __poiCategoryColor(p) {
+  const tag = (k) => (p && p.osm_tags) ? String(p.osm_tags[k] || '').toLowerCase() : '';
+  const rw = tag('railway'), station = tag('station'), amenity = tag('amenity'),
+        tourism = tag('tourism'), building = tag('building'), leisure = tag('leisure'),
+        shop = tag('shop'), historic = tag('historic');
+
+  if (rw === 'station' || rw === 'halt' || rw === 'tram_stop' ||
+      station === 'subway' || station === 'light_rail' || station === 'rail' || station === 'monorail')
+    return { fillColor: '#f59e0b', color: 'rgba(0,0,0,0.4)' };
+
+  if (amenity === 'bus_station')
+    return { fillColor: '#f97316', color: 'rgba(0,0,0,0.4)' };
+
+  if (building === 'cathedral' || building === 'church' || building === 'chapel' || amenity === 'place_of_worship')
+    return { fillColor: '#a78bfa', color: 'rgba(0,0,0,0.4)' };
+
+  if (amenity === 'library')
+    return { fillColor: '#34d399', color: 'rgba(0,0,0,0.4)' };
+
+  if (tourism === 'museum' || amenity === 'museum')
+    return { fillColor: '#60a5fa', color: 'rgba(0,0,0,0.4)' };
+
+  if (leisure === 'park' || leisure === 'garden' || leisure === 'nature_reserve')
+    return { fillColor: '#4ade80', color: 'rgba(0,0,0,0.4)' };
+
+  if (['pub', 'bar', 'cafe', 'restaurant', 'fast_food'].includes(amenity))
+    return { fillColor: '#fb923c', color: 'rgba(0,0,0,0.4)' };
+
+  if (['hospital', 'clinic', 'doctors', 'pharmacy'].includes(amenity))
+    return { fillColor: '#f87171', color: 'rgba(0,0,0,0.4)' };
+
+  if (['school', 'university', 'college'].includes(amenity))
+    return { fillColor: '#facc15', color: 'rgba(0,0,0,0.4)' };
+
+  if (['hotel', 'hostel', 'guest_house', 'motel'].includes(tourism))
+    return { fillColor: '#e879f9', color: 'rgba(0,0,0,0.4)' };
+
+  if (historic)
+    return { fillColor: '#d97706', color: 'rgba(0,0,0,0.4)' };
+
+  if (shop)
+    return { fillColor: '#94a3b8', color: 'rgba(0,0,0,0.4)' };
+
+  return { fillColor: '#6b7280', color: 'rgba(0,0,0,0.4)' };
+}
+
 function ensurePlayerPane() {
   if (!window.leafletMap) return null;
   if (!window.leafletMap.getPane('playerPane')) {
