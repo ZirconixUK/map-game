@@ -95,26 +95,29 @@ function clearAllPoiPins() {
   }
 }
 
-function rebuildAllPoiPins() {
-  if (!showAllPoiPins) return;
+function rebuildViewportPoiPins() {
+  if (!window.leafletMap) return;
   if (!ensureLeafletPoiLayer()) return;
   clearAllPoiPins();
 
-  const list = Array.isArray(window.POIS) ? window.POIS : [];
+  const bounds = window.leafletMap.getBounds();
+  const list = (Array.isArray(window.POIS) ? window.POIS : []).filter(p =>
+    p && typeof p.lat === 'number' && typeof p.lon === 'number' &&
+    bounds.contains([p.lat, p.lon])
+  );
   if (!list.length) return;
 
-  // Lightweight pins for every POI (debug visibility)
   for (const p of list) {
-    if (!p || typeof p.lat !== "number" || typeof p.lon !== "number") continue;
-    const ll = L.latLng(p.lat, p.lon);
-    const m = L.circleMarker(ll, {
-      radius: 4,
+    const { fillColor, color } = __poiCategoryColor(p);
+    const m = L.circleMarker([p.lat, p.lon], {
+      radius: 5,
       weight: 1,
-      fillOpacity: 0.75,
-      interactive: false,
+      color,
+      fillColor,
+      fillOpacity: 0.8,
+      interactive: true,
     });
-    // Subtle style so target/player stand out.
-    m.setStyle({ color: "#000000", fillColor: "#2b6cff" });
+    if (p.name) m.bindPopup(p.name);
     m.addTo(leafletPoiLayer);
     leafletPoiMarkers.push(m);
   }
