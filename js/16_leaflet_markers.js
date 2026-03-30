@@ -106,7 +106,8 @@ function rebuildViewportPoiPins() {
   clearAllPoiPins();
 
   const bounds = window.leafletMap.getBounds();
-  const list = (Array.isArray(window.POIS) ? window.POIS : []).filter(p =>
+  const source = (Array.isArray(window.__allPois) && window.__allPois.length) ? window.__allPois : (window.POIS || []);
+  const list = source.filter(p =>
     p && typeof p.lat === 'number' && typeof p.lon === 'number' &&
     bounds.contains([p.lat, p.lon])
   );
