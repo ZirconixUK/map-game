@@ -18,11 +18,18 @@
   }
 
   function clearCache(){
+    const prevKey = __cachedTargetKey;
     __cachedTargetKey = null;
     __cachedImgUrl = null;
     __cachedHtml = null;
     __cachedLoaded = false;
-    try { if (__cachedTargetKey) { localStorage.removeItem(__svCacheKey(__cachedTargetKey, "snapshot")); localStorage.removeItem(__svCacheKey(__cachedTargetKey, "glimpse")); } } catch(e) {}
+    try {
+      if (prevKey) {
+        ['snapshot', 'glimpse', 'near100', 'near200', 'horizon'].forEach((context) => {
+          localStorage.removeItem(__svCacheKey(prevKey, context));
+        });
+      }
+    } catch(e) {}
     try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
   }
 
@@ -145,6 +152,37 @@
     if (!tgt) { try { if (typeof target !== 'undefined') tgt = target; } catch(e) {} }
     if (!tgt) { try { tgt = window.target; } catch(e) {} }
     return tgt;
+  }
+
+  function __getOwnedRoundPhoto(kind){
+    try {
+      const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+      const photos = rs && Array.isArray(rs.photos) ? rs.photos : [];
+      const normalizedKind = String(kind || '').toLowerCase();
+      for (const photo of photos) {
+        if (!photo || String(photo.kind || '').toLowerCase() !== normalizedKind) continue;
+        if (typeof window.__photoEntryOwnsAsset === 'function') {
+          if (window.__photoEntryOwnsAsset(photo, normalizedKind)) return photo;
+        } else if (photo.url) {
+          return photo;
+        }
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  function __getOwnedRoundPhotoUrl(kind){
+    const photo = __getOwnedRoundPhoto(kind);
+    if (!photo) return null;
+    if (photo.url && photo.url.startsWith('data:image/')) return photo.url;
+    try {
+      const tgt = getTargetSafe();
+      if (!tgt || typeof window.__getStreetViewCachedDataUrl !== 'function') return null;
+      const context = kind === 'starter' ? 'snapshot' : kind;
+      return window.__getStreetViewCachedDataUrl(tgt, context);
+    } catch (e) {
+      return null;
+    }
   }
 
   function buildStreetViewUrl(tgt, opts){
@@ -601,13 +639,13 @@ async function showStreetViewExtraPhotoForTarget({ tier = 'near100' } = {}){
 
   // If already purchased, just re-open from cache for free.
   try {
-    const photos = (rs && Array.isArray(rs.photos)) ? rs.photos : [];
-    const existing = photos.find(p => p && String(p.kind) === kind && p.url);
-    if (existing) {
+    const existing = __getOwnedRoundPhoto(kind);
+    const existingUrl = __getOwnedRoundPhotoUrl(kind);
+    if (existing && existingUrl) {
       openModal();
       setTitle(kind === 'near100' ? 'Extra photo (≤100m)' : 'Extra photo (≤200m)');
       const tip = (kind === 'near100') ? 'A nearby angle (within 100m of the target pano).' : 'A wider nearby angle (within 200m of the target pano).';
-      await setPhoto(existing.url, tip, 'glimpse');
+      await setPhoto(existingUrl, tip, 'glimpse');
       if (typeof window.log === 'function') window.log(`📷 Extra photo: re-opened cached (${kind}).`);
       return { ok:true, cached:true };
     }
@@ -726,13 +764,13 @@ async function showStreetViewHorizonPhotoForTarget() {
   const rs = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
 
   // Re-view for free if already purchased this round
-  const photos = (rs && Array.isArray(rs.photos)) ? rs.photos : [];
-  const existing = photos.find(p => p && String(p.kind) === 'horizon' && p.url);
-  if (existing) {
+  const existing = __getOwnedRoundPhoto('horizon');
+  const existingUrl = __getOwnedRoundPhotoUrl('horizon');
+  if (existing && existingUrl) {
     openModal();
     setTitle('Horizon photo');
     const tip = 'The skyline as seen from the target, facing toward you.';
-    await setPhoto(existing.url, tip, 'glimpse');
+    await setPhoto(existingUrl, tip, 'glimpse');
     if (typeof window.log === 'function') window.log('📷 Horizon photo: re-opened cached (no extra cost).');
     return { ok: true, cached: true };
   }

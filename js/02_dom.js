@@ -55,7 +55,14 @@ function __showNextToast(){
 
   const { msg, ok, kind, autoDismissMs, resolve } = item;
   const icon = (kind === "curse") ? "🟣" : (ok ? "✅" : "❌");
-  toast.innerHTML = `<div class="toastIcon">${icon}</div><div>${msg}</div>`;
+  toast.replaceChildren();
+  const iconEl = document.createElement('div');
+  iconEl.className = 'toastIcon';
+  iconEl.textContent = icon;
+  const msgEl = document.createElement('div');
+  msgEl.textContent = String(msg == null ? '' : msg);
+  toast.appendChild(iconEl);
+  toast.appendChild(msgEl);
   toast.classList.remove("hidden","good","bad","curse");
   if (kind === "curse") toast.classList.add("curse");
   else toast.classList.add(ok ? "good" : "bad");
