@@ -310,8 +310,10 @@
     } catch (e) {}
     try { if (typeof clearRevealOverlay === 'function') clearRevealOverlay(); } catch (e) {}
     try { localStorage.removeItem('mapgame_result_html_v1'); } catch (e) {}
+    try { localStorage.removeItem('mapgame_result_payload_v1'); } catch (e) {}
     __updateProgressBadge();
     try { if (typeof pickNewTarget === 'function') pickNewTarget(true); } catch (e) {}
+    try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch (e) {}
   }
 
   // ---- Gauntlet Summary modal ----

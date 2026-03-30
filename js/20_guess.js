@@ -565,6 +565,7 @@
   }
 
   function startNewRound(){
+    try { if (typeof clearRevealOverlay === 'function') clearRevealOverlay(); } catch(e) {}
     try { localStorage.removeItem(RESULT_MODAL_KEY); } catch(e) {}
     try { localStorage.removeItem(RESULT_MODAL_PAYLOAD_KEY); } catch(e) {}
     try { const b = document.getElementById('resultModalBody'); if (b) b.innerHTML = ''; } catch(e) {}
@@ -609,6 +610,14 @@
         const html = renderResultHtml(payload);
         if (html) {
           b.innerHTML = html;
+          __wireResultModalButtons();
+        } else {
+          // Payload unrecoverable — give the player an escape route rather than a blank modal.
+          b.innerHTML = '<div style="padding:1.5rem;text-align:center;color:#ccc;font-size:.95rem">Result unavailable.</div>' +
+            '<div style="display:flex;gap:.5rem;padding:0 1.5rem 1.5rem">' +
+            '<button id="btnResultClose" style="flex:1;padding:.75rem;border:1px solid #555;border-radius:8px;background:transparent;color:#ccc;font-weight:700">Close</button>' +
+            '<button id="btnResultNewRound" style="flex:1;padding:.75rem;border:none;border-radius:8px;background:#f4a62a;color:#000;font-weight:700">New Round</button>' +
+            '</div>';
           __wireResultModalButtons();
         }
       } catch(e) {}
