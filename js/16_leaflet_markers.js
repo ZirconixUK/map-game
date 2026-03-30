@@ -211,7 +211,7 @@ function refreshLeafletMarkersVisibility() {
   syncLeafletTargetMarker();
   syncLeafletPlayerMarker();
   // POI pins are independent of debugMode; refresh if enabled.
-  try { rebuildAllPoiPins(); } catch(e) {}
+  try { rebuildViewportPoiPins(); } catch(e) {}
 }
 
 // Expose functions globally so other modules can call them
@@ -250,4 +250,4 @@ window.refreshLeafletMarkersVisibility = refreshLeafletMarkersVisibility;
 
 // POI pins
 window.setAllPoiPinsVisible = setAllPoiPinsVisible;
-window.refreshAllPoiPins = rebuildAllPoiPins;
+window.refreshAllPoiPins = rebuildViewportPoiPins;
