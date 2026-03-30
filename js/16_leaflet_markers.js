@@ -93,6 +93,8 @@ function ensureLeafletPoiLayer() {
 }
 
 function clearAllPoiPins() {
+  __poiBuckets = null;
+  __poiBucketSource = null;
   try {
     if (!leafletPoiLayer) return;
     leafletPoiMarkers.forEach(m => {

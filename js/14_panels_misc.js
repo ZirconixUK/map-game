@@ -372,10 +372,10 @@
               // Instant time-penalty curse — show amount lost, not a duration
               const s = Math.round(c.penaltyAppliedMs / 1000);
               const label = s >= 60 ? `${Math.floor(s/60)}m${s%60?' '+s%60+'s':''}`.trim() : `${s}s`;
-              showToast(`<b>${c.name}</b> — <span class="text-red-400">⏱ ${label} lost from your timer.</span>`, false, { kind: 'curse' });
+              showToast(`<b>${c.name}</b> — <span class="text-red-400">⏱ ${label} lost from your timer.</span>`, false, { kind: 'curse', html: true });
             } else {
               const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
-              showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse' });
+              showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse', html: true });
             }
           }
         }

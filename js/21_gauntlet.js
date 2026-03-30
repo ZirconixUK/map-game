@@ -411,6 +411,9 @@
 
       body.innerHTML = html;
 
+      // Write sentinel so boot.js knows to reopen summary on refresh
+      try { localStorage.setItem(GAUNTLET_SUMMARY_KEY, '1'); } catch (e) {}
+
       // Persist to database (no-op for guests)
       try {
         if (typeof window.saveGauntletRun === 'function') {
