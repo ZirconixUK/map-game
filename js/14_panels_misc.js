@@ -480,13 +480,21 @@
         </div>`;
     }
 
-    // Fetch rounds + achievements in parallel; gauntlet_runs is optional (table may not exist yet)
-    const [roundsResult, earnedResult, gauntletResult] = await Promise.all([
-      window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).catch(() => ({ data: null })),
-      window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id).catch(() => ({ data: null })),
-      window.__supabase.from('gauntlet_runs').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).catch(() => ({ data: null })),
+    // Fetch rounds + achievements — core queries that must succeed for profile to render
+    const [{ data: rounds }, { data: earnedRows }] = await Promise.all([
+      window.__supabase.from('rounds').select('*').eq('user_id', user.id).order('played_at', { ascending: false }).then(r => r, () => ({ data: null })),
+      window.__supabase.from('user_achievements').select('achievement_id').eq('user_id', user.id).then(r => r, () => ({ data: null })),
     ]);
-    const [{ data: rounds }, { data: earnedRows }, { data: gauntletRuns }] = [roundsResult, earnedResult, gauntletResult];
+
+    // gauntlet_runs is optional — fetch separately so a missing/broken table never blocks profile load
+    let gauntletRuns = null;
+    try {
+      const r = await Promise.race([
+        window.__supabase.from('gauntlet_runs').select('*').eq('user_id', user.id).order('played_at', { ascending: false }),
+        new Promise(res => setTimeout(() => res({ data: null }), 5000)),
+      ]);
+      gauntletRuns = r && r.data ? r.data : null;
+    } catch(e) { gauntletRuns = null; }
     const rs = rounds || [];
     const gauntletAsRounds = (gauntletRuns || []).map(g => ({
       grade_label:  g.overall_grade,
