@@ -1053,7 +1053,10 @@ if (debugMode) {
       ? `<div class="text-red-400 text-xs mt-1">⚠ Time cursed — costs <span class="font-semibold">⏱ ${timeDisplay}</span> from your timer${stacks > 1 ? ` (${stacks}× stacked)` : ''}.</div>`
       : '';
     const costRow = heatRow + timeRow;
-    const restore = () => { menu.innerHTML = savedHTML; };
+    const restore = () => {
+      menu.innerHTML = savedHTML;
+      try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
+    };
     menu.innerHTML = `
       <div class="flex justify-between mb-3">
         <button class="__tcBack px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
