@@ -1017,7 +1017,7 @@ if (debugMode) {
       if (curseRoll && curseRoll.triggered && curseRoll.applied && curseRoll.applied.curse) {
         const c = curseRoll.applied.curse;
         const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
-        showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse', htmlContent: true });
+        showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse', html: true });
       }
       if (curseRoll && curseRoll.overcharged && curseRoll.overcharged.curse) {
         const oc = curseRoll.overcharged.curse;
@@ -1025,14 +1025,14 @@ if (debugMode) {
         const msg = stacks > 1
           ? `<b>Overcharged ×${stacks}</b> — tool uses now cost <b>${__formatTimeCost(stacks * (typeof OVERCHARGED_COST_PER_STACK_S === 'number' ? OVERCHARGED_COST_PER_STACK_S : 90) * 1000)}</b> from your timer.`
           : `<b>Overcharged</b> — tool uses now cost time from your timer.`;
-        showToast(msg, false, { kind: 'curse', htmlContent: true });
+        showToast(msg, false, { kind: 'curse', html: true });
         try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
       }
       for (const key of ['timePenMinor', 'timePenModerate', 'timePenMajor']) {
         const res = curseRoll && curseRoll[key];
         if (res && res.curse && res.curse.penaltyAppliedMs > 0) {
           const label = __formatTimeCost(res.curse.penaltyAppliedMs);
-          showToast(`<b>${res.curse.name}</b> — <span class="text-red-400">⏱ ${label} lost from your timer.</span>`, false, { kind: 'curse', htmlContent: true });
+          showToast(`<b>${res.curse.name}</b> — <span class="text-red-400">⏱ ${label} lost from your timer.</span>`, false, { kind: 'curse', html: true });
         }
       }
     } catch(e) {}
@@ -1221,6 +1221,7 @@ if (debugMode) {
     __landmarkActiveFetchKind = null;
     if (landmarkMenu && __landmarkCategoryHTML) {
       landmarkMenu.innerHTML = __landmarkCategoryHTML;
+      try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
       try { if (typeof refreshLandmarkNearestLabels === 'function') refreshLandmarkNearestLabels(); } catch(e) {}
     }
   }
