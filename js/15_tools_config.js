@@ -155,6 +155,7 @@ function updateCostBadgesFromConfig() {
     { toolId: "nsew", selector: "[data-dir]", getOption: (el) => el.getAttribute("data-dir") },
     { toolId: "landmark", selector: "[data-landmark]", getOption: (el) => el.getAttribute("data-landmark") },
     { toolId: "photo", selector: "[data-photo]", getOption: (el) => el.getAttribute("data-photo") },
+    { toolId: "signalLock", selector: "[data-signal-lock]", getOption: (el) => el.getAttribute("data-signal-lock") },
   ];
   map.forEach(({toolId, selector, getOption}) => {
     document.querySelectorAll(selector).forEach(btn => {

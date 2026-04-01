@@ -374,6 +374,7 @@ function pickNewTarget(verbose = true) {
 function clearClues() {
   clues.length = 0;
   try { if (typeof clearFog === "function") clearFog(); } catch(e) {}
+  try { if (typeof window.clearSignalLockOverlays === 'function') window.clearSignalLockOverlays(); } catch(e) {}
   thermoBaseline = null;
   if (elLast) { elLast.className = "pill mid"; elLast.textContent = "Cleared"; }
   updateUI();

@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-03-30.fix-regression-bugs';
+const BUILD_ID = '2026-04-01.signal-lock';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
@@ -147,4 +147,14 @@ const THERMO_OPTIONS_BY_MODE = {
   short:  [ {m:100, heat:0.8}, {m:140, heat:0.6}, {m:180, heat:0.4} ],
   medium: [ {m:150, heat:0.8}, {m:220, heat:0.6}, {m:300, heat:0.4} ],
   long:   [ {m:200, heat:0.8}, {m:350, heat:0.6}, {m:500, heat:0.4} ],
+};
+
+// ---- Signal Lock options per game mode ----
+// count: number of candidate circles revealed
+// radius: circle radius in metres
+// heat: heat cost (fixed, not mode-dependent)
+const SIGNAL_LOCK_CONFIG_BY_MODE = {
+  short:  { count: 4, radius: 175, heat: 2.0 },
+  medium: { count: 4, radius: 250, heat: 2.0 },
+  long:   { count: 5, radius: 425, heat: 2.0 },
 };

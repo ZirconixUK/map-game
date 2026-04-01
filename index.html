@@ -130,6 +130,7 @@
         await load('./js/09_ui_helpers.js?cb=' + cb);
         await load('./js/10_drawing.js?cb=' + cb);
         await load('./js/12_geo_helpers.js?cb=' + cb);
+        await load('./js/22_signal_lock.js?cb=' + cb);
         await load('./js/13_boot.js?cb=' + cb);
         await load('./js/14_panels_misc.js?cb=' + cb);
         })().catch(function (e) {
@@ -224,12 +225,13 @@
 
       <!-- Main tool row -->
       <div id="gameMenu">
-        <div class="grid gap-2" style="grid-template-columns:repeat(5,1fr)">
-          <button id="qRadar"    class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-blue-500/70   transition-all duration-150 active:scale-95" aria-label="Radar"       title="Radar"><span class="iconBox text-2xl">📡</span></button>
-          <button id="qThermo"  class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-orange-500/70 transition-all duration-150 active:scale-95" aria-label="Thermometer" title="Thermometer"><span class="iconBox text-2xl">🌡️</span></button>
-          <button id="qDir"     class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-cyan-500/70   transition-all duration-150 active:scale-95" aria-label="N/S/E/W"     title="N/S/E/W"><span class="iconBox text-2xl">🧭</span></button>
-          <button id="qLandmark" class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-emerald-500/70 transition-all duration-150 active:scale-95" aria-label="Landmark"    title="Landmark"><span class="iconBox text-2xl">🏛️</span></button>
-          <button id="qPhoto"   class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-violet-500/70  transition-all duration-150 active:scale-95" aria-label="Photo"       title="Photo"><span class="iconBox text-2xl">📷</span></button>
+        <div class="grid gap-2" style="grid-template-columns:repeat(3,1fr)">
+          <button id="qRadar"      class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-blue-500/70    transition-all duration-150 active:scale-95" aria-label="Radar"       title="Radar"><span class="iconBox text-2xl">📡</span></button>
+          <button id="qThermo"     class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-orange-500/70  transition-all duration-150 active:scale-95" aria-label="Thermometer" title="Thermometer"><span class="iconBox text-2xl">🌡️</span></button>
+          <button id="qDir"        class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-cyan-500/70    transition-all duration-150 active:scale-95" aria-label="N/S/E/W"     title="N/S/E/W"><span class="iconBox text-2xl">🧭</span></button>
+          <button id="qLandmark"   class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-emerald-500/70 transition-all duration-150 active:scale-95" aria-label="Landmark"    title="Landmark"><span class="iconBox text-2xl">🏛️</span></button>
+          <button id="qPhoto"      class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-violet-500/70  transition-all duration-150 active:scale-95" aria-label="Photo"       title="Photo"><span class="iconBox text-2xl">📷</span></button>
+          <button id="qSignalLock" class="menuBtn menuBtn--iconOnly rounded-xl bg-[#060e1c] border border-teal-500/70    transition-all duration-150 active:scale-95" aria-label="Signal Lock"  title="Signal Lock" data-signal-lock="default"><span class="iconBox text-2xl">📶</span></button>
         </div>
 
         <div id="roundActions" class="mt-3 flex flex-col gap-2">

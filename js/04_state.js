@@ -424,6 +424,7 @@ function saveRoundState() {
       roundStateV1: _roundStateV1ForSave,
       recentPanoKeys,
       fogActions: (typeof getFogActions === 'function') ? getFogActions() : null,
+      signalLockCircles: (typeof window.getSignalLockCircles === 'function') ? window.getSignalLockCircles() : null,
       gameSetup: __normalizeGameSetup(gameSetup),
       gauntletState: (typeof window.getGauntletStateForPersistence === 'function') ? window.getGauntletStateForPersistence() : null,
     };
@@ -454,6 +455,7 @@ function resetRound({ keepTarget = false } = {}) {
   __lastHeatSaveMs = 0;
   thermoRun = null;
   usedToolOptions = {};
+  try { if (typeof window.clearSignalLockOverlays === 'function') window.clearSignalLockOverlays(); } catch(e) {}
   try { if (typeof window.clearCurses === 'function') window.clearCurses(); } catch(e) {}
   if (!keepTarget) {
     targetIdx = null;

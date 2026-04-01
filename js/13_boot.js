@@ -42,6 +42,23 @@ function __tryRestoreFog(saved) {
   }
 }
 
+function __tryRestoreSignalLock(saved) {
+  try {
+    const circles = saved && Array.isArray(saved.signalLockCircles) && saved.signalLockCircles.length > 0
+      ? saved.signalLockCircles
+      : null;
+    if (!circles) return false;
+    if (!window.leafletMap) return false;
+    if (typeof window.__restoreSignalLockCircles !== 'function') return false;
+    window.__restoreSignalLockCircles(circles);
+    window.renderSignalLockCircles(circles);
+    return true;
+  } catch (e) {
+    console.error('[SignalLock] restore error:', e);
+    return false;
+  }
+}
+
 function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
   roundStartMs = (typeof saved.roundStartMs === 'number') ? saved.roundStartMs : Date.now();
   penaltyMs    = (typeof saved.penaltyMs    === 'number') ? saved.penaltyMs    : 0;
@@ -199,6 +216,7 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
   // localStorage with [], so a second refresh sees an empty array and never rebuilds the fog.
   // Restoring now (leafletMap + martinez are already set by the time 13_boot.js runs) fixes that.
   try { __tryRestoreFog(__saved); } catch(e) {}
+  try { __tryRestoreSignalLock(__saved); } catch(e) {}
 
   try { startHUDTicker(); } catch (e) {}
   try { updateHUD(); } catch (e) {}

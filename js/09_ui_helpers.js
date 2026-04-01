@@ -10,7 +10,7 @@ function setLast(text, ok) {
 }
 function __cacheToolButtonNodes() {
   const lockSelectors = [
-    '#qRadar','#qThermo','#qDir','#qLandmark','#qPhoto',
+    '#qRadar','#qThermo','#qDir','#qLandmark','#qPhoto','#qSignalLock',
     '#radarMenu .menuBtn','#thermoMenu .menuBtn','#dirMenu .menuBtn','#landmarkMenu .menuBtn','#photoMenu .menuBtn'
   ];
   __toolButtonNodes = Array.from(document.querySelectorAll(lockSelectors.join(',')));
@@ -108,7 +108,7 @@ function updateUI() {
     // Disable tool buttons once guessed (allow viewing results/new round only),
     // and grey out exact options already used this round.
     const lockSelectors = [
-      '#qRadar','#qThermo','#qDir','#qLandmark','#qPhoto',
+      '#qRadar','#qThermo','#qDir','#qLandmark','#qPhoto','#qSignalLock',
       '#radarMenu .menuBtn','#thermoMenu .menuBtn','#dirMenu .menuBtn','#landmarkMenu .menuBtn','#photoMenu .menuBtn'
     ];
     const nodes = __toolButtonNodes || document.querySelectorAll(lockSelectors.join(','));
@@ -127,6 +127,7 @@ function updateUI() {
         if (mode === 'uncorrupt') return { toolId: 'photo', optionId: mode };
         return null;
       }
+      if (has('data-signal-lock')) return { toolId: 'signalLock', optionId: 'default' };
       return null;
     };
 

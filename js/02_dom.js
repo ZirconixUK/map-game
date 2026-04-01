@@ -1556,6 +1556,35 @@ if (debugMode) {
         if (id === 'qDir')      { showMenu('dir');      return; }
         if (id === 'qLandmark') { showMenu('landmark'); return; }
         if (id === 'qPhoto')    { showMenu('photo');    return; }
+
+        if (id === 'qSignalLock') {
+          if (isToolOptionAlreadyUsed('signalLock', 'default')) {
+            try { showToast('Signal Lock already used this round.', false); } catch(e) {}
+            return;
+          }
+          const cost = (typeof getToolCosts === 'function') ? getToolCosts('signalLock', 'default') : { heat_cost: 2.0 };
+          __toolConfirmShow({
+            title: 'Signal Lock',
+            icon: '📶',
+            accentClass: 'text-teal-400',
+            descHtml: '<div class="text-slate-400 text-sm">Reveals several possible signal zones. The target is inside one of them.</div>',
+            cost,
+            onConfirm: () => {
+              const curseRoll = applyQuestionCosts('signalLock', 'default');
+              if (curseRoll && curseRoll.blocked) return;
+              noteToolOptionUsed('signalLock', 'default');
+              if (panelGameplay) panelGameplay.classList.remove('open');
+              showMenu('main');
+              try {
+                if (typeof window.useSignalLock === 'function') window.useSignalLock();
+              } catch (e) {
+                console.error('[SignalLock] useSignalLock error:', e);
+              }
+            }
+          });
+          return;
+        }
+
         if (id === 'radarBack' || id === 'thermoBack' || id === 'dirBack' || id === 'landmarkBack' || id === 'photoBack') {
           showMenu('main'); return;
         }

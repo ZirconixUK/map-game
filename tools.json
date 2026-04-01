@@ -130,6 +130,12 @@
           }
         }
       ]
+    },
+    "signalLock": {
+      "label": "Signal Lock",
+      "default": {
+        "heat_cost": 2.0
+      }
     }
   }
 }
