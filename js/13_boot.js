@@ -23,6 +23,7 @@ window.addEventListener("resize", () => {
 
 
 let __didRestoreOverlays = false;
+let __didRestoreSignalLock = false;
 
 function __tryRestoreFog(saved) {
   try {
@@ -52,6 +53,7 @@ function __tryRestoreSignalLock(saved) {
     if (typeof window.__restoreSignalLockCircles !== 'function') return false;
     window.__restoreSignalLockCircles(circles);
     window.renderSignalLockCircles(circles);
+    __didRestoreSignalLock = true;
     return true;
   } catch (e) {
     console.error('[SignalLock] restore error:', e);
@@ -237,7 +239,7 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
   (function(){
     const saved = (typeof __saved !== "undefined") ? __saved : null;
     if (!saved || !Array.isArray(saved.signalLockCircles) || saved.signalLockCircles.length === 0) return;
-    if (__tryRestoreSignalLock(saved)) return; // already succeeded synchronously above
+    if (__didRestoreSignalLock) return; // already succeeded synchronously above
     let tries = 0;
     const maxTries = 200; // ~10s
     const t = setInterval(() => {
