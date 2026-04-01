@@ -41,12 +41,16 @@ function initLeafletMap() {
     const el = document.getElementById("leafletMap");
     if (!el) throw new Error("#leafletMap not found in DOM");
 
+    const nw = L.latLng(BBOX.nw.lat, BBOX.nw.lon);
+    const se = L.latLng(BBOX.se.lat, BBOX.se.lon);
+    const fogBounds = L.latLngBounds(nw, se);
+
     // Performance: prefer Canvas rendering for vector layers (fog polygons) to avoid SVG lag
     leafletMap = L.map(el, {
       zoomControl: false,
       attributionControl: true,
       preferCanvas: true,
-    }).setView([20, 0], 2);
+    });
 
     // Move zoom controls away from the debug button (top-left)
     L.control.zoom({ position: "bottomleft" }).addTo(leafletMap);
@@ -57,11 +61,19 @@ function initLeafletMap() {
     }).addTo(leafletMap);
 
     window.leafletMap = leafletMap;
+    window.__fogBounds = fogBounds;
+
+    window.fitViewToMap = function fitViewToMap() {
+      if (!window.leafletMap || !window.__fogBounds) return;
+      window.leafletMap.fitBounds(window.__fogBounds, {
+        animate: false,
+        padding: [24, 24],
+      });
+    };
 
     // Establish bounds for fog-world based on existing config BBOX (same area as map.png build).
     // Expect BBOX in 00_config.js as {nw:{lat,lon}, se:{lat,lon}}.
-    const nw = L.latLng(BBOX.nw.lat, BBOX.nw.lon);
-    const se = L.latLng(BBOX.se.lat, BBOX.se.lon);
+    window.fitViewToMap();
 
     FOG_TL = leafletMap.project(nw, FOG_ZF); // global pixel coords at ref zoom
     const br = leafletMap.project(se, FOG_ZF);

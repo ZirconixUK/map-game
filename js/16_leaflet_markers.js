@@ -187,7 +187,10 @@ function rebuildViewportPoiPins() {
   if (!ensureLeafletPoiLayer()) return;
 
   const bounds = window.leafletMap.getBounds().pad(__POI_BOUNDS_PAD);
-  const source = (Array.isArray(window.__allPois) && window.__allPois.length) ? window.__allPois : (window.POIS || []);
+  // Visible map dots should track the active gameplay POI set, not the full UK runtime dataset.
+  // Boot loads ~175k UK POIs into __allPois for landmark/tool logic; rendering that full list at
+  // low zoom can lock the main thread before the page becomes interactive.
+  const source = Array.isArray(window.POIS) ? window.POIS : [];
   const list = __queryPoisInBounds(source, bounds);
   const nextKeys = new Set();
 
