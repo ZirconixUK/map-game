@@ -233,6 +233,18 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
       if (__tryRestoreFog(saved) || tries >= maxTries) clearInterval(t);
     }, 50);
   })();
+  // Polling fallback for Signal Lock — map may not be ready at boot time
+  (function(){
+    const saved = (typeof __saved !== "undefined") ? __saved : null;
+    if (!saved || !Array.isArray(saved.signalLockCircles) || saved.signalLockCircles.length === 0) return;
+    if (__tryRestoreSignalLock(saved)) return; // already succeeded synchronously above
+    let tries = 0;
+    const maxTries = 200; // ~10s
+    const t = setInterval(() => {
+      tries++;
+      if (__tryRestoreSignalLock(saved) || tries >= maxTries) clearInterval(t);
+    }, 50);
+  })();
   updateUI();
   try { if (typeof refreshLeafletMarkersVisibility === 'function') refreshLeafletMarkersVisibility(); } catch(e) {}
   try { if (typeof syncLeafletTargetMarker === 'function') syncLeafletTargetMarker(); } catch(e) {}

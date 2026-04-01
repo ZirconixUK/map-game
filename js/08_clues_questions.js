@@ -379,6 +379,7 @@ function clearClues() {
   if (elLast) { elLast.className = "pill mid"; elLast.textContent = "Cleared"; }
   updateUI();
   draw();
+  try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}
   log("🧽 Cleared clues.");
 }
 

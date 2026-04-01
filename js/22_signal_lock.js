@@ -209,12 +209,12 @@
       [placed[i], placed[j]] = [placed[j], placed[i]];
     }
 
-    // Final validation
+    // Final validation — hard-fail rather than return broken output
     const trueCount            = placed.filter(c => c.isTrue).length;
     const actuallyContainsTgt  = placed.filter(c => _haversine(c.lat, c.lon, tgt.lat, tgt.lon) <= c.radiusM).length;
-    if (trueCount !== 1)           console.error('[SignalLock] INVARIANT VIOLATED: trueCount !== 1');
-    if (actuallyContainsTgt !== 1) console.error('[SignalLock] INVARIANT VIOLATED: target not in exactly one circle');
     console.log(`[SignalLock] Validation: circles=${placed.length} declared-true=${trueCount} actually-contains-target=${actuallyContainsTgt}`);
+    if (trueCount !== 1) throw new Error(`[SignalLock] INVARIANT: trueCount=${trueCount}, expected 1`);
+    if (actuallyContainsTgt !== 1) throw new Error(`[SignalLock] INVARIANT: actuallyContainsTgt=${actuallyContainsTgt}, expected 1`);
     const trueIdx = placed.findIndex(c => c.isTrue);
     if (trueIdx !== -1) console.log(`[SignalLock] True circle is index ${trueIdx}`);
 
@@ -269,8 +269,11 @@
       renderSignalLockCircles(circles);
       try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}
       console.log('[SignalLock] Circles generated and rendered.');
+      return true;
     } catch (e) {
       console.error('[SignalLock] useSignalLock failed:', e);
+      try { if (typeof showToast === 'function') showToast('Signal Lock failed — try again.', false); } catch(_) {}
+      return false;
     }
   };
 

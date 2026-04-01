@@ -1564,6 +1564,7 @@ if (debugMode) {
           }
           const cost = (typeof getToolCosts === 'function') ? getToolCosts('signalLock', 'default') : { heat_cost: 2.0 };
           __toolConfirmShow({
+            menu: gameMenu,
             title: 'Signal Lock',
             icon: '📶',
             accentClass: 'text-teal-400',
@@ -1572,11 +1573,15 @@ if (debugMode) {
             onConfirm: () => {
               const curseRoll = applyQuestionCosts('signalLock', 'default');
               if (curseRoll && curseRoll.blocked) return;
-              noteToolOptionUsed('signalLock', 'default');
               if (panelGameplay) panelGameplay.classList.remove('open');
               showMenu('main');
               try {
-                if (typeof window.useSignalLock === 'function') window.useSignalLock();
+                const ok = (typeof window.useSignalLock === 'function') ? window.useSignalLock() : false;
+                if (ok) {
+                  noteToolOptionUsed('signalLock', 'default');
+                  try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('signalLock', 'default')); } catch(e) {}
+                  __showCurseToasts(curseRoll);
+                }
               } catch (e) {
                 console.error('[SignalLock] useSignalLock error:', e);
               }
