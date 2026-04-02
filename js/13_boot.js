@@ -193,11 +193,13 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
 
       __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
       try { if (typeof window.restoreGauntletState === 'function' && saved.gauntletState) window.restoreGauntletState(saved.gauntletState); } catch(e) {}
+      try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
     } else if (saved && typeof saved.targetIdx === "number" && POIS && POIS[saved.targetIdx]) {
       targetIdx = saved.targetIdx;
       target = POIS[targetIdx];
       __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
       try { if (typeof window.restoreGauntletState === 'function' && saved.gauntletState) window.restoreGauntletState(saved.gauntletState); } catch(e) {}
+      try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
     } else {
       // No saved game — flag so startup flow opens the New Game panel
       window.__needsNewGameSetup = true;
@@ -271,6 +273,7 @@ setTimeout(async function __autoStartup() {
     try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus('Obtaining location…'); } catch(e) {}
     try {
       await window.__setPlayerFromCurrentLocation({ centerAfterFix: true });
+      try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
     } catch (e) {
       // GPS failed — try to center on whatever fix we already have
       try {
