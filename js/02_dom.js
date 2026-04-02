@@ -559,6 +559,11 @@ function bindUI() {
     const repickBtn   = document.getElementById('locationPickRepick');
     const confirmBtn  = document.getElementById('locationPickConfirm');
 
+    // Entering map-pick mode should present a clean map, not the previous round's overlays.
+    try { if (typeof clearFog === 'function') clearFog(); } catch(e) {}
+    try { if (typeof window.clearSignalLockOverlays === 'function') window.clearSignalLockOverlays(); } catch(e) {}
+    try { if (typeof clearRevealOverlay === 'function') clearRevealOverlay(); } catch(e) {}
+
     // Show banner, hide confirm bar
     if (banner)      banner.classList.remove('hidden');
     if (bannerText)  bannerText.textContent = 'Tap the map to set start area';

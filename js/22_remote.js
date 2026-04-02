@@ -23,6 +23,8 @@
     doublestepActive: false,
     tunnelvisionActive: false,
     shakeyHandsActive: false,
+    doublestepTimer: null,
+    tunnelvisionTimer: null,
   };
 
   // Note: persistence goes through saveRoundState() via getRemoteStateForPersistence(),
@@ -57,9 +59,11 @@
     remoteState.movesRemaining      = (typeof saved.movesRemaining === 'number') ? saved.movesRemaining : _moveBudget();
     remoteState.undoUsed            = !!(saved.undoUsed);
     remoteState.undoAvailable       = false; // don't show undo button on restore
-    remoteState.doublestepActive    = false; // timed — can't reconstruct setTimeout on restore
-    remoteState.tunnelvisionActive  = false; // timed — can't reconstruct setTimeout on restore
+    remoteState.doublestepActive    = false;
+    remoteState.tunnelvisionActive  = false;
     remoteState.shakeyHandsActive   = !!(saved.shakeyHandsActive);
+    if (saved.doublestepActive) __setTimedRemoteCurseFlag('doublestepActive', true);
+    if (saved.tunnelvisionActive) __setTimedRemoteCurseFlag('tunnelvisionActive', true);
     __attachMapClickHandler();
     __updateMoveCounterUI();
   };
@@ -101,10 +105,39 @@
     remoteState.doublestepActive   = false;
     remoteState.tunnelvisionActive = false;
     remoteState.shakeyHandsActive  = false;
+    if (remoteState.doublestepTimer) { clearTimeout(remoteState.doublestepTimer); remoteState.doublestepTimer = null; }
+    if (remoteState.tunnelvisionTimer) { clearTimeout(remoteState.tunnelvisionTimer); remoteState.tunnelvisionTimer = null; }
     if (remoteState.undoTimer) { clearTimeout(remoteState.undoTimer); remoteState.undoTimer = null; }
     __detachMapClickHandler();
     __updateMoveCounterUI();
     __hideUndoButton();
+  }
+
+  function __setTimedRemoteCurseFlag(flagName, on) {
+    const timerKey = flagName === 'doublestepActive' ? 'doublestepTimer'
+      : (flagName === 'tunnelvisionActive' ? 'tunnelvisionTimer' : null);
+    if (!timerKey) return;
+
+    remoteState[flagName] = !!on;
+    if (remoteState[timerKey]) {
+      clearTimeout(remoteState[timerKey]);
+      remoteState[timerKey] = null;
+    }
+
+    try { if (typeof updateUI === 'function') updateUI(); } catch(e) {}
+    try { if (typeof updateHUD === 'function') updateHUD(); } catch(e) {}
+    try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}
+
+    if (!on) return;
+
+    const dur = (typeof REMOTE_CURSE_DURATION_MS !== 'undefined') ? REMOTE_CURSE_DURATION_MS : 60000;
+    remoteState[timerKey] = setTimeout(() => {
+      remoteState[flagName] = false;
+      remoteState[timerKey] = null;
+      try { if (typeof updateUI === 'function') updateUI(); } catch(e) {}
+      try { if (typeof updateHUD === 'function') updateHUD(); } catch(e) {}
+      try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}
+    }, dur);
   }
 
   function __attachMapClickHandler() {
@@ -272,15 +305,15 @@
     if (!window.isRemoteActive()) return;
     switch (id) {
       case 'remote_doublestep':
-        remoteState.doublestepActive = true;
+        __setTimedRemoteCurseFlag('doublestepActive', true);
         try { if (typeof window.showToast === 'function') window.showToast('Double Step — each move costs 2 for 1 minute.', false, { autoDismissMs: 3000 }); } catch(e) {}
-        setTimeout(() => { remoteState.doublestepActive = false; }, (typeof REMOTE_CURSE_DURATION_MS !== 'undefined') ? REMOTE_CURSE_DURATION_MS : 60000);
         break;
       case 'remote_shakyhands':
         remoteState.shakeyHandsActive = true;
         remoteState.undoAvailable = false;
         __hideUndoButton();
         try { if (typeof window.showToast === 'function') window.showToast('Shaky Hands — undo is disabled for this round.', false, { autoDismissMs: 3000 }); } catch(e) {}
+        try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}
         break;
       case 'remote_anchored':
         remoteState.movesRemaining = Math.max(0, remoteState.movesRemaining - 3);
@@ -300,9 +333,8 @@
         try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}
         break;
       case 'remote_tunnelvision':
-        remoteState.tunnelvisionActive = true;
+        __setTimedRemoteCurseFlag('tunnelvisionActive', true);
         try { if (typeof window.showToast === 'function') window.showToast('Tunnel Vision — movement limited to 300m per tap for 1 minute.', false, { autoDismissMs: 3000 }); } catch(e) {}
-        setTimeout(() => { remoteState.tunnelvisionActive = false; }, (typeof REMOTE_CURSE_DURATION_MS !== 'undefined') ? REMOTE_CURSE_DURATION_MS : 60000);
         break;
     }
   };
