@@ -1028,6 +1028,14 @@ if (debugMode) {
         showToast(msg, false, { kind: 'curse', html: true });
         try { if (typeof window.updateCostBadgesFromConfig === 'function') window.updateCostBadgesFromConfig(); } catch(e) {}
       }
+      for (const key of ['veil', 'blackout', 'ghost']) {
+        const res = curseRoll && curseRoll[key];
+        if (res && res.curse) {
+          const c = res.curse;
+          const descPart = c.description ? `<br><span style="opacity:.8">${c.description}</span>` : '';
+          showToast(`You've been cursed: <b>${c.name}</b>${descPart}`, false, { kind: 'curse', html: true });
+        }
+      }
       for (const key of ['timePenMinor', 'timePenModerate', 'timePenMajor']) {
         const res = curseRoll && curseRoll[key];
         if (res && res.curse && res.curse.penaltyAppliedMs > 0) {
@@ -1101,6 +1109,12 @@ if (debugMode) {
         onConfirm: () => {
           const curseRoll = applyQuestionCosts('radar', String(meters));
           if (curseRoll && curseRoll.blocked) return;
+          // Re-check signal clamp: it may have just been applied by the cost roll above
+          if (typeof window.isCurseActive === 'function' && window.isCurseActive('heat4') && meters > 250) {
+            __showCurseToasts(curseRoll);
+            showToast('Radar is limited to 250m while cursed.', false);
+            return;
+          }
           if (panelGameplay) panelGameplay.classList.remove('open');
           showMenu('main');
           try {
@@ -1390,6 +1404,7 @@ if (debugMode) {
             if (!res.cached) {
               const curseRoll = applyQuestionCosts('photo', String(mode));
               if (curseRoll && curseRoll.blocked) return;
+              noteToolOptionUsed('photo', String(mode));
               try { if (typeof addPenaltyMs === 'function') addPenaltyMs(getToolTimeCostMs('photo', String(mode))); } catch(e) {}
               __showCurseToasts(curseRoll);
             }
