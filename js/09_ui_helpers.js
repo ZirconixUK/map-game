@@ -156,10 +156,12 @@ function updateUI() {
       const shouldDisable = !!over || !!usedThisRound || !!timeLocked;
       // Only block click events when round is over. Used/locked buttons stay clickable
       // so delegation handlers can show feedback toasts ("already used", "unlocks in X:XX").
+      const _remoteDisabled = !over && (typeof window.isRemoteActive === 'function' && window.isRemoteActive())
+        && (n.id === 'qSignalLock' || n.hasAttribute('data-signal-lock'));
       n.disabled = !!over;
       n.classList.toggle('disabled', !!over);
-      n.classList.toggle('used', !!usedThisRound && !over);
-      n.classList.toggle('locked', !!timeLocked && !over && !usedThisRound);
+      n.classList.toggle('used', (!!usedThisRound || !!_remoteDisabled) && !over);
+      n.classList.toggle('locked', !!timeLocked && !over && !usedThisRound && !_remoteDisabled);
       if (!over && !usedThisRound && timeLocked && lockInfo && typeof lockInfo.remainingMs === 'number') {
         n.title = `Unlocks in ${formatMMSS(lockInfo.remainingMs)}`;
         // Also display countdown directly in the button's cost badge area (mobile-visible)

@@ -1619,6 +1619,10 @@ if (debugMode) {
         if (id === 'qPhoto')    { showMenu('photo');    return; }
 
         if (id === 'qSignalLock') {
+          if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
+            try { showToast('Signal Lock is not available in Remote mode.', false, { autoDismissMs: 2000 }); } catch(e) {}
+            return;
+          }
           if (isToolOptionAlreadyUsed('signalLock', 'default')) {
             try { showToast('Signal Lock already used this round.', false); } catch(e) {}
             return;
