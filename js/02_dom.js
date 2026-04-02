@@ -504,7 +504,8 @@ function bindUI() {
         await positionPlayerForNewGame({ centerAfterFix: false });
         try {
           if (typeof setPlayerLatLng === 'function') {
-            setPlayerLatLng(areaOverride.lat, areaOverride.lon, { source: 'area-seed', force: true });
+            const _seedSetup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+            setPlayerLatLng(areaOverride.lat, areaOverride.lon, { source: 'area-seed', force: true, manual: !!((_seedSetup && _seedSetup.mode === 'remote')) });
           }
         } catch(e) {}
         try { if (typeof centerOnPlayer === 'function') centerOnPlayer(); } catch(e) {}

@@ -414,7 +414,7 @@
     const dbg = (typeof debugMode !== 'undefined') ? !!debugMode : !!window.debugMode;
     const pl = (typeof player !== 'undefined') ? player : window.player;
     const _usePlayerPos = (dbg && pl && pl.manualOverride) ||
-      (typeof window.isRemoteActive === 'function' && window.isRemoteActive() && pl && pl.manualOverride);
+      (typeof window.isRemoteActive === 'function' && window.isRemoteActive() && pl && typeof pl.lat === 'number');
     if (_usePlayerPos) {
       guess = { lat: +pl.lat, lon: +pl.lon, accuracy: 0, ts: Date.now() };
     } else {

@@ -12,8 +12,9 @@ function __attachDebugClickHandler() {
   if (!window.leafletMap || typeof window.leafletMap.on !== "function") return false;
 
   window.leafletMap.on("click", (e) => {
-    // Only in debug mode
+    // Only in debug mode, and not during a remote round (tap handler owns the click)
     if (!debugMode) return;
+    if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) return;
 
     // Manual override: stop GPS watch so it doesn't overwrite.
     try { if (typeof stopGeolocationWatch === "function") stopGeolocationWatch(); } catch (_) {}

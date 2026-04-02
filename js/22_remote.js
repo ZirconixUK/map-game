@@ -57,8 +57,8 @@
     remoteState.movesRemaining      = (typeof saved.movesRemaining === 'number') ? saved.movesRemaining : _moveBudget();
     remoteState.undoUsed            = !!(saved.undoUsed);
     remoteState.undoAvailable       = false; // don't show undo button on restore
-    remoteState.doublestepActive    = !!(saved.doublestepActive);
-    remoteState.tunnelvisionActive  = !!(saved.tunnelvisionActive);
+    remoteState.doublestepActive    = false; // timed — can't reconstruct setTimeout on restore
+    remoteState.tunnelvisionActive  = false; // timed — can't reconstruct setTimeout on restore
     remoteState.shakeyHandsActive   = !!(saved.shakeyHandsActive);
     __attachMapClickHandler();
     __updateMoveCounterUI();
