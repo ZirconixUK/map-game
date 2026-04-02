@@ -193,12 +193,14 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
 
       __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
       try { if (typeof window.restoreGauntletState === 'function' && saved.gauntletState) window.restoreGauntletState(saved.gauntletState); } catch(e) {}
+      try { if (typeof window.restoreRemoteState === 'function' && saved.remoteState) window.restoreRemoteState(saved.remoteState); } catch(e) {}
       try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
     } else if (saved && typeof saved.targetIdx === "number" && POIS && POIS[saved.targetIdx]) {
       targetIdx = saved.targetIdx;
       target = POIS[targetIdx];
       __restoreCommonRoundFields(saved, _savedExpiredOnLoad);
       try { if (typeof window.restoreGauntletState === 'function' && saved.gauntletState) window.restoreGauntletState(saved.gauntletState); } catch(e) {}
+      try { if (typeof window.restoreRemoteState === 'function' && saved.remoteState) window.restoreRemoteState(saved.remoteState); } catch(e) {}
       try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
     } else {
       // No saved game — flag so startup flow opens the New Game panel
