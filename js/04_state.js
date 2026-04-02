@@ -82,6 +82,11 @@ window.getRoundTimeLimitMs = () => {
     if (setup && setup.mode === 'gauntlet') {
       return (typeof GAUNTLET_TIME_LIMIT_MS === 'number' && isFinite(GAUNTLET_TIME_LIMIT_MS)) ? GAUNTLET_TIME_LIMIT_MS : (90 * 60 * 1000);
     }
+    if (setup && setup.mode === 'remote') {
+      const len = (setup && setup.length) || 'short';
+      const budgets = (typeof REMOTE_TIME_LIMITS_MS !== 'undefined') ? REMOTE_TIME_LIMITS_MS : { short: 5 * 60 * 1000, medium: 8 * 60 * 1000, long: 12 * 60 * 1000 };
+      return budgets[len] || budgets.short;
+    }
     const length = setup && typeof setup.length === 'string' ? setup.length.toLowerCase() : 'short';
     if (length === 'medium') return 45 * 60 * 1000;
     if (length === 'long') return 60 * 60 * 1000;
@@ -167,7 +172,7 @@ function __normalizeGameDifficulty(v) {
 
 function __normalizeGameMode(v) {
   const x = String(v == null ? '' : v).trim().toLowerCase();
-  return (x === 'gauntlet') ? 'gauntlet' : 'normal';
+  return (x === 'gauntlet' || x === 'remote') ? x : 'normal';
 }
 
 function __normalizeGameSetup(src) {
@@ -427,6 +432,7 @@ function saveRoundState() {
       signalLockCircles: (typeof window.getSignalLockCircles === 'function') ? window.getSignalLockCircles() : null,
       gameSetup: __normalizeGameSetup(gameSetup),
       gauntletState: (typeof window.getGauntletStateForPersistence === 'function') ? window.getGauntletStateForPersistence() : null,
+      remoteState: (typeof window.getRemoteStateForPersistence === 'function') ? window.getRemoteStateForPersistence() : null,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch (e) {
