@@ -83,6 +83,14 @@
 
   let __remoteMapClickHandler = null;
 
+  function __consumeSuppressedRemoteTap() {
+    if (window.__suppressNextRemoteTapCount && window.__suppressNextRemoteTapCount > 0) {
+      window.__suppressNextRemoteTapCount = Math.max(0, window.__suppressNextRemoteTapCount - 1);
+      return true;
+    }
+    return false;
+  }
+
   function __resetRemoteState() {
     remoteState.active             = false;
     remoteState.movesRemaining     = 0;
@@ -156,6 +164,7 @@
 
   window.remoteHandleTap = function (latlng) {
     if (!window.isRemoteActive()) return;
+    if (__consumeSuppressedRemoteTap()) return;
     if (window.__suppressRemoteTapUntil && Date.now() < window.__suppressRemoteTapUntil) return;
     const r = typeof window.getRoundStateV1 === 'function' ? window.getRoundStateV1() : null;
     if (r && r.hasGuessed) return; // round already locked

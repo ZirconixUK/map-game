@@ -45,6 +45,13 @@ const elThermoProgressText   = document.getElementById("thermoProgressText");
 const __toastQueue = [];
 let __toastShowing = false;
 
+function __suppressNextRemoteTap() {
+  try {
+    window.__suppressNextRemoteTapCount = (window.__suppressNextRemoteTapCount || 0) + 1;
+    window.__suppressRemoteTapUntil = Math.max(window.__suppressRemoteTapUntil || 0, Date.now() + 700);
+  } catch (e) {}
+}
+
 function __showNextToast(){
   const toast = document.getElementById("toast");
   if (!toast) { __toastQueue.length = 0; __toastShowing = false; return; }
@@ -92,7 +99,7 @@ function __showNextToast(){
   const _tapDismiss = () => {
     // Always suppress the subsequent map click while the toast listener is active,
     // even if the toast itself can't be dismissed yet (dismiss guard is still on).
-    window.__suppressRemoteTapUntil = Date.now() + 350;
+    __suppressNextRemoteTap();
     if (_dismissGuarded) return;
     dismiss();
   };

@@ -222,7 +222,10 @@
     backdrop.addEventListener("pointerdown", () => {
       // Suppress the subsequent map click so tapping to dismiss a panel
       // doesn't also move the player in remote mode.
-      window.__suppressRemoteTapUntil = Date.now() + 350;
+      try {
+        window.__suppressNextRemoteTapCount = (window.__suppressNextRemoteTapCount || 0) + 1;
+        window.__suppressRemoteTapUntil = Math.max(window.__suppressRemoteTapUntil || 0, Date.now() + 700);
+      } catch (e) {}
       setOpen(panelGameplay, false);
       setOpen(panelDebug, false);
       setOpen(panelHeat, false);
