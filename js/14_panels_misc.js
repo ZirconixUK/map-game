@@ -319,7 +319,7 @@
         for (const k of Object.keys(cfg.remote)) {
           const c = cfg.remote[k];
           if (!c || !c.id) continue;
-          curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || 60000, heatLabel: "Remote" });
+          curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs != null ? c.durationMs : null, heatLabel: "Remote" });
         }
       }
     } else {
