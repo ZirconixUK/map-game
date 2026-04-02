@@ -808,6 +808,38 @@ if (debugMode) {
   function __applyGauntletLengthConstraints(mode) {
     const lengthBtns = document.querySelectorAll('[data-game-length]');
     const infoBlock = document.getElementById('gauntletModeInfo');
+    const remoteInfoBlock = document.getElementById('remoteModeInfo');
+    const btnCurrent = document.querySelector('[data-start-location="current"]');
+
+    // Always hide remote info and reset start location state first
+    if (remoteInfoBlock) remoteInfoBlock.classList.add('hidden');
+
+    if (mode === 'remote') {
+      // Length buttons: all available in remote
+      lengthBtns.forEach(btn => {
+        btn.classList.remove('opacity-40', 'pointer-events-none');
+        btn.removeAttribute('aria-disabled');
+      });
+      if (infoBlock) infoBlock.classList.add('hidden');
+      if (remoteInfoBlock) remoteInfoBlock.classList.remove('hidden');
+      // Starting location: force "pick on map", disable "current location"
+      if (btnCurrent) {
+        btnCurrent.classList.add('opacity-40', 'pointer-events-none');
+        btnCurrent.setAttribute('aria-disabled', 'true');
+      }
+      selectChoice('[data-start-location]', 'data-start-location', 'pick');
+      __newGameLocationMode = 'pick';
+      return;
+    }
+
+    // Starting location: restore "current location" for non-remote modes
+    if (btnCurrent) {
+      btnCurrent.classList.remove('opacity-40', 'pointer-events-none');
+      btnCurrent.removeAttribute('aria-disabled');
+    }
+    selectChoice('[data-start-location]', 'data-start-location', 'current');
+    __newGameLocationMode = 'current';
+
     if (mode === 'gauntlet') {
       lengthBtns.forEach(btn => {
         const v = btn.getAttribute('data-game-length') || '';
