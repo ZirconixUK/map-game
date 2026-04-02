@@ -3,7 +3,6 @@
 
 let leafletTargetMarker = null;
 let leafletPlayerMarker = null;
-let leafletPlayerMarkerOuter = null;
 let leafletPlayerAccuracyCircle = null;
 let leafletMarkersLayer = null;
 
@@ -216,6 +215,25 @@ function setAllPoiPinsVisible() {
   // no-op: POI dots are always visible. Debug toggle retained for UI compatibility.
 }
 
+function __createPlayerMarkerIcon() {
+  const color = '#3388ff';
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+      <circle cx="15" cy="15" r="8.5" fill="none" stroke="${color}" stroke-width="2"/>
+      <path d="M15 1.5 L13.6 4.5 L16.4 4.5 Z" fill="${color}"/>
+      <path d="M28.5 15 L25.5 13.6 L25.5 16.4 Z" fill="${color}"/>
+      <path d="M15 28.5 L13.6 25.5 L16.4 25.5 Z" fill="${color}"/>
+      <path d="M1.5 15 L4.5 13.6 L4.5 16.4 Z" fill="${color}"/>
+      <circle cx="15" cy="15" r="5.5" fill="${color}"/>
+    </svg>`;
+  return L.divIcon({
+    className: 'player-marker-svg',
+    html: svg,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  });
+}
+
 function syncLeafletTargetMarker() {
   if (!ensureLeafletMarkersLayer()) return;
   if (!target) {
@@ -245,7 +263,6 @@ function syncLeafletPlayerMarker() {
   if (!ensureLeafletMarkersLayer()) return;
   if (!player) {
     if (leafletPlayerMarker) { leafletMarkersLayer.removeLayer(leafletPlayerMarker); leafletPlayerMarker = null; }
-    if (leafletPlayerMarkerOuter) { leafletMarkersLayer.removeLayer(leafletPlayerMarkerOuter); leafletPlayerMarkerOuter = null; }
     if (leafletPlayerAccuracyCircle) { leafletMarkersLayer.removeLayer(leafletPlayerAccuracyCircle); leafletPlayerAccuracyCircle = null; }
     return;
   }
@@ -254,46 +271,18 @@ function syncLeafletPlayerMarker() {
   const acc = null;
 
   const _ghostActive = typeof window.isCurseActive === 'function' && window.isCurseActive('ghost');
-  const playerMarkerColor = '#3388ff';
   ensurePlayerPane();
-  if (!leafletPlayerMarkerOuter) {
-    leafletPlayerMarkerOuter = L.circleMarker(ll, {
-      radius: 11,
-      weight: 2,
-      color: playerMarkerColor,
-      fillOpacity: 0,
-      opacity: _ghostActive ? 0 : 1,
-      interactive: false,
-      pane: 'playerPane',
-    }).addTo(leafletMarkersLayer);
-  } else {
-    leafletPlayerMarkerOuter.setLatLng(ll);
-    leafletPlayerMarkerOuter.setStyle({
-      color: playerMarkerColor,
-      opacity: _ghostActive ? 0 : 1,
-    });
-    if (!leafletMarkersLayer.hasLayer(leafletPlayerMarkerOuter)) leafletPlayerMarkerOuter.addTo(leafletMarkersLayer);
-  }
-
   if (!leafletPlayerMarker) {
-    leafletPlayerMarker = L.circleMarker(ll, {
-      radius: 7,
-      weight: 0,
-      color: playerMarkerColor,
-      fillColor: playerMarkerColor,
-      fillOpacity: _ghostActive ? 0 : 0.9,
+    leafletPlayerMarker = L.marker(ll, {
+      icon: __createPlayerMarkerIcon(),
       opacity: _ghostActive ? 0 : 1,
       interactive: false,
+      keyboard: false,
       pane: 'playerPane',
     }).addTo(leafletMarkersLayer);
   } else {
     leafletPlayerMarker.setLatLng(ll);
-    leafletPlayerMarker.setStyle({
-      color: playerMarkerColor,
-      fillColor: playerMarkerColor,
-      fillOpacity: _ghostActive ? 0 : 0.9,
-      opacity: _ghostActive ? 0 : 1,
-    });
+    leafletPlayerMarker.setOpacity(_ghostActive ? 0 : 1);
     if (!leafletMarkersLayer.hasLayer(leafletPlayerMarker)) leafletPlayerMarker.addTo(leafletMarkersLayer);
   }
 
