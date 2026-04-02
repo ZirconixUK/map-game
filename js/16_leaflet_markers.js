@@ -56,9 +56,9 @@ function __poiCategoryColor(p) {
     return { fillColor: '#d97706', color: 'rgba(0,0,0,0.4)' };
 
   if (shop)
-    return { fillColor: '#94a3b8', color: 'rgba(0,0,0,0.4)' };
+    return { fillColor: '#fb923c', color: 'rgba(0,0,0,0.4)' };
 
-  return { fillColor: '#6b7280', color: 'rgba(0,0,0,0.4)' };
+  return { fillColor: '#2dd4bf', color: 'rgba(0,0,0,0.4)' };
 }
 
 function ensurePlayerPane() {
@@ -334,3 +334,4 @@ window.refreshLeafletMarkersVisibility = refreshLeafletMarkersVisibility;
 // POI pins
 window.setAllPoiPinsVisible = setAllPoiPinsVisible;
 window.refreshAllPoiPins = rebuildViewportPoiPins;
+window.clearAllPoiPins = clearAllPoiPins;

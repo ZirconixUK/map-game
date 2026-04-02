@@ -167,6 +167,8 @@ function setPoisFromList(list, sourceLabel = "(import)") {
   for (const p of list) POIS.push(p);
   log(`📍 Loaded ${POIS.length} POIs from ${sourceLabel}`);
   setPoiSourceUI(sourceLabel);
+  // Invalidate bucket cache — POIS was mutated in-place so identity check would return stale buckets.
+  try { if (typeof window.clearAllPoiPins === "function") window.clearAllPoiPins(); } catch (e) {}
   try { if (typeof window.refreshAllPoiPins === "function") window.refreshAllPoiPins(); } catch (e) {}
 }
 
