@@ -220,6 +220,9 @@
   // Tapping the backdrop closes all panels
   if (backdrop) {
     backdrop.addEventListener("pointerdown", () => {
+      // Suppress the subsequent map click so tapping to dismiss a panel
+      // doesn't also move the player in remote mode.
+      window.__suppressRemoteTapUntil = Date.now() + 350;
       setOpen(panelGameplay, false);
       setOpen(panelDebug, false);
       setOpen(panelHeat, false);

@@ -156,6 +156,7 @@
 
   window.remoteHandleTap = function (latlng) {
     if (!window.isRemoteActive()) return;
+    if (window.__suppressRemoteTapUntil && Date.now() < window.__suppressRemoteTapUntil) return;
     const r = typeof window.getRoundStateV1 === 'function' ? window.getRoundStateV1() : null;
     if (r && r.hasGuessed) return; // round already locked
 
