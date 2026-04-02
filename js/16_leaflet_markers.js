@@ -171,7 +171,7 @@ function __queryPoisInBounds(source, bounds) {
 function __createPoiMarker(p) {
   const { fillColor, color } = __poiCategoryColor(p);
   const m = L.circleMarker([p.lat, p.lon], {
-    radius: 5,
+    radius: 6.5,
     weight: 1,
     color,
     fillColor,
