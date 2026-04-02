@@ -124,7 +124,8 @@
       const _rKey = id.replace('remote_', '');
       const _rDef = (_rCfg && _rCfg[_rKey]) || null;
       const _rCurse = _rDef ? { id, name: _rDef.name, description: _rDef.description, durationMs: _rDef.durationMs || null } : { id };
-      return { curse: _rCurse, isNew: true };
+      // isNew: false — applyRemoteCurse shows its own toast; suppress duplicate from standard pipeline
+      return { curse: _rCurse, isNew: false };
     }
 
     // Remote mode: suppress timer-based curses
@@ -312,6 +313,7 @@
       _hit = _hit || !!(timePenModerateResult && timePenModerateResult.curse);
 
       const timePenMajorResult    = _hit ? null : __rollCurse('timePenMajorChanceByHeatLevel',    'timepen_major',    level, diff);
+      _hit = _hit || !!(timePenMajorResult && timePenMajorResult.curse);
 
       // Remote mode: replace remaining standard rolls with a single remote curse roll
       let remoteResult = null;

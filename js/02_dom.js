@@ -880,10 +880,14 @@ if (debugMode) {
 
   document.querySelectorAll('[data-game-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
+      const _prevMode = selectedGameMode;
       selectedGameMode = (btn.getAttribute('data-game-mode') || 'normal').toLowerCase();
       selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
       __applyGauntletLengthConstraints(selectedGameMode);
       try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: selectedGameMode }); } catch(e) {}
+      if (_prevMode === 'remote' && selectedGameMode !== 'remote') {
+        try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
+      }
     });
   });
 
