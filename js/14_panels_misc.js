@@ -315,6 +315,13 @@
           curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || cfg.defaultDurationMs || 300000, heatLabel });
         }
       }
+      if (cfg.remote && typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
+        for (const k of Object.keys(cfg.remote)) {
+          const c = cfg.remote[k];
+          if (!c || !c.id) continue;
+          curses.push({ id: c.id, name: c.name || c.id, description: c.description || "", durationMs: c.durationMs || 60000, heatLabel: "Remote" });
+        }
+      }
     } else {
       // Fallback hardcoded list matching known curse IDs
       const fallback = [

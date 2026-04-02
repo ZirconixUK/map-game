@@ -141,5 +141,39 @@
       "kind": "instant_time_penalty",
       "timePenaltyMs": { "short": 300000, "medium": 600000, "long": 900000 }
     }
+  },
+  "remoteCurseChanceByHeatLevel": {
+    "0": 0,
+    "1": 0,
+    "2": 0.20,
+    "3": 0.35,
+    "4": 0.55,
+    "5": 0.75
+  },
+  "remote": {
+    "doublestep": {
+      "id": "remote_doublestep",
+      "name": "Double Step",
+      "description": "Each move costs 2 for 1 minute.",
+      "durationMs": 60000
+    },
+    "shakyhands": {
+      "id": "remote_shakyhands",
+      "name": "Shaky Hands",
+      "description": "Undo is disabled for the rest of this round.",
+      "durationMs": null
+    },
+    "anchored": {
+      "id": "remote_anchored",
+      "name": "Anchored",
+      "description": "Lose 3 moves immediately.",
+      "durationMs": null
+    },
+    "tunnelvision": {
+      "id": "remote_tunnelvision",
+      "name": "Tunnel Vision",
+      "description": "Movement limited to 300m per tap for 1 minute.",
+      "durationMs": 60000
+    }
   }
 }
