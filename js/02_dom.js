@@ -516,6 +516,7 @@ function bindUI() {
       try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') await window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
       // By design: player location first, map centre second, then target pick based on that player location.
       try { if (typeof window.__initGauntletIfNeeded === 'function') window.__initGauntletIfNeeded(); } catch(e) {}
+      try { if (typeof window.__initRemoteIfNeeded === 'function') window.__initRemoteIfNeeded(); } catch(e) {}
       await pickNewTarget(true);
     } finally {
       if (_heldGeoWatch) {
@@ -890,6 +891,7 @@ if (debugMode) {
     selectChoice('[data-game-mode]', 'data-game-mode', 'normal');
     __applyGauntletLengthConstraints('normal');
     try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: 'normal' }); } catch(e) {}
+    try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
   };
 
   document.querySelectorAll('[data-game-length]').forEach(btn => {
