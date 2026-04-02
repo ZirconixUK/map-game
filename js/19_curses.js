@@ -114,6 +114,24 @@
     const id = String(curseId || "").trim();
     if (!id) return { curse: null, isNew: false };
 
+    const _remoteActive = typeof window.isRemoteActive === 'function' && window.isRemoteActive();
+
+    // Remote mode: route remote-specific curses to 22_remote.js handler
+    if (_remoteActive && (id === 'remote_doublestep' || id === 'remote_shakyhands' || id === 'remote_anchored' || id === 'remote_tunnelvision')) {
+      try { if (typeof window.applyRemoteCurse === 'function') window.applyRemoteCurse(id); } catch(e) {}
+      // Build a full curse object so curse toast UI has name + description
+      const _rCfg = window.__curseConfig && window.__curseConfig.remote;
+      const _rKey = id.replace('remote_', '');
+      const _rDef = (_rCfg && _rCfg[_rKey]) || null;
+      const _rCurse = _rDef ? { id, name: _rDef.name, description: _rDef.description, durationMs: _rDef.durationMs || null } : { id };
+      return { curse: _rCurse, isNew: true };
+    }
+
+    // Remote mode: suppress timer-based curses
+    if (_remoteActive && (id === 'overcharged' || id === 'timepen_minor' || id === 'timepen_moderate' || id === 'timepen_major')) {
+      return { curse: null, isNew: false };
+    }
+
     const def = getCurseDefById(id);
 
     // Instant time penalty: subtract time immediately, don't persist in active list
@@ -128,9 +146,12 @@
         return { curse: null, isNew: false };
       }
     }
-    const dur = (typeof durationMs === "number" && isFinite(durationMs))
-      ? durationMs
-      : (def && typeof def.durationMs === "number" ? def.durationMs : (CURSES_CONFIG && CURSES_CONFIG.defaultDurationMs) || DEFAULT_DURATION_MS);
+    const _remoteDur = _remoteActive ? ((typeof REMOTE_CURSE_DURATION_MS === 'number') ? REMOTE_CURSE_DURATION_MS : 60000) : null;
+    const dur = _remoteDur !== null
+      ? _remoteDur
+      : ((typeof durationMs === "number" && isFinite(durationMs))
+          ? durationMs
+          : (def && typeof def.durationMs === "number" ? def.durationMs : (CURSES_CONFIG && CURSES_CONFIG.defaultDurationMs) || DEFAULT_DURATION_MS));
 
     const existing = active.find(c => c.id === id);
     const now = nowMs();
@@ -292,7 +313,23 @@
 
       const timePenMajorResult    = _hit ? null : __rollCurse('timePenMajorChanceByHeatLevel',    'timepen_major',    level, diff);
 
-      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult, timePenMinor: timePenMinorResult, timePenModerate: timePenModerateResult, timePenMajor: timePenMajorResult };
+      // Remote mode: replace remaining standard rolls with a single remote curse roll
+      let remoteResult = null;
+      const _remoteActive = typeof window.isRemoteActive === 'function' && window.isRemoteActive();
+      if (_remoteActive && !_hit) {
+        const _remoteIds = ['remote_doublestep', 'remote_shakyhands', 'remote_anchored', 'remote_tunnelvision'];
+        const _remoteChanceTable = CURSES_CONFIG && CURSES_CONFIG.remoteCurseChanceByHeatLevel;
+        const _remoteRaw = _remoteChanceTable ? (_remoteChanceTable[String(level)] || 0) : 0;
+        let _remoteP = (typeof _remoteRaw === 'number') ? _remoteRaw : 0;
+        if (diff === 'easy') _remoteP *= 0.75;
+        else if (diff === 'hard') _remoteP = Math.min(1, _remoteP * 1.5);
+        if (_remoteP > 0 && Math.random() < _remoteP) {
+          const _chosenId = _remoteIds[Math.floor(Math.random() * _remoteIds.length)];
+          remoteResult = applyCurse(_chosenId);
+        }
+      }
+
+      return { triggered, p, r, level, meta, applied, overcharged: overchargedResult, veil: veilResult, blackout: blackoutResult, ghost: ghostResult, timePenMinor: timePenMinorResult, timePenModerate: timePenModerateResult, timePenMajor: timePenMajorResult, remote: remoteResult };
     } catch (e) {
       console.error(e);
       return { triggered: false, reason: 'error' };
