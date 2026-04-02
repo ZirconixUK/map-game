@@ -413,8 +413,10 @@
     let guess = null;
     const dbg = (typeof debugMode !== 'undefined') ? !!debugMode : !!window.debugMode;
     const pl = (typeof player !== 'undefined') ? player : window.player;
-    if (dbg && pl && pl.manualOverride) {
-      guess = { lat: +pl.lat, lon: +pl.lon, accuracy: num(pl.accuracy) ?? 0, ts: Date.now() };
+    const _usePlayerPos = (dbg && pl && pl.manualOverride) ||
+      (typeof window.isRemoteActive === 'function' && window.isRemoteActive() && pl && pl.manualOverride);
+    if (_usePlayerPos) {
+      guess = { lat: +pl.lat, lon: +pl.lon, accuracy: 0, ts: Date.now() };
     } else {
       const lockMsg = autoLock ? "Time's up — sampling your position…" : 'Locking in guess…';
       try { if (typeof showToast === 'function') showToast(lockMsg, !autoLock); } catch(e) {}
