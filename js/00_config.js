@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-04-02.remote-tap-suppress-2';
+const BUILD_ID = '2026-04-02.remote-curse-persist-pick-cleanup';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
