@@ -3,6 +3,7 @@
 
 let leafletTargetMarker = null;
 let leafletPlayerMarker = null;
+let leafletPlayerMarkerOuter = null;
 let leafletPlayerAccuracyCircle = null;
 let leafletMarkersLayer = null;
 
@@ -244,6 +245,7 @@ function syncLeafletPlayerMarker() {
   if (!ensureLeafletMarkersLayer()) return;
   if (!player) {
     if (leafletPlayerMarker) { leafletMarkersLayer.removeLayer(leafletPlayerMarker); leafletPlayerMarker = null; }
+    if (leafletPlayerMarkerOuter) { leafletMarkersLayer.removeLayer(leafletPlayerMarkerOuter); leafletPlayerMarkerOuter = null; }
     if (leafletPlayerAccuracyCircle) { leafletMarkersLayer.removeLayer(leafletPlayerAccuracyCircle); leafletPlayerAccuracyCircle = null; }
     return;
   }
@@ -252,11 +254,33 @@ function syncLeafletPlayerMarker() {
   const acc = null;
 
   const _ghostActive = typeof window.isCurseActive === 'function' && window.isCurseActive('ghost');
+  const playerMarkerColor = '#3388ff';
   ensurePlayerPane();
+  if (!leafletPlayerMarkerOuter) {
+    leafletPlayerMarkerOuter = L.circleMarker(ll, {
+      radius: 11,
+      weight: 2,
+      color: playerMarkerColor,
+      fillOpacity: 0,
+      opacity: _ghostActive ? 0 : 1,
+      interactive: false,
+      pane: 'playerPane',
+    }).addTo(leafletMarkersLayer);
+  } else {
+    leafletPlayerMarkerOuter.setLatLng(ll);
+    leafletPlayerMarkerOuter.setStyle({
+      color: playerMarkerColor,
+      opacity: _ghostActive ? 0 : 1,
+    });
+    if (!leafletMarkersLayer.hasLayer(leafletPlayerMarkerOuter)) leafletPlayerMarkerOuter.addTo(leafletMarkersLayer);
+  }
+
   if (!leafletPlayerMarker) {
     leafletPlayerMarker = L.circleMarker(ll, {
       radius: 7,
-      weight: 2,
+      weight: 0,
+      color: playerMarkerColor,
+      fillColor: playerMarkerColor,
       fillOpacity: _ghostActive ? 0 : 0.9,
       opacity: _ghostActive ? 0 : 1,
       interactive: false,
@@ -265,6 +289,8 @@ function syncLeafletPlayerMarker() {
   } else {
     leafletPlayerMarker.setLatLng(ll);
     leafletPlayerMarker.setStyle({
+      color: playerMarkerColor,
+      fillColor: playerMarkerColor,
       fillOpacity: _ghostActive ? 0 : 0.9,
       opacity: _ghostActive ? 0 : 1,
     });

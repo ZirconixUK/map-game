@@ -36,6 +36,7 @@ Real-world walking/deduction game on a city map. Mobile-first. Liverpool proving
 
 ## After every change — always do this
 - Update `BUILD_ID` in `js/00_config.js` to `YYYY-MM-DD.<short-slug>` describing the change. Do this before committing.
+- If committing on `main`, push the commit right after it. Treat `commit on main -> push` as a required finalization step.
 
 ## After changes — verify
 - Panels open/close correctly; tapping outside dismisses them.
