@@ -323,6 +323,25 @@ function updateHUD() {
     }
   }
 
+  // Remote move counter
+  const elMoveCounter = document.getElementById('remoteMoveCounter');
+  if (elMoveCounter) {
+    if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
+      elMoveCounter.classList.remove('hidden');
+      const moves = typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : 0;
+      elMoveCounter.textContent = `${moves}`;
+      if (moves === 0) {
+        elMoveCounter.style.color = '#f87171';
+      } else if (moves <= 3) {
+        elMoveCounter.style.color = '#fbbf24';
+      } else {
+        elMoveCounter.style.color = '#a78bfa';
+      }
+    } else {
+      elMoveCounter.classList.add('hidden');
+    }
+  }
+
   // Heat — colour flame FAB and heat panel row by level
   const heatEl = elHeatWidget;
   const hv  = (typeof heatValue === "number" && isFinite(heatValue)) ? heatValue : 0;
