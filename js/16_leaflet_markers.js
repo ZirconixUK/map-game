@@ -220,10 +220,10 @@ function __createPlayerMarkerIcon() {
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
       <circle cx="15" cy="15" r="8.5" fill="none" stroke="${color}" stroke-width="2"/>
-      <path d="M15 0.5 L12.8 6.5 L17.2 6.5 Z" fill="${color}"/>
-      <path d="M29.5 15 L23.5 12.8 L23.5 17.2 Z" fill="${color}"/>
-      <path d="M15 29.5 L12.8 23.5 L17.2 23.5 Z" fill="${color}"/>
-      <path d="M0.5 15 L6.5 12.8 L6.5 17.2 Z" fill="${color}"/>
+      <path d="M24.9 5.1 L19.2 6.4 L22.3 9.5 Z" fill="${color}"/>
+      <path d="M24.9 24.9 L22.3 20.5 L19.2 23.6 Z" fill="${color}"/>
+      <path d="M5.1 24.9 L10.8 23.6 L7.7 20.5 Z" fill="${color}"/>
+      <path d="M5.1 5.1 L7.7 9.5 L10.8 6.4 Z" fill="${color}"/>
       <circle cx="15" cy="15" r="5.5" fill="${color}"/>
     </svg>`;
   return L.divIcon({
