@@ -217,14 +217,16 @@ function setAllPoiPinsVisible() {
 
 function __createPlayerMarkerIcon() {
   const color = '#3388ff';
+  const outline = 'rgba(0,0,0,0.7)';
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
       <circle cx="15" cy="15" r="8.5" fill="none" stroke="${color}" stroke-width="2"/>
-      <path d="M24.9 5.1 L19.2 6.4 L22.3 9.5 Z" fill="${color}"/>
-      <path d="M24.9 24.9 L22.3 20.5 L19.2 23.6 Z" fill="${color}"/>
-      <path d="M5.1 24.9 L10.8 23.6 L7.7 20.5 Z" fill="${color}"/>
-      <path d="M5.1 5.1 L7.7 9.5 L10.8 6.4 Z" fill="${color}"/>
-      <circle cx="15" cy="15" r="5.5" fill="${color}"/>
+      <circle cx="15" cy="15" r="8.5" fill="none" stroke="${outline}" stroke-width="1"/>
+      <path d="M24.9 5.1 L19.2 6.4 L22.3 9.5 Z" fill="${color}" stroke="${outline}" stroke-width="1" paint-order="stroke fill"/>
+      <path d="M24.9 24.9 L22.3 20.5 L19.2 23.6 Z" fill="${color}" stroke="${outline}" stroke-width="1" paint-order="stroke fill"/>
+      <path d="M5.1 24.9 L10.8 23.6 L7.7 20.5 Z" fill="${color}" stroke="${outline}" stroke-width="1" paint-order="stroke fill"/>
+      <path d="M5.1 5.1 L7.7 9.5 L10.8 6.4 Z" fill="${color}" stroke="${outline}" stroke-width="1" paint-order="stroke fill"/>
+      <circle cx="15" cy="15" r="5.5" fill="${color}" stroke="${outline}" stroke-width="1" paint-order="stroke fill"/>
     </svg>`;
   return L.divIcon({
     className: 'player-marker-svg',
