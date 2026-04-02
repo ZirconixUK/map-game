@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-04-02.remote-curses-json';
+const BUILD_ID = '2026-04-02.remote-constants';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
@@ -121,6 +121,9 @@ const DEFAULT_START_LATLNG = { lat: 53.40744, lon: -2.97785 };
 const ROUND_TIME_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
 const GAUNTLET_TARGET_COUNT  = 5;
 const GAUNTLET_TIME_LIMIT_MS = 90 * 60 * 1000; // 90 minutes
+const REMOTE_MOVE_BUDGETS    = { short: 15, medium: 20, long: 25 };
+const REMOTE_TIME_LIMITS_MS  = { short: 5 * 60 * 1000, medium: 8 * 60 * 1000, long: 12 * 60 * 1000 };
+const REMOTE_CURSE_DURATION_MS = 60 * 1000; // 1 minute — all timed curses shortened in remote mode
 
 // ---- Radar options per game mode ----
 // Each entry is { m: distanceInMeters, heat: heatCost }.
