@@ -90,10 +90,10 @@ function __showNextToast(){
   };
 
   const _tapDismiss = () => {
-    if (_dismissGuarded) return;
-    // Suppress the subsequent map click that follows this pointerdown, so
-    // tapping to dismiss a toast doesn't also move the player in remote mode.
+    // Always suppress the subsequent map click while the toast listener is active,
+    // even if the toast itself can't be dismissed yet (dismiss guard is still on).
     window.__suppressRemoteTapUntil = Date.now() + 350;
+    if (_dismissGuarded) return;
     dismiss();
   };
 
