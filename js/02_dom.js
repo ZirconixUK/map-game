@@ -273,6 +273,10 @@ window.__buildPhotoGalleryGrid = __buildPhotoGalleryGrid;
 function bindUI() {
   on("btnRecenter","click", (ev) => {
     try { if (ev && ev.preventDefault) ev.preventDefault(); if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(e) {}
+    if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
+      try { if (typeof showToast === 'function') showToast('GPS recenter disabled in Remote mode.', false, { autoDismissMs: 1500 }); } catch(e) {}
+      return;
+    }
 
     // a) Ensure debug is OFF so taps don't accidentally override player location
     try {
@@ -300,6 +304,10 @@ function bindUI() {
 
   on("btnGeo","click", (ev) => {
     try { if (ev && ev.preventDefault) ev.preventDefault(); if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(e) {}
+    if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
+      try { if (typeof showToast === 'function') showToast('GPS location disabled in Remote mode.', false, { autoDismissMs: 1500 }); } catch(e) {}
+      return;
+    }
     try { log("📡 Use location clicked."); } catch(e) {}
     try { console.info("[MapGame] Use location clicked"); } catch(e) {}
 
@@ -512,7 +520,10 @@ function bindUI() {
     } finally {
       if (_heldGeoWatch) {
         window.__holdGeoWatch = false;
-        try { if (typeof startGeolocationWatch === 'function') startGeolocationWatch(); } catch(e) {}
+        const _setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+        if (!(_setup && _setup.mode === 'remote')) {
+          try { if (typeof startGeolocationWatch === 'function') startGeolocationWatch(); } catch(e) {}
+        }
       }
       if (btnStart) {
         btnStart.disabled = false;
