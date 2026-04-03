@@ -695,6 +695,27 @@ function bindUI() {
     try { if (typeof __syncSetupScreenMode === 'function') __syncSetupScreenMode(); } catch(e) {}
   }
 
+  function openBriefingForNewOperation() {
+    try { if (typeof window.__cancelPickModeIfActive === 'function') window.__cancelPickModeIfActive(); } catch(e) {}
+    const ids = ["panelGameplay","panelSystem","panelHeat","panelDebug","panelCurseSelect","panelPhotoGallery","panelHowToPlay","panelProfile","panelNewGame"];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
+    const hasPriorResult = (() => {
+      try { return !!localStorage.getItem('mapgame_result_payload_v1'); } catch(e) { return false; }
+    })();
+    try {
+      if (typeof window.__showBriefingModal === 'function') {
+        window.__showBriefingModal(hasPriorResult ? 'return' : 'first');
+        return;
+      }
+    } catch(e) {}
+    const modal = document.getElementById('welcomeModal');
+    const first = document.getElementById('welcomeContentFirst');
+    const ret = document.getElementById('welcomeContentReturn');
+    if (first) first.classList.toggle('hidden', hasPriorResult);
+    if (ret) ret.classList.toggle('hidden', !hasPriorResult);
+    if (modal) modal.classList.remove('hidden');
+  }
+
   function __syncSetupLocationStatus(mode) {
     try {
       const isRemote = mode === 'remote';
@@ -780,7 +801,7 @@ function bindUI() {
   window.__syncSetupScreenMode = __syncSetupScreenMode;
 
   on("btnNewTarget","click", startNewGameFromMenuOrDebug);
-  on("btnSystemNewGame","click", openNewGamePanel);
+  on("btnSystemNewGame","click", openBriefingForNewOperation);
   on("btnNewGameStartReal","click", () => {
     try {
       if (typeof window.setGameSetupSelection === 'function') {
@@ -794,7 +815,13 @@ function bindUI() {
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.remove("open");
     if (__newGameLocationMode === 'pick') {
-      __startLocationPickMode({ launchOnConfirm: true });
+      if (__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon)) {
+        const seed = __pickedAreaSeed;
+        __pickedAreaSeed = null;
+        startNewGameFromMenuOrDebug(seed);
+      } else {
+        __startLocationPickMode({ launchOnConfirm: true });
+      }
     } else {
       startNewGameFromMenuOrDebug();
     }

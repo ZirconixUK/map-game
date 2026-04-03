@@ -712,11 +712,14 @@ body{
 
 /* ─── Thermometer progress bar ───────────────────────────────────── */
 .thermoProgress{
-  position:absolute;
-  top:calc(var(--hud-pad) + var(--hud-btn) + 6px);
-  right:calc(var(--hud-pad) + env(safe-area-inset-right));
+  position:fixed;
+  top:calc(var(--hud-pad) + 88px);
+  left:50%;
+  right:auto;
+  transform:translateX(-50%);
   z-index:31;
-  width:190px;
+  width:min(240px, calc(100vw - 168px));
+  pointer-events:none;
 }
 
 /* ─── Heat panel row heat-level colours (mirrors FAB) ───────────── */
@@ -2689,9 +2692,6 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   z-index:2;
 }
 
-#thermoProgress{
-  display:none !important;
-}
 .photoGalleryItem.is-corrupted { border-color: rgba(167,139,250,.45); }
 
 @media (max-width: 640px){

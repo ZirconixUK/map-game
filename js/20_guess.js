@@ -385,7 +385,6 @@
     const _timeRowLabel = mode === 'remote'
       ? 'Moves bonus'
       : 'Time bonus';
-    const _opsAdjustment = (_bd.lengthBonus || 0) + (_bd.diffBonus || 0);
 
     return `
       <div>
@@ -404,10 +403,10 @@
         <div class="debriefSectionLabel">Score Breakdown</div>
         <div class="resultBreakdown">
           ${_bdRow('Base score', _bd.base)}
-          ${_bdRow('Distance penalty', 0)}
           ${_bdRow(_timeRowLabel, _bd.timeBonus)}
-          ${_bdRow('Tool cost', _bd.toolBonus)}
-          ${_bdRow(mode === 'gauntlet' ? 'Operational modifiers' : 'Operational modifiers', _opsAdjustment)}
+          ${_bdRow(mode === 'gauntlet' ? 'Target progress' : 'Radius bonus', _bd.lengthBonus)}
+          ${_bdRow('Difficulty bonus', _bd.diffBonus)}
+          ${_bdRow('Tool efficiency', _bd.toolBonus)}
           <div class="resultBreakdownRow resultBreakdownTotal">
             <span>Total</span>
             <span>${score.toLocaleString()} pts</span>
