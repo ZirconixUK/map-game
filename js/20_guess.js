@@ -73,11 +73,19 @@
       : { Diamond:800, Emerald:650, Platinum:500, Gold:375, Silver:250, Bronze:125, Copper:50 };
     const base = bases[grade] ?? 50;
 
-    const tLimit = ctx.timeLimitMs || 1;
-    const timeBonus = Math.round(
-      ((typeof SCORE_TIME_BONUS_MAX !== 'undefined') ? SCORE_TIME_BONUS_MAX : 150)
-      * (Math.max(0, ctx.remainingMs || 0) / tLimit)
-    );
+    const bonusMax = (typeof SCORE_TIME_BONUS_MAX !== 'undefined') ? SCORE_TIME_BONUS_MAX : 150;
+    let timeBonus = 0;
+    if (ctx.mode === 'remote') {
+      const moveBudget = Math.max(1, ctx.moveBudget || 1);
+      timeBonus = Math.round(
+        bonusMax * (Math.max(0, ctx.movesRemaining || 0) / moveBudget)
+      );
+    } else {
+      const tLimit = ctx.timeLimitMs || 1;
+      timeBonus = Math.round(
+        bonusMax * (Math.max(0, ctx.remainingMs || 0) / tLimit)
+      );
+    }
 
     const lb = (typeof SCORE_LENGTH_BONUS !== 'undefined') ? SCORE_LENGTH_BONUS : {short:0,medium:50,long:100};
     const lengthBonus = lb[ctx.gameLength] ?? 0;
@@ -486,8 +494,15 @@
 
     const grade = computeGrade(useAdj ? adjD : rawD);
     const scoreResult = computeScore(grade, {
+      mode: (typeof window.getGameSetupSelection === 'function' && window.getGameSetupSelection())
+        ? window.getGameSetupSelection().mode
+        : 'normal',
       timeLimitMs: _tLimit,
       remainingMs: guessRemainingMs,
+      moveBudget: (typeof window.isRemoteActive === 'function' && window.isRemoteActive() && typeof window.getGameSetupSelection === 'function')
+        ? (((typeof REMOTE_MOVE_BUDGETS !== 'undefined' && REMOTE_MOVE_BUDGETS) || { short: 15, medium: 20, long: 25 })[(window.getGameSetupSelection() || {}).length || 'short'] || 15)
+        : null,
+      movesRemaining: (typeof window.getMovesRemaining === 'function') ? window.getMovesRemaining() : null,
       gameLength:  (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short',
       difficulty:  (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal',
       toolsUsed:   _toolsUsed,

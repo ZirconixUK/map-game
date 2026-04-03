@@ -840,8 +840,9 @@ function bindUI() {
   if (setupLocationChangeBtn) {
     setupLocationChangeBtn.addEventListener('click', () => {
       try {
-        if (selectedGameMode !== 'remote' && __newGameLocationMode === 'pick') {
+        if (__newGameLocationMode === 'pick') {
           __newGameLocationMode = 'current';
+          __pickedAreaSeed = null;
           if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
           return;
         }
@@ -1057,13 +1058,15 @@ if (debugMode) {
       });
       if (infoBlock) infoBlock.classList.add('hidden');
       if (remoteInfoBlock) remoteInfoBlock.classList.remove('hidden');
-      // Starting location: force "pick on map", disable "current location"
+      // Remote mode still allows a live GPS anchor; preserve any custom map pin.
       if (btnCurrent) {
-        btnCurrent.classList.add('opacity-40', 'pointer-events-none');
-        btnCurrent.setAttribute('aria-disabled', 'true');
+        btnCurrent.classList.remove('opacity-40', 'pointer-events-none');
+        btnCurrent.removeAttribute('aria-disabled');
       }
-      selectChoice('[data-start-location]', 'data-start-location', 'pick');
-      __newGameLocationMode = 'pick';
+      __newGameLocationMode = (__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon))
+        ? 'pick'
+        : 'current';
+      selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
       return;
     }
 

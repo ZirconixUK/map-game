@@ -122,6 +122,10 @@
               window.__welcomeShownEarly = true;
               window.__activeBriefingContent = isFirstVisit ? 'first' : 'return';
               function onWelcomeStart() {
+                if (typeof window.__beginSetupFromBriefing === 'function') {
+                  window.__beginSetupFromBriefing();
+                  return;
+                }
                 window.__activeBriefingContent = (cf && !cf.classList.contains('hidden')) ? 'first' : 'return';
                 modal.classList.add('hidden');
                 if (cf) cf.classList.add('hidden');
@@ -131,8 +135,8 @@
               }
               var b1 = document.getElementById('btnWelcomeStart');
               var b2 = document.getElementById('btnWelcomeStartReturn');
-              if (b1) b1.addEventListener('click', onWelcomeStart);
-              if (b2) b2.addEventListener('click', onWelcomeStart);
+              if (b1) b1.onclick = onWelcomeStart;
+              if (b2) b2.onclick = onWelcomeStart;
             }
           } catch(e) {}
         })();
