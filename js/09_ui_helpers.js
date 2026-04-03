@@ -542,11 +542,11 @@ function __updateToolCards() {
       if (!cardEl) return;
 
       let state = 'ready';
-      let subtitle = null;
+      let metaTag = null;
 
       if (remoteDisable && isRemote) {
         state = 'disabled';
-        subtitle = 'REMOTE: N/A';
+        metaTag = 'UNAVAILABLE IN REMOTE';
       } else if (over) {
         state = 'used';
       } else if (menuId) {
@@ -571,11 +571,11 @@ function __updateToolCards() {
           state = 'used';
         } else if (cursed && (anyReady || anyCurseLocked)) {
           state = 'cursed';
-          subtitle = curseLabel;
+          metaTag = `◈ ${curseLabel} ACTIVE`;
         } else if (!anyReady && anyLocked) {
           state = 'locked';
           const badge = menu ? menu.querySelector('.lockCountdown') : null;
-          subtitle = badge ? `UNLOCKS ${badge.textContent}` : 'LOCKED';
+          metaTag = badge ? `UNLOCKS ${badge.textContent}` : 'LOCKED';
         } else {
           state = 'ready';
         }
@@ -583,7 +583,7 @@ function __updateToolCards() {
         const curseLabel = isCursedFn ? isCursedFn() : null;
         if (curseLabel) {
           state = 'cursed';
-          subtitle = curseLabel;
+          metaTag = `◈ ${curseLabel} ACTIVE`;
         }
       }
 
@@ -591,16 +591,13 @@ function __updateToolCards() {
       cardEl.classList.add(`state-${state}`);
 
       const chipEl = cardEl.querySelector('.toolCardChip');
-      const subtitleEl = cardEl.querySelector('.toolCardSubtitle');
+      const metaRowEl = cardEl.querySelector('.toolCardMetaRow');
+      const metaTagEl = cardEl.querySelector('.toolCardMetaTag');
       const chipLabels = { ready: 'Ready ›', locked: 'Locked', used: 'Used', cursed: 'Cursed ›', disabled: 'Unavailable' };
       if (chipEl) chipEl.textContent = chipLabels[state] || '';
-      if (subtitleEl) {
-        if (subtitle) {
-          subtitleEl.textContent = subtitle;
-          subtitleEl.style.display = '';
-        } else {
-          subtitleEl.style.display = 'none';
-        }
+      if (metaRowEl && metaTagEl) {
+        metaRowEl.classList.toggle('hidden', !metaTag);
+        if (metaTag) metaTagEl.textContent = metaTag;
       }
     });
   } catch (e) {}

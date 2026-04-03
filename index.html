@@ -120,7 +120,9 @@
               }
               modal.classList.remove('hidden');
               window.__welcomeShownEarly = true;
+              window.__activeBriefingContent = isFirstVisit ? 'first' : 'return';
               function onWelcomeStart() {
+                window.__activeBriefingContent = (cf && !cf.classList.contains('hidden')) ? 'first' : 'return';
                 modal.classList.add('hidden');
                 if (cf) cf.classList.add('hidden');
                 if (cr) cr.classList.add('hidden');
@@ -213,16 +215,22 @@
             <span id="timerPenalty" style="display:none;"></span>
           </div>
         </div>
-        <div id="modeChip" class="mode-normal">NORMAL</div>
+        <div class="cmdRunState">
+          <div class="cmdRunLabel">Field Op Active</div>
+          <div id="modeChip" class="mode-normal">NORMAL</div>
+        </div>
       </div>
       <!-- Row 2: heat gauge + curse slot (tap → Heat panel) -->
       <div id="cmdRow2" role="button" tabindex="0" aria-label="View heat and curses">
-        <div id="cmdHeatGauge" aria-hidden="true">
-          <span class="heatSeg" data-seg="1"></span>
-          <span class="heatSeg" data-seg="2"></span>
-          <span class="heatSeg" data-seg="3"></span>
-          <span class="heatSeg" data-seg="4"></span>
-          <span class="heatSeg" data-seg="5"></span>
+        <div class="cmdHeatBlock">
+          <span class="cmdHeatGlyph" aria-hidden="true">🔥</span>
+          <div id="cmdHeatGauge" aria-hidden="true">
+            <span class="heatSeg" data-seg="1"></span>
+            <span class="heatSeg" data-seg="2"></span>
+            <span class="heatSeg" data-seg="3"></span>
+            <span class="heatSeg" data-seg="4"></span>
+            <span class="heatSeg" data-seg="5"></span>
+          </div>
         </div>
         <div class="cmdSep" aria-hidden="true"></div>
         <div id="cmdCurseSlot" aria-label="Active curses">◈ 0 —</div>
@@ -285,50 +293,56 @@
       <div id="gameMenu">
         <!-- Tool deck — state driven by __updateToolCards() in updateUI() -->
         <div class="toolCard state-ready" data-tool-card="radar" role="button" tabindex="0">
-          <span class="toolCardIcon">📡</span>
+          <span class="toolCardIconWrap toolCardIconWrap--radar"><span class="toolCardIcon">📡</span></span>
           <div class="toolCardBody">
             <div class="toolCardName">Radar</div>
-            <div class="toolCardSubtitle" style="display:none;"></div>
+            <div class="toolCardDesc">Distance ring to target</div>
+            <div class="toolCardMetaRow hidden"><span class="toolCardMetaTag"></span></div>
           </div>
           <span class="toolCardChip">Ready ›</span>
         </div>
         <div class="toolCard state-ready" data-tool-card="thermo" role="button" tabindex="0">
-          <span class="toolCardIcon">🌡️</span>
+          <span class="toolCardIconWrap toolCardIconWrap--thermo"><span class="toolCardIcon">🌡️</span></span>
           <div class="toolCardBody">
             <div class="toolCardName">Thermometer</div>
-            <div class="toolCardSubtitle" style="display:none;"></div>
+            <div class="toolCardDesc">Hot or cold feedback</div>
+            <div class="toolCardMetaRow hidden"><span class="toolCardMetaTag"></span></div>
           </div>
           <span class="toolCardChip">Ready ›</span>
         </div>
         <div class="toolCard state-ready" data-tool-card="nsew" role="button" tabindex="0">
-          <span class="toolCardIcon">🧭</span>
+          <span class="toolCardIconWrap toolCardIconWrap--nsew"><span class="toolCardIcon">🧭</span></span>
           <div class="toolCardBody">
-            <div class="toolCardName">N/S/E/W</div>
-            <div class="toolCardSubtitle" style="display:none;"></div>
+            <div class="toolCardName">Compass</div>
+            <div class="toolCardDesc">Split the search area in two</div>
+            <div class="toolCardMetaRow hidden"><span class="toolCardMetaTag"></span></div>
           </div>
           <span class="toolCardChip">Ready ›</span>
         </div>
         <div class="toolCard state-ready" data-tool-card="landmark" role="button" tabindex="0">
-          <span class="toolCardIcon">🏛️</span>
+          <span class="toolCardIconWrap toolCardIconWrap--landmark"><span class="toolCardIcon">🏛️</span></span>
           <div class="toolCardBody">
             <div class="toolCardName">Landmark</div>
-            <div class="toolCardSubtitle" style="display:none;"></div>
+            <div class="toolCardDesc">Nearest named landmark</div>
+            <div class="toolCardMetaRow hidden"><span class="toolCardMetaTag"></span></div>
           </div>
           <span class="toolCardChip">Ready ›</span>
         </div>
         <div class="toolCard state-ready" data-tool-card="photo" role="button" tabindex="0">
-          <span class="toolCardIcon">📸</span>
+          <span class="toolCardIconWrap toolCardIconWrap--photo"><span class="toolCardIcon">📸</span></span>
           <div class="toolCardBody">
             <div class="toolCardName">Photo Intel</div>
-            <div class="toolCardSubtitle" style="display:none;"></div>
+            <div class="toolCardDesc">Unlock additional visual intel</div>
+            <div class="toolCardMetaRow hidden"><span class="toolCardMetaTag"></span></div>
           </div>
           <span class="toolCardChip">Ready ›</span>
         </div>
         <div class="toolCard state-ready" data-tool-card="signalLock" role="button" tabindex="0">
-          <span class="toolCardIcon">🔐</span>
+          <span class="toolCardIconWrap toolCardIconWrap--signal"><span class="toolCardIcon">🔐</span></span>
           <div class="toolCardBody">
             <div class="toolCardName">Signal Lock</div>
-            <div class="toolCardSubtitle" style="display:none;"></div>
+            <div class="toolCardDesc">Pin your current location</div>
+            <div class="toolCardMetaRow hidden"><span class="toolCardMetaTag"></span></div>
           </div>
           <span class="toolCardChip">Ready ›</span>
         </div>
@@ -598,43 +612,13 @@
       <div class="panelHandle" aria-hidden="true"></div>
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-4">
         <div>
+          <button id="btnSetupBackToBriefing" class="setupBackLink" type="button">‹ Briefing</button>
           <div class="panelTitle">Configure Operation</div>
           <div id="setupModeChipEl" class="setupModeChip mode-normal" style="margin-top:4px;">NORMAL</div>
         </div>
       </div>
 
       <div id="newGameMenu" class="panelBody flex flex-col gap-4">
-
-        <!-- Mission Profile -->
-        <div>
-          <div class="sectionLabel text-[11px] uppercase tracking-widest text-slate-600 font-semibold mb-2">Mission Profile</div>
-          <div class="setupModeSelector">
-            <button class="modeCard is-selected" data-game-mode="normal" type="button" aria-pressed="true">
-              <span class="modeCardIcon">🎯</span>
-              <div class="modeCardBody">
-                <div class="modeCardName">Normal</div>
-                <div class="modeCardRule">Walk to the target and score by distance.</div>
-              </div>
-              <div class="modeCardDot"></div>
-            </button>
-            <button class="modeCard" data-game-mode="gauntlet" type="button" aria-pressed="false">
-              <span class="modeCardIcon">⚔️</span>
-              <div class="modeCardBody">
-                <div class="modeCardName">Gauntlet</div>
-                <div class="modeCardRule">Five targets under one timer. Average distance decides the run.</div>
-              </div>
-              <div class="modeCardDot"></div>
-            </button>
-            <button class="modeCard" data-game-mode="remote" type="button" aria-pressed="false">
-              <span class="modeCardIcon">🛋️</span>
-              <div class="modeCardBody">
-                <div class="modeCardName">Remote</div>
-                <div class="modeCardRule">Tap the map to move instead of walking the real world.</div>
-              </div>
-              <div class="modeCardDot"></div>
-            </button>
-          </div>
-        </div>
 
         <!-- Difficulty (pill row) -->
         <div>

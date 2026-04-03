@@ -345,7 +345,7 @@
     } else {
       statHtml = `
         <div class="resultStat"><div class="resultStatVal">${fmtMeters(rawD)}</div>${adjLine}<div class="resultStatLabel">Distance</div></div>
-        <div class="resultStat"><div class="resultStatVal">${timeRemStr}</div><div class="resultStatLabel">Remaining</div></div>
+        <div class="resultStat"><div class="resultStatVal">${timeRemStr}</div><div class="resultStatLabel">Time Remaining</div></div>
         <div class="resultStat"><div class="resultStatVal">${_toolsUsed}</div><div class="resultStatLabel">Tools Used</div></div>`;
     }
 
@@ -355,21 +355,26 @@
       const sign = val > 0 ? '+' : '';
       return `<div class="resultBreakdownRow${cls}"><span>${escapeHtml(label)}</span><span>${sign}${val} pts</span></div>`;
     }
+    const _timeRowLabel = mode === 'remote' ? 'Moves remaining' : `Time (${timeRemStr} remaining)`;
 
     return `
       <div>
-        <div class="debriefEyebrow">
-          Operation Debrief
-          <span class="debriefModeChip mode-${escapeHtml(mode)}">${mode.toUpperCase()}</span>
+        <div class="debriefHero">
+          <div class="debriefEyebrow">
+            Operation Debrief
+            <span class="debriefModeChip mode-${escapeHtml(mode)}">${mode.toUpperCase()}</span>
+          </div>
+          <div class="debriefHeadline">${escapeHtml(headline)}</div>
+          <div class="debriefDistance ${_distColour}">${_distStr} off target</div>
+          ${_targetName ? `<div class="debriefTargetName">${escapeHtml(_targetName)}</div>` : ''}
+          <div class="medalStrip">${_stripHtml}</div>
         </div>
-        <div class="debriefHeadline">${escapeHtml(headline)}</div>
-        <div class="debriefDistance ${_distColour}">${_distStr} off target</div>
-        ${_targetName ? `<div style="font-size:11px;color:#64748b;text-align:center;margin-top:-8px;margin-bottom:10px;">📍 ${escapeHtml(_targetName)}</div>` : ''}
-        <div class="medalStrip">${_stripHtml}</div>
+        <div class="debriefSectionLabel">Field Stats</div>
         <div class="resultStats">${statHtml}</div>
+        <div class="debriefSectionLabel">Score Breakdown</div>
         <div class="resultBreakdown">
           ${_bdRow(`${grade} base`, _bd.base)}
-          ${_bdRow(`Time (${timeRemStr} remaining)`, _bd.timeBonus)}
+          ${_bdRow(_timeRowLabel, _bd.timeBonus)}
           ${_bdRow(`Radius bonus`, _bd.lengthBonus)}
           ${_bdRow(`Difficulty`, _bd.diffBonus)}
           ${_bdRow(`Tool efficiency (${_toolsUsed} used)`, _bd.toolBonus)}

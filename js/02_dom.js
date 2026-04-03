@@ -774,6 +774,11 @@ function bindUI() {
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.remove("open");
   });
+  on("btnSetupBackToBriefing","click", () => {
+    const panelNewGame = document.getElementById("panelNewGame");
+    if (panelNewGame) panelNewGame.classList.remove("open");
+    try { if (typeof window.__showBriefingModalFromSetup === 'function') window.__showBriefingModalFromSetup(); } catch(e) {}
+  });
 
   const setupLocationChangeBtn = document.getElementById('setupLocationChange');
   if (setupLocationChangeBtn) {
@@ -943,6 +948,20 @@ if (debugMode) {
   let __pickModeMarker = null;           // Leaflet marker during pick mode
   let __pickModeClickHandler = null;     // active Leaflet click handler for pick mode
 
+  function __syncBriefingModeUI(mode) {
+    const _remoteNotes = document.querySelectorAll('#remoteNoteFirst, #remoteNoteReturn');
+    _remoteNotes.forEach(el => {
+      if (el) el.classList.toggle('hidden', mode !== 'remote');
+    });
+    const _beginBtns = document.querySelectorAll('#btnWelcomeStart, #btnWelcomeStartReturn');
+    _beginBtns.forEach(btn => {
+      if (!btn) return;
+      btn.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
+      btn.classList.add(`mode-${mode}`);
+    });
+  }
+  window.__syncBriefingModeUI = __syncBriefingModeUI;
+
   function selectChoice(groupSelector, attrName, value) {
     document.querySelectorAll(groupSelector).forEach(btn => {
       const isSel = (btn.getAttribute(attrName) || "") === value;
@@ -955,6 +974,7 @@ if (debugMode) {
   selectChoice('[data-game-difficulty]', 'data-game-difficulty', selectedGameDifficulty);
   selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
   selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+  __syncBriefingModeUI(selectedGameMode);
 
   function __applyGauntletLengthConstraints(mode) {
     const lengthBtns = document.querySelectorAll('[data-game-length]');
@@ -1026,18 +1046,7 @@ if (debugMode) {
       if (_prevMode === 'remote' && selectedGameMode !== 'remote') {
         try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
       }
-      // Show/hide remote note blocks in briefing modal
-      const _remoteNotes = document.querySelectorAll('#remoteNoteFirst, #remoteNoteReturn');
-      _remoteNotes.forEach(el => {
-        if (el) el.classList.toggle('hidden', selectedGameMode !== 'remote');
-      });
-      // Update CTA button colours in briefing modal
-      const _beginBtns = document.querySelectorAll('#btnWelcomeStart, #btnWelcomeStartReturn');
-      _beginBtns.forEach(btn => {
-        if (!btn) return;
-        btn.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
-        btn.classList.add(`mode-${selectedGameMode}`);
-      });
+      __syncBriefingModeUI(selectedGameMode);
       try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
     });
   });
@@ -1048,17 +1057,22 @@ if (debugMode) {
     __applyGauntletLengthConstraints('normal');
     try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: 'normal' }); } catch(e) {}
     try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
-    const _remoteNotes = document.querySelectorAll('#remoteNoteFirst, #remoteNoteReturn');
-    _remoteNotes.forEach(el => {
-      if (el) el.classList.add('hidden');
-    });
-    const _beginBtns = document.querySelectorAll('#btnWelcomeStart, #btnWelcomeStartReturn');
-    _beginBtns.forEach(btn => {
-      if (!btn) return;
-      btn.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
-      btn.classList.add('mode-normal');
-    });
+    __syncBriefingModeUI('normal');
     try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
+  };
+
+  window.__showBriefingModalFromSetup = function () {
+    try {
+      const modal = document.getElementById('welcomeModal');
+      const first = document.getElementById('welcomeContentFirst');
+      const ret = document.getElementById('welcomeContentReturn');
+      if (!modal || !first || !ret) return;
+      const variant = window.__activeBriefingContent === 'first' ? 'first' : 'return';
+      first.classList.toggle('hidden', variant !== 'first');
+      ret.classList.toggle('hidden', variant !== 'return');
+      modal.classList.remove('hidden');
+      __syncBriefingModeUI(selectedGameMode);
+    } catch(e) {}
   };
 
   document.querySelectorAll('[data-game-length]').forEach(btn => {

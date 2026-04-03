@@ -645,6 +645,7 @@ window.__showWelcomeModal = function() {
   // For the timed-out case, the player is a known returning player.
   const c = document.getElementById('welcomeContentReturn');
   if (c) c.classList.remove('hidden');
+  window.__activeBriefingContent = 'return';
   function renderLastScoreMedal(grade) {
     const gradeColors = {
       Diamond: '#67e8f9',
