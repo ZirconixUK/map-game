@@ -76,6 +76,35 @@ body{
   height:var(--hud-btn);
   transition:transform .12s ease, box-shadow .15s ease;
 }
+.hudInstrument{
+  border-radius:16px;
+  border:1px solid rgba(0,212,255,.18);
+  background:rgba(4,10,22,.94);
+  box-shadow:0 10px 26px rgba(0,0,0,.48), 0 0 0 1px rgba(0,212,255,.07);
+  color:#d8e4f0;
+  display:grid;
+  place-items:center;
+}
+.hudInstrument:hover{ background:rgba(12,25,40,.96); }
+.hudInstrument--utility{ color:#22d3ee; }
+.hudInstrument--system{
+  color:#fbbf24;
+  border-color:rgba(245,158,11,.22);
+  box-shadow:0 10px 26px rgba(0,0,0,.48), 0 0 0 1px rgba(245,158,11,.08);
+}
+.hudInstrument--primary{
+  color:#fff;
+  border-color:rgba(59,130,246,.30);
+  background:linear-gradient(135deg, rgba(37,99,235,.95) 0%, rgba(14,165,233,.88) 100%);
+  box-shadow:0 12px 30px rgba(0,0,0,.46), 0 0 0 1px rgba(59,130,246,.10);
+}
+.hudStatusCard{
+  background:rgba(4,10,22,.94);
+  border:1px solid rgba(0,212,255,.18);
+  box-shadow:0 10px 26px rgba(0,0,0,.46), 0 0 0 1px rgba(0,212,255,.07);
+  border-radius:16px;
+  padding:10px 12px;
+}
 /* Subtle inner top-highlight on all FABs */
 .fab::before{
   content:'';
@@ -515,6 +544,49 @@ body{
   font-weight:700 !important;
   letter-spacing:.16em !important;
   text-transform:uppercase !important;
+}
+
+/* ─── Shared modal chrome ─────────────────────────────────────── */
+.overlayModalCard{
+  background:#0f1729;
+  border:1px solid #1e3a5f;
+  border-radius:24px;
+  box-shadow:0 22px 60px rgba(0,0,0,.52), 0 0 0 1px rgba(0,212,255,.05);
+}
+.overlayModalHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px 12px;
+  border-bottom:1px solid #1e3a5f;
+}
+.overlayModalTitle{
+  font-family:var(--font-display);
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:#fff;
+}
+.overlayModalClose{
+  appearance:none;
+  -webkit-appearance:none;
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  border:1px solid rgba(0,212,255,.16);
+  background:rgba(4,10,22,.94);
+  color:#cbd5e1;
+  cursor:pointer;
+  font-size:16px;
+  line-height:1;
+  display:grid;
+  place-items:center;
+}
+.overlayModalClose:hover{ background:rgba(12,25,40,.96); }
+.panelChromeClose{
+  flex-shrink:0;
 }
 
 /* ─── Panel backdrop ─────────────────────────────────────────────── */
@@ -1043,6 +1115,94 @@ body{
   color:#94a3b8;
   background:rgba(148,163,184,.08);
   border-color:rgba(148,163,184,.14);
+}
+
+/* ─── Legacy panel normalization ─────────────────────────────── */
+.systemPanelBody{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.guideCard,
+.legacyPanelCard{
+  padding:14px;
+  border-radius:16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.guideCard{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+.guideCardIcon{
+  font-size:24px;
+  line-height:1;
+  flex-shrink:0;
+}
+.guideCardBody{
+  display:flex;
+  flex-direction:column;
+}
+.guideCardTitle{
+  font-family:var(--font-display);
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#fff;
+}
+.guideCardText{
+  margin-top:4px;
+  color:#94a3b8;
+  font-size:13px;
+  line-height:1.55;
+}
+.guideCallout{
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(34,211,238,.08);
+  border:1px solid rgba(34,211,238,.16);
+  color:#94a3b8;
+  font-size:12px;
+  line-height:1.5;
+}
+.legacyPanelLabel{
+  font-family:var(--font-display);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#64748b;
+  margin-bottom:12px;
+}
+.legacyPanelInset{
+  border-radius:14px;
+  background:#0f1729;
+  border:1px solid #1e3a5f;
+  padding:12px;
+}
+
+/* Debug panel controls inherit the shared card/button language */
+#panelDebug .sectionLabel,
+#panelCurseSelect .sectionLabel{
+  color:#64748b !important;
+}
+#panelDebug .panelHeader .text-xs,
+#panelCurseSelect .panelHeader .text-xs{
+  color:#64748b !important;
+}
+#panelDebug button,
+#panelCurseSelect button:not(.overlayModalClose){
+  border-radius:12px !important;
+}
+#panelDebug #log{
+  border-radius:16px !important;
+  background:rgba(4,10,22,.96) !important;
+  box-shadow:inset 0 0 0 1px rgba(0,212,255,.05);
+}
+#panelDebug input{
+  border-radius:12px !important;
 }
 
 /* ─── Heat panel hero block ──────────────────────────────────── */

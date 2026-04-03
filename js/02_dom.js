@@ -1033,12 +1033,10 @@ if (debugMode) {
       });
       // Update CTA button colours in briefing modal
       const _beginBtns = document.querySelectorAll('#btnWelcomeStart, #btnWelcomeStartReturn');
-      const _btnClassMap = { normal: 'bg-cyan-700 hover:bg-cyan-600', gauntlet: 'bg-amber-700 hover:bg-amber-600', remote: 'bg-violet-700 hover:bg-violet-600' };
       _beginBtns.forEach(btn => {
         if (!btn) return;
-        btn.classList.remove('bg-cyan-700','hover:bg-cyan-600','bg-amber-700','hover:bg-amber-600','bg-violet-700','hover:bg-violet-600');
-        const cls = (_btnClassMap[selectedGameMode] || '').split(' ');
-        cls.forEach(c => btn.classList.add(c));
+        btn.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
+        btn.classList.add(`mode-${selectedGameMode}`);
       });
       try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
     });

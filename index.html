@@ -242,21 +242,21 @@
   </div>
 
     <!-- FABs (top-right) -->
-    <button id="btnRecenter"  class="fab fab--right rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-cyan-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Center on me" title="Center on me">⌖<span id="gpsFailBadge" class="hidden" style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#f87171;border:1.5px solid #040810;"></span></button>
+    <button id="btnRecenter"  class="fab hudInstrument hudInstrument--utility fab--right" aria-label="Center on me" title="Center on me">⌖<span id="gpsFailBadge" class="hidden" style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#f87171;border:1.5px solid #040810;"></span></button>
 
     <!-- System FAB — stack1 left -->
-    <button id="btnSystem" class="fab fab--left rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab text-amber-400 text-xl grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="System" title="System">⌂</button>
+    <button id="btnSystem" class="fab hudInstrument hudInstrument--system fab--left" aria-label="System" title="System">⌂</button>
     <!-- Gameplay FAB — stack2 left -->
-    <button id="btnGameplay" class="fab fab--left fab--stack2 rounded-2xl bg-blue-600 border border-blue-500 shadow-fab text-white text-lg grid place-items-center hover:bg-blue-500 transition-colors" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
+    <button id="btnGameplay" class="fab hudInstrument hudInstrument--primary fab--left fab--stack2" aria-label="Show/hide gameplay" title="Show/hide gameplay">☰</button>
 
     <!-- Photo gallery FAB — stack2 right -->
-    <button id="btnPhotoGallery" class="fab fab--right fab--stack2 rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab grid place-items-center hover:bg-[#1a2744] transition-colors" aria-label="Photo gallery" title="Photo gallery">
+    <button id="btnPhotoGallery" class="fab hudInstrument hudInstrument--utility fab--right fab--stack2" aria-label="Photo gallery" title="Photo gallery">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
       <span id="photoGalleryBadge" class="hidden" style="position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 3px;border-radius:9px;background:#7c3aed;border:1.5px solid #040810;color:#fff;font-size:10px;font-weight:700;line-height:18px;text-align:center;"></span>
     </button>
 
     <!-- Thermometer progress -->
-    <div id="thermoProgress" class="thermoProgress hidden rounded-2xl bg-[#111827] border border-[#1e3a5f] shadow-fab p-2.5 flex flex-col gap-1.5" aria-label="Thermometer in progress">
+    <div id="thermoProgress" class="thermoProgress hidden hudStatusCard" aria-label="Thermometer in progress">
       <div class="w-full h-2.5 rounded-full border border-orange-500/20 bg-[#1e2840] overflow-hidden" aria-hidden="true"><div id="thermoProgressFill" class="h-full w-0 rounded-full bg-orange-500"></div></div>
       <div id="thermoProgressText" class="text-xs font-semibold text-orange-400">Thermometer</div>
     </div>
@@ -765,10 +765,10 @@
 
     <!-- ── Photo modal ────────────────────────────────────── -->
     <div id="photoModal" class="hidden fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Circle snapshot">
-      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#0f1729] border border-[#1e3a5f] rounded-3xl shadow-modal flex flex-col">
-        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-[#1e3a5f]">
-          <div id="photoModalTitle" class="font-bold text-base text-white">Circle Snapshot</div>
-          <button id="photoModalClose" class="appearance-none bg-[#1e2d44] border border-[#2a3f60] text-gray-300 rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-[#253550]" aria-label="Close">✕</button>
+      <div class="overlayModalCard w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="overlayModalHeader">
+          <div id="photoModalTitle" class="overlayModalTitle">Circle Snapshot</div>
+          <button id="photoModalClose" class="overlayModalClose" aria-label="Close">✕</button>
         </div>
         <div id="photoModalBody" class="px-3.5 py-3 overflow-auto max-h-[70vh]">
           <div class="text-xs text-slate-400">Loading…</div>
@@ -786,7 +786,7 @@
 
     <!-- ── Gauntlet: Next Target modal ─────────────────────── -->
     <div id="gauntletNextModal" class="hidden fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Next target">
-      <div class="w-full max-w-sm bg-[#0f1729] border border-[#1e3a5f] rounded-3xl shadow-modal flex flex-col overflow-hidden">
+      <div class="overlayModalCard w-full max-w-sm flex flex-col overflow-hidden">
         <div class="px-5 pt-5 pb-4 flex flex-col gap-3 items-center text-center">
           <div id="gauntletNextDistance" class="text-2xl font-extrabold text-white">—</div>
           <div id="gauntletNextProgress" class="text-sm text-slate-400">Target 1 of 5 complete</div>
@@ -799,10 +799,10 @@
 
     <!-- ── Gauntlet: Summary modal ──────────────────────────── -->
     <div id="gauntletSummaryModal" class="hidden fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Gauntlet summary">
-      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#0f1729] border border-[#1e3a5f] rounded-3xl shadow-modal flex flex-col">
-        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-[#1e3a5f]">
-          <div class="font-bold text-base text-white">Gauntlet Complete</div>
-          <button id="gauntletSummaryClose" class="appearance-none bg-[#1e2d44] border border-[#2a3f60] text-gray-300 rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-[#253550]" aria-label="Close">✕</button>
+      <div class="overlayModalCard w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="overlayModalHeader">
+          <div class="overlayModalTitle">Gauntlet Complete</div>
+          <button id="gauntletSummaryClose" class="overlayModalClose" aria-label="Close">✕</button>
         </div>
         <div id="gauntletSummaryBody" class="px-3.5 py-3 overflow-auto max-h-[70vh]"></div>
       </div>
@@ -810,10 +810,10 @@
 
     <!-- ── Result modal ───────────────────────────────────── -->
     <div id="resultModal" class="hidden fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Round result">
-      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#0f1729] border border-[#1e3a5f] rounded-3xl shadow-modal flex flex-col">
-        <div class="flex items-center justify-between gap-2.5 px-4 pt-3.5 pb-2.5 border-b border-[#1e3a5f]">
-          <div class="font-bold text-base text-white">Round Result</div>
-          <button id="resultModalClose" class="appearance-none bg-[#1e2d44] border border-[#2a3f60] text-gray-300 rounded-xl px-2.5 py-1.5 cursor-pointer hover:bg-[#253550]" aria-label="Close">✕</button>
+      <div class="overlayModalCard w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="overlayModalHeader">
+          <div class="overlayModalTitle">Round Result</div>
+          <button id="resultModalClose" class="overlayModalClose" aria-label="Close">✕</button>
         </div>
         <div id="resultModalBody" class="px-3.5 py-3 overflow-auto max-h-[70vh]"></div>
       </div>
@@ -821,7 +821,7 @@
 
     <!-- ── Welcome / entry modal ─────────────────────────── -->
     <div id="welcomeModal" class="hidden fixed inset-0 bg-black/65 flex items-center justify-center p-4 z-[9999]" role="dialog" aria-modal="true" aria-label="Welcome">
-      <div class="w-full max-w-lg max-h-[90vh] overflow-hidden bg-[#0f1729] border border-[#1e3a5f] rounded-3xl shadow-modal flex flex-col">
+      <div class="overlayModalCard w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
 
         <!-- First-time visitor content -->
         <div id="welcomeContentFirst" class="hidden flex flex-col gap-0">
@@ -874,7 +874,7 @@
             <div id="remoteNoteFirst" class="remoteNoteBlock hidden">GPS anchors your search region only — no physical movement needed.</div>
           </div>
           <div class="px-4 pb-5">
-            <button id="btnWelcomeStart" class="w-full appearance-none bg-cyan-700 hover:bg-cyan-600 text-white font-bold text-base rounded-2xl px-4 py-3 cursor-pointer transition-colors" type="button">Begin Setup</button>
+            <button id="btnWelcomeStart" class="beginOpBtn mode-normal" type="button">Begin Setup</button>
           </div>
         </div>
 
@@ -925,7 +925,7 @@
             <div id="remoteNoteReturn" class="remoteNoteBlock hidden">GPS anchors your search region only — no physical movement needed.</div>
           </div>
           <div class="px-4 pb-5">
-            <button id="btnWelcomeStartReturn" class="w-full appearance-none bg-cyan-700 hover:bg-cyan-600 text-white font-bold text-base rounded-2xl px-4 py-3 cursor-pointer transition-colors" type="button">Begin Setup</button>
+            <button id="btnWelcomeStartReturn" class="beginOpBtn mode-normal" type="button">Begin Setup</button>
           </div>
         </div>
 
@@ -938,42 +938,39 @@
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-4">
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight text-white">How to Play</div>
+          <div class="systemPanelIntro">Mission loop, tools, heat, and scoring reference.</div>
         </div>
       </div>
-      <div class="panelBody flex flex-col gap-4 text-sm text-gray-200 leading-relaxed">
-        <div class="flex gap-3">
-          <span class="text-2xl shrink-0">📸</span>
-          <div>
-            <div class="font-semibold text-white mb-0.5">Find the target</div>
-            <div class="text-slate-300">You'll receive a corrupted Street View photo of a hidden location nearby. Your goal is to physically walk to that exact spot.</div>
+      <div class="panelBody systemPanelBody">
+        <div class="guideCard">
+          <span class="guideCardIcon">📸</span>
+          <div class="guideCardBody">
+            <div class="guideCardTitle">Find the target</div>
+            <div class="guideCardText">You'll receive a corrupted Street View photo of a hidden location nearby. Your goal is to physically walk to that exact spot.</div>
           </div>
         </div>
-
-        <div class="flex gap-3">
-          <span class="text-2xl shrink-0">🛠️</span>
-          <div>
-            <div class="font-semibold text-white mb-0.5">Use your tools</div>
-            <div class="text-slate-300">Tap the gameplay menu for five investigation tools — Radar, Thermometer, Compass, Landmark clues, and extra Photos — to narrow down where the target is. Each individual option can only be used once per run, so choose wisely. Some tools are locked at the start and only become available later in the round.</div>
+        <div class="guideCard">
+          <span class="guideCardIcon">🛠️</span>
+          <div class="guideCardBody">
+            <div class="guideCardTitle">Use your tools</div>
+            <div class="guideCardText">Tap the gameplay menu for five investigation tools — Radar, Thermometer, Compass, Landmark clues, and extra Photos — to narrow down where the target is. Each individual option can only be used once per run, so choose wisely. Some tools are locked at the start and only become available later in the round.</div>
           </div>
         </div>
-
-        <div class="flex gap-3">
-          <span class="text-2xl shrink-0">🌡️</span>
-          <div>
-            <div class="font-semibold text-white mb-0.5">Watch your heat</div>
-            <div class="text-slate-300">Every tool you use generates <span class="text-amber-400 font-semibold">heat</span>. Let it build too high and curses will start to work against you — disrupting tools, distorting clues, and worse.</div>
+        <div class="guideCard">
+          <span class="guideCardIcon">🌡️</span>
+          <div class="guideCardBody">
+            <div class="guideCardTitle">Watch your heat</div>
+            <div class="guideCardText">Every tool you use generates <span class="text-amber-400 font-semibold">heat</span>. Let it build too high and curses will start to work against you — disrupting tools, distorting clues, and worse.</div>
           </div>
         </div>
-
-        <div class="flex gap-3">
-          <span class="text-2xl shrink-0">📍</span>
-          <div>
-            <div class="font-semibold text-white mb-0.5">Lock in your guess</div>
-            <div class="text-slate-300">When you believe you've found the target, tap <span class="text-cyan-400 font-semibold">Lock In Guess</span> at the bottom of the screen. Your current GPS position is scored against the true target — the closer you are, the higher your grade.</div>
+        <div class="guideCard">
+          <span class="guideCardIcon">📍</span>
+          <div class="guideCardBody">
+            <div class="guideCardTitle">Lock in your guess</div>
+            <div class="guideCardText">When you believe you've found the target, tap <span class="text-cyan-400 font-semibold">Lock In Guess</span> at the bottom of the screen. Your current GPS position is scored against the true target — the closer you are, the higher your grade.</div>
           </div>
         </div>
-
-        <div class="px-3 py-2.5 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-xs text-slate-400 leading-snug">
+        <div class="guideCallout">
           The timer counts down throughout the round. If it expires before you lock in, your position at that moment is used for scoring.
         </div>
       </div>
@@ -1043,49 +1040,52 @@
   <div id="panelProfile" class="panel panel--right bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Profile">
     <div class="panelHandle" aria-hidden="true"></div>
     <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-4">
-      <div class="panelTitle text-lg font-bold tracking-tight text-white">Profile</div>
-      <button id="btnProfileClose" class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Close ✕</button>
+      <div>
+        <div class="panelTitle text-lg font-bold tracking-tight text-white">Profile</div>
+        <div class="systemPanelIntro">Operator identity, all-time stats, achievements, and run history.</div>
+      </div>
+      <button id="btnProfileClose" class="overlayModalClose panelChromeClose">✕</button>
     </div>
     <div id="profilePanelBody" class="panelBody flex flex-col gap-3">
       <!-- Player row -->
-      <div class="rounded-2xl bg-[#111827] border border-[#1e3a5f] p-4">
-        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Player</div>
+      <div class="legacyPanelCard">
+        <div class="legacyPanelLabel">Player</div>
         <div id="profilePanelPlayer" class="flex items-center gap-3">
           <div class="text-xs text-slate-400">Loading…</div>
         </div>
       </div>
       <!-- Stats -->
-      <div class="rounded-2xl bg-[#111827] border border-[#1e3a5f] p-4">
-        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">All-time stats</div>
+      <div class="legacyPanelCard">
+        <div class="legacyPanelLabel">All-time stats</div>
         <div class="grid gap-2.5" style="grid-template-columns:repeat(2,1fr);">
-          <div class="rounded-xl bg-[#0f1729] border border-[#1e3a5f] p-3">
+          <div class="legacyPanelInset">
             <div id="ppStatRounds" class="font-mono text-xl font-bold text-cyan-300">—</div>
             <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Rounds</div>
           </div>
-          <div class="rounded-xl bg-[#0f1729] border border-[#1e3a5f] p-3">
+          <div class="legacyPanelInset">
             <div id="ppStatBestScore" class="font-mono text-xl font-bold text-cyan-300">—</div>
             <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Best score</div>
           </div>
-          <div class="rounded-xl bg-[#0f1729] border border-[#1e3a5f] p-3">
+          <div class="legacyPanelInset">
             <div id="ppStatBestGrade" class="font-mono text-xl font-bold text-cyan-300">—</div>
             <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Best grade</div>
           </div>
-          <div class="rounded-xl bg-[#0f1729] border border-[#1e3a5f] p-3">
+          <div class="legacyPanelInset">
             <div id="ppStatAvgDist" class="font-mono text-xl font-bold text-cyan-300">—</div>
             <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">Avg distance</div>
           </div>
         </div>
       </div>
       <!-- Achievements -->
-      <div class="rounded-2xl bg-[#111827] border border-[#1e3a5f] p-4">
-        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Achievements</div>
+      <div class="legacyPanelCard">
+        <div class="legacyPanelLabel">Achievements</div>
         <div id="ppAchievements" class="grid gap-2" style="grid-template-columns:repeat(2,1fr);">
           <div class="text-xs text-slate-400">Loading…</div>
         </div>
       </div>
       <!-- History -->
-      <div class="rounded-2xl bg-[#111827] border border-[#1e3a5f] p-4">
-        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3">Recent rounds</div>
+      <div class="legacyPanelCard">
+        <div class="legacyPanelLabel">Recent rounds</div>
         <div id="ppHistory" class="flex flex-col gap-2">
           <div class="text-xs text-slate-400">Loading…</div>
         </div>
@@ -1097,11 +1097,16 @@
   <div id="panelPhotoGallery" class="panel bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Photo gallery">
     <div class="panelHandle" aria-hidden="true"></div>
     <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-3">
-      <div class="panelTitle text-lg font-bold tracking-tight text-white">Photos</div>
-      <button id="btnPhotoGalleryClose" class="px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Close ✕</button>
+      <div>
+        <div class="panelTitle text-lg font-bold tracking-tight text-white">Photos</div>
+        <div class="systemPanelIntro">Recovered visual intel for the current operation.</div>
+      </div>
+      <button id="btnPhotoGalleryClose" class="overlayModalClose panelChromeClose">✕</button>
     </div>
-    <div id="photoGalleryGrid" class="grid gap-2 gallery-2col"></div>
-    <p id="photoGalleryEmpty" class="hidden text-sm text-slate-400 text-center py-6">No photos collected yet.</p>
+    <div class="legacyPanelCard" style="padding:12px;">
+      <div id="photoGalleryGrid" class="grid gap-2 gallery-2col"></div>
+      <p id="photoGalleryEmpty" class="hidden text-sm text-slate-400 text-center py-6">No photos collected yet.</p>
+    </div>
   </div>
 
   <!-- ── Location pick mode overlays ──────────────────────── -->
