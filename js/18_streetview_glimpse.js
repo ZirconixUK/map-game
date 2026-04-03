@@ -274,15 +274,40 @@
       ? `<img class="photo-glimpse-img rgb rgb-a" src="${displayUrl}" alt="" aria-hidden="true" loading="lazy" />
         <img class="photo-glimpse-img rgb rgb-b" src="${displayUrl}" alt="" aria-hidden="true" loading="lazy" />`
       : '';
+    const isStarter = (ctx === 'snapshot');
+    const typeChipClass = isStarter ? 'starter' : 'intel';
+    const typeChipText = isStarter ? 'Starter Photo' : 'Intel Photo';
+    const corruptChipClass = uncorrupted ? 'clean' : 'corrupted';
+    const corruptChipText = uncorrupted ? 'Clean' : '◈ Corrupted';
+    const unlockText = isStarter ? 'Mission Start' : 'Unlocked via Tool';
+    const corruptionOverlayHtml = !uncorrupted
+      ? '<div class="photoCorruptionOverlay" aria-hidden="true"></div>'
+      : '';
+    const captionTitle = isStarter ? 'Circle Snapshot' : 'Photo Glimpse';
+    const captionBody = tipText || (isStarter
+      ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
+      : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.');
     const html = `
-      <div class="photo-glimpse-frame ${frameClass} ${ucClass}">
-        <img class="photo-glimpse-img base" src="${displayUrl}" alt="Street View snapshot" loading="lazy"${blurStyle} />
-        ${rgbHtml}
-        <div class="photo-glitch-slices" id="photoGlitchSlices" aria-hidden="true"></div>
-        <div class="photo-corrupt-overlay" aria-hidden="true"></div>
-        <div class="photo-corrupt-blocks" id="photoCorruptBlocks" aria-hidden="true"></div>
+      <div class="photoViewerFrame">
+        <div class="photo-glimpse-frame ${frameClass} ${ucClass}">
+          <img class="photo-glimpse-img base" src="${displayUrl}" alt="Street View snapshot" loading="lazy"${blurStyle} />
+          ${rgbHtml}
+          <div class="photo-glitch-slices" id="photoGlitchSlices" aria-hidden="true"></div>
+          <div class="photo-corrupt-overlay" aria-hidden="true"></div>
+          <div class="photo-corrupt-blocks" id="photoCorruptBlocks" aria-hidden="true"></div>
+        </div>
+        <div class="photoEdgeScanlines" aria-hidden="true"></div>
+        ${corruptionOverlayHtml}
+        <div class="photoMetaBar">
+          <span class="photoMetaChip ${typeChipClass}">${typeChipText}</span>
+          <span class="photoMetaChip ${corruptChipClass}">${corruptChipText}</span>
+          <span class="photoMetaChip unlock">${unlockText}</span>
+        </div>
       </div>
-      <div class="muted" style="margin-top:10px;">${tipText || 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.'}</div>
+      <div class="photoCaption">
+        <div class="photoCaptionTitle">${captionTitle}</div>
+        <div class="photoCaptionBody">${captionBody}</div>
+      </div>
     `;
     setModal(html, 'Imagery © Google');
 

@@ -279,6 +279,26 @@ function __buildPhotoGalleryGrid() {
       }
     }
     item.appendChild(img);
+
+    // Badge overlay (priority: locked > corrupted > starter > intel)
+    const badge = document.createElement('div');
+    badge.className = 'photoGalleryBadge';
+    const photoIsStarter = (photo.kind === 'starter' || photo.context === 'snapshot');
+    if (!url) {
+      badge.classList.add('locked');
+      badge.textContent = 'Locked';
+    } else if (isCorrupted) {
+      badge.classList.add('corrupted');
+      badge.textContent = '◈ Corrupt';
+    } else if (photoIsStarter) {
+      badge.classList.add('starter');
+      badge.textContent = 'Starter';
+    } else {
+      badge.classList.add('intel');
+      badge.textContent = 'Intel';
+    }
+    item.appendChild(badge);
+
     grid.appendChild(item);
   }
 }
