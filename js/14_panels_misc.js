@@ -606,11 +606,12 @@
 })();
 
 
-// ---- Timer widget tap — show info toast ----
+// ---- Mission clock tap — show info toast / reopen results ----
 (() => {
-  const timerWidget = document.getElementById('timerWidget');
-  if (!timerWidget) return;
-  timerWidget.addEventListener('click', () => {
+  const timerTapTarget = document.getElementById('timerWidget')
+    || document.getElementById('cmdRow1');
+  if (!timerTapTarget) return;
+  timerTapTarget.addEventListener('click', () => {
     try {
       const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
       if (over) {

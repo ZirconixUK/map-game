@@ -255,6 +255,26 @@ function __buildPhotoGalleryGrid() {
       }
     }
 
+    const badge = document.createElement('div');
+    badge.className = 'photoGalleryBadge';
+    const photoIsStarter = (photo.kind === 'starter' || photo.context === 'snapshot');
+    function syncGalleryBadge(hasUrl) {
+      badge.className = 'photoGalleryBadge';
+      if (!hasUrl) {
+        badge.classList.add('locked');
+        badge.textContent = 'Locked';
+      } else if (isCorrupted) {
+        badge.classList.add('corrupted');
+        badge.textContent = '◈ Corrupt';
+      } else if (photoIsStarter) {
+        badge.classList.add('starter');
+        badge.textContent = 'Starter';
+      } else {
+        badge.classList.add('intel');
+        badge.textContent = 'Intel';
+      }
+    }
+
     if (url) {
       setThumbSrc(url);
     } else {
@@ -275,28 +295,12 @@ function __buildPhotoGalleryGrid() {
           img.style.display = '';
           ph.remove();
           setThumbSrc(fetched);
+          syncGalleryBadge(true);
         }).catch(() => {});
       }
     }
     item.appendChild(img);
-
-    // Badge overlay (priority: locked > corrupted > starter > intel)
-    const badge = document.createElement('div');
-    badge.className = 'photoGalleryBadge';
-    const photoIsStarter = (photo.kind === 'starter' || photo.context === 'snapshot');
-    if (!url) {
-      badge.classList.add('locked');
-      badge.textContent = 'Locked';
-    } else if (isCorrupted) {
-      badge.classList.add('corrupted');
-      badge.textContent = '◈ Corrupt';
-    } else if (photoIsStarter) {
-      badge.classList.add('starter');
-      badge.textContent = 'Starter';
-    } else {
-      badge.classList.add('intel');
-      badge.textContent = 'Intel';
-    }
+    syncGalleryBadge(!!url);
     item.appendChild(badge);
 
     grid.appendChild(item);
@@ -631,6 +635,11 @@ function bindUI() {
     if (cancelBtn) {
       cancelBtn.onclick = () => {
         _cleanup();
+        try {
+          const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
+          __newGameLocationMode = (setup && setup.mode === 'remote') ? 'pick' : 'current';
+          if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
+        } catch(e) {}
         const p = document.getElementById('panelNewGame');
         if (p) p.classList.add('open');
       };
@@ -669,6 +678,42 @@ function bindUI() {
     try { if (typeof __syncSetupScreenMode === 'function') __syncSetupScreenMode(); } catch(e) {}
   }
 
+  function __syncSetupLocationStatus(mode) {
+    try {
+      const isRemote = mode === 'remote';
+      if (isRemote) __newGameLocationMode = 'pick';
+      else if (__newGameLocationMode !== 'pick') __newGameLocationMode = 'current';
+
+      const dot = document.getElementById('setupLocationDot');
+      const name = document.getElementById('setupLocationName');
+      const meta = document.getElementById('setupLocationMeta');
+      const changeBtn = document.getElementById('setupLocationChange');
+
+      if (dot) {
+        dot.classList.remove('gps', 'custom');
+        dot.classList.add(__newGameLocationMode === 'pick' ? 'custom' : 'gps');
+      }
+      if (name) {
+        if (isRemote) name.textContent = 'Custom search region';
+        else if (__newGameLocationMode === 'pick') name.textContent = 'Map-picked starting area';
+        else name.textContent = 'Current GPS position';
+      }
+      if (meta) {
+        meta.textContent = isRemote
+          ? 'Tap Begin Operation to place the remote search anchor.'
+          : (__newGameLocationMode === 'pick'
+              ? 'Tap Begin Operation to place a start-area pin, or switch back to GPS.'
+              : 'Uses your live location when the round begins.');
+        meta.style.display = '';
+      }
+      if (changeBtn) {
+        changeBtn.textContent = isRemote
+          ? 'Change'
+          : (__newGameLocationMode === 'pick' ? 'Use GPS' : 'Change');
+      }
+    } catch(e) {}
+  }
+
   function __syncSetupScreenMode() {
     try {
       const mode = (typeof window.getGameSetupSelection === 'function') ? (window.getGameSetupSelection().mode || 'normal') : 'normal';
@@ -700,6 +745,7 @@ function bindUI() {
         pillsEl.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
         pillsEl.classList.add(`mode-${mode}`);
       }
+      __syncSetupLocationStatus(mode);
     } catch(e) {}
   }
   window.__syncSetupScreenMode = __syncSetupScreenMode;
@@ -733,7 +779,13 @@ function bindUI() {
   if (setupLocationChangeBtn) {
     setupLocationChangeBtn.addEventListener('click', () => {
       try {
+        if (selectedGameMode !== 'remote' && __newGameLocationMode === 'pick') {
+          __newGameLocationMode = 'current';
+          if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
+          return;
+        }
         __newGameLocationMode = 'pick';
+        if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
         __startLocationPickMode();
       } catch(e) {}
     });
