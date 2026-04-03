@@ -142,10 +142,26 @@
 
   function __wireResultModalButtons(){
     try {
-      const b1 = document.getElementById('btnResultNewRound');
-      if (b1) b1.onclick = () => { try { closeResultModal(); } catch(e) {} try { if (typeof window.startNewRound === 'function') window.startNewRound(); } catch(e) {} };
-      const b2 = document.getElementById('btnResultClose');
-      if (b2) b2.onclick = () => closeResultModal();
+      const btnRedeploy = document.getElementById('btnResultRedeploy');
+      if (btnRedeploy) btnRedeploy.onclick = () => {
+        try { closeResultModal(); } catch(e) {}
+        try { if (typeof window.startNewRound === 'function') window.startNewRound(); } catch(e) {}
+      };
+      const btnReview = document.getElementById('btnResultReviewTarget');
+      if (btnReview) btnReview.onclick = () => {
+        try { closeResultModal(); } catch(e) {}
+        try {
+          const tgt = (typeof getTargetLatLng === 'function') ? getTargetLatLng() : null;
+          if (tgt && window.leafletMap) window.leafletMap.flyTo([tgt.lat, tgt.lon], 16, { duration: 1 });
+        } catch(e) {}
+      };
+      const btnClose = document.getElementById('btnResultClose');
+      if (btnClose) btnClose.onclick = () => closeResultModal();
+      const btnOld = document.getElementById('btnResultNewRound');
+      if (btnOld) btnOld.onclick = () => {
+        try { closeResultModal(); } catch(e) {}
+        try { if (typeof window.startNewRound === 'function') window.startNewRound(); } catch(e) {}
+      };
     } catch(e) {}
   }
 
@@ -209,6 +225,13 @@
       gameLength: (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short',
       difficulty: (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal',
       useAdj: (typeof USE_ACCURACY_ADJUSTED_DISTANCE !== 'undefined') ? !!USE_ACCURACY_ADJUSTED_DISTANCE : true,
+      mode: (function() {
+        try { const s = window.getGameSetupSelection ? window.getGameSetupSelection() : null; return (s && s.mode) || 'normal'; } catch(e) { return 'normal'; }
+      })(),
+      movesLeft: (function() {
+        try { return (typeof window.getMovesRemaining === 'function') ? window.getMovesRemaining() : null; } catch(e) { return null; }
+      })(),
+      outcome: 'located',
     };
   }
 
@@ -241,105 +264,92 @@
     const _toolsUsed = payload.toolsUsed || 0;
     const _targetName = payload.targetName || null;
     const useAdj = !!payload.useAdj;
-    const timeStatVal = formatMMSS(Math.max(0, payload.guessRemainingMs || 0));
-    const timeStatColor = '#fff';
-    const timeStatLabel = 'Remaining';
+    const mode = payload.mode || 'normal';
+    const movesLeft = payload.movesLeft;
+    const outcome = payload.outcome || 'located';
 
-    const gradeInfo = {
-      Diamond:  { color:'#a5f3fc', flavor:'Extraordinary' },
-      Emerald:  { color:'#34d399', flavor:'Exceptional' },
-      Platinum: { color:'#e2e8f0', flavor:'Excellent' },
-      Gold:     { color:'#fbbf24', flavor:'Impressive' },
-      Silver:   { color:'#94a3b8', flavor:'Good effort' },
-      Bronze:   { color:'#f97316', flavor:'Off the mark' },
-      Copper:   { color:'#ef4444', flavor:'Way off' },
-    }[grade] || { color:'#94a3b8', flavor:'' };
-    const gc = gradeInfo.color;
-    const flavor = gradeInfo.flavor;
+    const _outcomeHeadlines = {
+      located: 'Target Located',
+      time_expired: 'Time Expired',
+      moves_exhausted: 'Moves Exhausted',
+      all_clear: 'All Targets Clear',
+    };
+    const headline = _outcomeHeadlines[outcome] || 'Target Located';
+
+    const _distM = useAdj && adjD != null ? adjD : rawD;
+    const _distStr = fmtMeters(_distM);
+    const _distColour = (_distM == null) ? 'amber' : (_distM <= 50 ? 'green' : _distM <= 200 ? 'amber' : 'red');
 
     const adjLine = (useAdj && rawD != null && adjD != null && rawD !== adjD)
-      ? `<div class="muted" style="font-size:0.65rem;text-align:center;margin-top:2px;">adj. ${fmtMeters(adjD)} · ±${acc != null ? fmtMeters(acc) : '—'}</div>`
+      ? `<div style="font-size:10px;color:#64748b;text-align:center;margin-top:2px;">adj. ${fmtMeters(adjD)} · ±${acc != null ? fmtMeters(acc) : '—'}</div>`
       : '';
 
+    const gradeInfo = {
+      Diamond:  { color:'#67e8f9', glow: true },
+      Emerald:  { color:'#10b981', glow: true },
+      Platinum: { color:'#b0c4d8', glow: true },
+      Gold:     { color:'#f59e0b', glow: false },
+      Silver:   { color:'#94a3b8', glow: false },
+      Bronze:   { color:'#cd7f32', glow: false },
+      Copper:   { color:'#b87333', glow: false },
+    }[grade] || { color:'#94a3b8', glow: false };
+    const gc = gradeInfo.color;
+
     const _gradeOrder = [
-      { label:'Copper',   color:'#ef4444' },
-      { label:'Bronze',   color:'#f97316' },
+      { label:'Copper',   color:'#b87333' },
+      { label:'Bronze',   color:'#cd7f32' },
       { label:'Silver',   color:'#94a3b8' },
-      { label:'Gold',     color:'#fbbf24' },
-      { label:'Platinum', color:'#e2e8f0' },
-      { label:'Emerald',  color:'#34d399' },
-      { label:'Diamond',  color:'#a5f3fc' },
+      { label:'Gold',     color:'#f59e0b' },
+      { label:'Platinum', color:'#b0c4d8' },
+      { label:'Emerald',  color:'#10b981' },
+      { label:'Diamond',  color:'#67e8f9' },
     ];
+
     function _tierShape(label, color, w, h) {
       const sizeAttrs = w ? `width="${w}" height="${h || w}"` : `width="100%" height="100%"`;
       const shapes = {
-        Copper: {
-          vb: '0 0 64 64',
-          paths: `<polygon points="32,56 6,12 58,12" fill="${color}" opacity="0.9"/>` +
-                 `<polygon points="32,48 14,18 50,18" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>`,
-        },
-        Bronze: {
-          vb: '0 0 64 64',
-          paths: `<circle cx="32" cy="32" r="28" fill="${color}" opacity="0.9"/>` +
-                 `<circle cx="32" cy="32" r="20" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` +
-                 `<circle cx="32" cy="32" r="11" fill="none" stroke="white" stroke-width="1" stroke-opacity="0.15"/>`,
-        },
-        Silver: {
-          vb: '0 0 64 64',
-          paths: `<path d="M32 6 L56 14 L56 32 Q56 50 32 60 Q8 50 8 32 L8 14 Z" fill="${color}" opacity="0.9"/>` +
-                 `<path d="M32 13 L49 19 L49 32 Q49 46 32 54 Q15 46 15 32 L15 19 Z" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>`,
-        },
-        Gold: {
-          vb: '0 0 64 64',
-          paths: `<polygon points="32,4 38,24 58,24 42,36 48,56 32,44 16,56 22,36 6,24 26,24" fill="${color}" opacity="0.9"/>` +
-                 `<polygon points="32,12 36,26 50,26 39,34 43,48 32,40 21,48 25,34 14,26 28,26" fill="none" stroke="white" stroke-width="1.2" stroke-opacity="0.2"/>`,
-        },
-        Platinum: {
-          vb: '0 0 64 64',
-          paths: `<polygon points="32,4 54,17 54,47 32,60 10,47 10,17" fill="${color}" opacity="0.9"/>` +
-                 `<polygon points="32,12 46,20 46,44 32,52 18,44 18,20" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.25"/>` +
-                 `<line x1="32" y1="4" x2="32" y2="60" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/>` +
-                 `<line x1="10" y1="17" x2="54" y2="47" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/>` +
-                 `<line x1="54" y1="17" x2="10" y2="47" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/>`,
-        },
-        Emerald: {
-          vb: '0 0 64 72',
-          paths: `<polygon points="16,6 48,6 60,18 60,54 48,66 16,66 4,54 4,18" fill="${color}" opacity="0.9"/>` +
-                 `<polygon points="20,12 44,12 54,22 54,50 44,60 20,60 10,50 10,22" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` +
-                 `<polygon points="24,20 40,20 46,26 46,46 40,52 24,52 18,46 18,26" fill="none" stroke="white" stroke-width="1" stroke-opacity="0.15"/>`,
-        },
-        Diamond: {
-          vb: '0 0 64 70',
-          paths: `<polygon points="8,26 20,6 44,6 56,26" fill="${color}" opacity="0.95"/>` +
-                 `<polygon points="8,26 56,26 32,66" fill="#7dd3fc" opacity="0.9"/>` +
-                 `<line x1="8" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/>` +
-                 `<line x1="56" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/>` +
-                 `<line x1="8" y1="26" x2="56" y2="26" stroke="white" stroke-width="1" stroke-opacity="0.35"/>` +
-                 `<line x1="20" y1="6" x2="32" y2="26" stroke="white" stroke-width="0.8" stroke-opacity="0.25"/>` +
-                 `<line x1="44" y1="6" x2="32" y2="26" stroke="white" stroke-width="0.8" stroke-opacity="0.25"/>` +
-                 `<line x1="20" y1="6" x2="8" y2="26" stroke="white" stroke-width="0.8" stroke-opacity="0.2"/>` +
-                 `<line x1="44" y1="6" x2="56" y2="26" stroke="white" stroke-width="0.8" stroke-opacity="0.2"/>` +
-                 `<line x1="32" y1="26" x2="32" y2="66" stroke="white" stroke-width="0.6" stroke-opacity="0.2"/>`,
-        },
+        Copper:   { vb:'0 0 64 64', paths:`<polygon points="32,56 6,12 58,12" fill="${color}" opacity="0.9"/><polygon points="32,48 14,18 50,18" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` },
+        Bronze:   { vb:'0 0 64 64', paths:`<circle cx="32" cy="32" r="28" fill="${color}" opacity="0.9"/><circle cx="32" cy="32" r="20" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/><circle cx="32" cy="32" r="11" fill="none" stroke="white" stroke-width="1" stroke-opacity="0.15"/>` },
+        Silver:   { vb:'0 0 64 64', paths:`<path d="M32 6 L56 14 L56 32 Q56 50 32 60 Q8 50 8 32 L8 14 Z" fill="${color}" opacity="0.9"/><path d="M32 13 L49 19 L49 32 Q49 46 32 54 Q15 46 15 32 L15 19 Z" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` },
+        Gold:     { vb:'0 0 64 64', paths:`<polygon points="32,4 38,24 58,24 42,36 48,56 32,44 16,56 22,36 6,24 26,24" fill="${color}" opacity="0.9"/><polygon points="32,12 36,26 50,26 39,34 43,48 32,40 21,48 25,34 14,26 28,26" fill="none" stroke="white" stroke-width="1.2" stroke-opacity="0.2"/>` },
+        Platinum: { vb:'0 0 64 64', paths:`<polygon points="32,4 54,17 54,47 32,60 10,47 10,17" fill="${color}" opacity="0.9"/><polygon points="32,12 46,20 46,44 32,52 18,44 18,20" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.25"/><line x1="32" y1="4" x2="32" y2="60" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/><line x1="10" y1="17" x2="54" y2="47" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/><line x1="54" y1="17" x2="10" y2="47" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/>` },
+        Emerald:  { vb:'0 0 64 72', paths:`<polygon points="16,6 48,6 60,18 60,54 48,66 16,66 4,54 4,18" fill="${color}" opacity="0.9"/><polygon points="20,12 44,12 54,22 54,50 44,60 20,60 10,50 10,22" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` },
+        Diamond:  { vb:'0 0 64 70', paths:`<polygon points="8,26 20,6 44,6 56,26" fill="${color}" opacity="0.95"/><polygon points="8,26 56,26 32,66" fill="#7dd3fc" opacity="0.9"/><line x1="8" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/><line x1="56" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/><line x1="8" y1="26" x2="56" y2="26" stroke="white" stroke-width="1" stroke-opacity="0.35"/>` },
       };
       const s = shapes[label] || shapes.Bronze;
       return `<svg ${sizeAttrs} viewBox="${s.vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${s.paths}</svg>`;
     }
-    function _flankMedal(label, color, side, rank) {
-      return `<div class="resultFlankMedal ${side} rank-${rank}">` +
-        _tierShape(label, color) +
-        `</div>`;
+
+    const _stripHtml = _gradeOrder.map(g => {
+      const isEarned = g.label === grade;
+      if (isEarned) {
+        return `<div class="medalItem is-earned${gradeInfo.glow ? ' high-tier' : ''}">
+          <div class="medalSvgWrap" style="--glow-color:${gc};">
+            ${_tierShape(g.label, gc, 48, 48)}
+          </div>
+          <div class="medalItemLabel" style="color:${gc};">${g.label.toUpperCase()}</div>
+        </div>`;
+      }
+      return `<div class="medalItem">
+        ${_tierShape(g.label, g.color, 22, 22)}
+      </div>`;
+    }).join('');
+
+    const timeRemStr = formatMMSS(Math.max(0, payload.guessRemainingMs || 0));
+    let statHtml;
+    if (mode === 'remote') {
+      statHtml = `
+        <div class="resultStat"><div class="resultStatVal">${fmtMeters(rawD)}</div>${adjLine}<div class="resultStatLabel">Distance</div></div>
+        <div class="resultStat"><div class="resultStatVal" style="color:${movesLeft != null && movesLeft <= 3 ? '#f87171' : '#a78bfa'}">${movesLeft != null ? movesLeft : '—'}</div><div class="resultStatLabel">Moves Left</div></div>
+        <div class="resultStat"><div class="resultStatVal">${_toolsUsed}</div><div class="resultStatLabel">Tools Used</div></div>`;
+    } else {
+      statHtml = `
+        <div class="resultStat"><div class="resultStatVal">${fmtMeters(rawD)}</div>${adjLine}<div class="resultStatLabel">Distance</div></div>
+        <div class="resultStat"><div class="resultStatVal">${timeRemStr}</div><div class="resultStatLabel">Remaining</div></div>
+        <div class="resultStat"><div class="resultStatVal">${_toolsUsed}</div><div class="resultStatLabel">Tools Used</div></div>`;
     }
-    const _earnedIdx = _gradeOrder.findIndex(g => g.label === grade);
-    const _leftHtml = _gradeOrder.slice(Math.max(0, _earnedIdx - 2), _earnedIdx)
-      .map((g, i, arr) => _flankMedal(g.label, g.color, 'left', arr.length - i)).join('');
-    const _rightHtml = _gradeOrder.slice(_earnedIdx + 1, Math.min(_gradeOrder.length, _earnedIdx + 3))
-      .map((g, i) => _flankMedal(g.label, g.color, 'right', i + 1)).join('');
-    const _glowAnim = ['Platinum','Emerald','Diamond'].includes(grade) ? 'tierGlowHigh' : 'tierGlowLow';
+
     const _bd = scoreResult;
-    const _bdTimeLabel = `Time (${timeStatVal} ${timeStatLabel.toLowerCase()})`;
-    const _bdLengthLabel = `Game length (${payload.gameLength || 'short'})`;
-    const _bdDiffLabel = `Difficulty (${payload.difficulty || 'normal'})`;
     function _bdRow(label, val) {
       const cls = val === 0 ? ' zero' : '';
       const sign = val > 0 ? '+' : '';
@@ -347,45 +357,33 @@
     }
 
     return `
-      <div class="resultHero">
-        <div class="resultGradeBadge">
-          <div class="resultMedalScene">
-            ${_leftHtml}
-            <div class="resultMedalGlowWrap" style="--glow-color:${gc};animation:${_glowAnim} 1.8s ease-in-out 0.2s 2 forwards;">
-              ${_tierShape(grade, gc, 80, 80)}
-            </div>
-            ${_rightHtml}
-          </div>
-          <div class="resultGradeLabel" style="color:${gc}">${escapeHtml(grade)}</div>
+      <div>
+        <div class="debriefEyebrow">
+          Operation Debrief
+          <span class="debriefModeChip mode-${escapeHtml(mode)}">${mode.toUpperCase()}</span>
         </div>
-        <div class="resultFlavor" style="color:${gc}">${escapeHtml(flavor)}</div>
-        ${_targetName ? `<div class="muted" style="font-size:0.75rem;text-align:center;margin-top:2px;letter-spacing:.02em;">📍 ${escapeHtml(_targetName)}</div>` : ''}
+        <div class="debriefHeadline">${escapeHtml(headline)}</div>
+        <div class="debriefDistance ${_distColour}">${_distStr} off target</div>
+        ${_targetName ? `<div style="font-size:11px;color:#64748b;text-align:center;margin-top:-8px;margin-bottom:10px;">📍 ${escapeHtml(_targetName)}</div>` : ''}
+        <div class="medalStrip">${_stripHtml}</div>
+        <div class="resultStats">${statHtml}</div>
         <div class="resultBreakdown">
           ${_bdRow(`${grade} base`, _bd.base)}
-          ${_bdRow(_bdTimeLabel, _bd.timeBonus)}
-          ${_bdRow(_bdLengthLabel, _bd.lengthBonus)}
-          ${_bdRow(_bdDiffLabel, _bd.diffBonus)}
+          ${_bdRow(`Time (${timeRemStr} remaining)`, _bd.timeBonus)}
+          ${_bdRow(`Radius bonus`, _bd.lengthBonus)}
+          ${_bdRow(`Difficulty`, _bd.diffBonus)}
           ${_bdRow(`Tool efficiency (${_toolsUsed} used)`, _bd.toolBonus)}
-        </div>
-        <div class="resultScore">${score.toLocaleString()}<span class="resultScoreLabel">pts</span></div>
-        <div class="resultStats">
-          <div class="resultStat">
-            <div class="resultStatVal">${fmtMeters(rawD)}</div>
-            ${adjLine}
-            <div class="resultStatLabel">Distance</div>
-          </div>
-          <div class="resultStat">
-            <div class="resultStatVal" style="color:${timeStatColor}">${timeStatVal}</div>
-            <div class="resultStatLabel">${timeStatLabel}</div>
-          </div>
-          <div class="resultStat">
-            <div class="resultStatVal">${_toolsUsed} used</div>
-            <div class="resultStatLabel">Tools</div>
+          <div class="resultBreakdownRow resultBreakdownTotal">
+            <span>Total</span>
+            <span>${score.toLocaleString()} pts</span>
           </div>
         </div>
-        <div class="resultActions">
-          <button id="btnResultNewRound" class="primary" style="flex:1;">Setup New Round</button>
-          <button id="btnResultClose" style="flex:0 0 auto;">Close ✕</button>
+        <div class="debriefActions">
+          <button id="btnResultRedeploy" class="debriefRedeployBtn mode-${escapeHtml(mode)}" type="button">Redeploy</button>
+          <div class="debriefSecondaryActions">
+            <button id="btnResultReviewTarget" class="debriefSecondaryBtn" type="button">Review Target</button>
+            <button id="btnResultClose" class="debriefSecondaryBtn" type="button">Close Debrief</button>
+          </div>
         </div>
       </div>
     `;
@@ -535,8 +533,21 @@
     } catch(e) {}
 
     const payload = buildResultPayload();
+    if (payload) {
+      payload.outcome = autoLock ? 'time_expired' : 'located';
+      payload.mode = (function(){ try { const s = window.getGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
+      payload.movesLeft = (function(){ try { return typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null; } catch(e){ return null; } })();
+    }
     const html = renderResultHtml(payload);
-    persistResultPayload(payload);
+    try {
+      const _pl = buildResultPayload();
+      if (_pl) {
+        _pl.outcome = autoLock ? 'time_expired' : 'located';
+        _pl.mode = (function(){ try { const s = window.getGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
+        _pl.movesLeft = (function(){ try { return typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null; } catch(e){ return null; } })();
+        persistResultPayload(_pl);
+      }
+    } catch(e) {}
 
     // Brief pause so the player can see the reveal line on the map before the modal appears
     await new Promise(r => setTimeout(r, 1800));
