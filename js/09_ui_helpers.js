@@ -96,14 +96,17 @@ function updateUI() {
     const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
     const btnLock = document.getElementById('btnLockGuess');
     const btnNR = document.getElementById('btnNewRound');
+    const dock = document.getElementById('bottomActionDock');
     if (btnLock) {
       btnLock.disabled = !!over;
       btnLock.classList.toggle('disabled', !!over);
+      btnLock.classList.toggle('hidden', !!over);
     }
     if (btnNR) {
       btnNR.classList.toggle('hidden', !over);
       btnNR.disabled = !over;
     }
+    if (dock) dock.classList.toggle('hidden', !!(btnLock && btnLock.classList.contains('hidden')) && !!(btnNR && btnNR.classList.contains('hidden')));
 
     // Disable tool buttons once guessed (allow viewing results/new round only),
     // and grey out exact options already used this round.

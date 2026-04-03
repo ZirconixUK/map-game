@@ -261,6 +261,17 @@
       <div id="thermoProgressText" class="text-xs font-semibold text-orange-400">Thermometer</div>
     </div>
 
+    <div id="bottomActionDock" class="bottomActionDock" aria-label="Round actions">
+      <button id="btnLockGuess" class="missionAction missionAction--primary" type="button" aria-label="Lock In Guess" title="Lock In Guess">
+        <span class="missionActionIcon">🎯</span>
+        <span class="missionActionCopy">
+          <span class="missionActionTitle">Lock In Guess</span>
+          <span class="missionActionMeta">Commit your current position for scoring</span>
+        </span>
+      </button>
+      <button id="btnNewRound" class="missionAction missionAction--secondary hidden" type="button">Start New Round</button>
+    </div>
+
     <!-- ── Gameplay panel ─────────────────────────────────── -->
     <div id="panelGameplay" class="panel panel--right bg-[#0f1729] border border-[#1e3a5f] shadow-panel-up" aria-label="Gameplay controls">
       <div class="panelHandle" aria-hidden="true"></div>
@@ -322,13 +333,6 @@
           <span class="toolCardChip">Ready ›</span>
         </div>
 
-        <div id="roundActions" class="mt-3 flex flex-col gap-2">
-          <button id="btnLockGuess" class="w-full rounded-2xl bg-amber-500 border-0 flex flex-col items-center justify-center gap-1 py-3 transition-all duration-150 hover:bg-amber-400 active:scale-95 cursor-pointer" style="min-height:72px;" aria-label="Lock In Guess" title="Lock In Guess">
-            <span class="text-2xl">🎯</span>
-            <span class="text-xs font-bold text-white">Lock In</span>
-          </button>
-          <button id="btnNewRound" class="hidden w-full px-4 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-gray-300 text-sm cursor-pointer hover:bg-[#253550]">Start New Round</button>
-        </div>
       </div>
 
       <!-- Legacy tool trigger buttons — hidden but required for delegated event system -->
@@ -656,29 +660,59 @@
       <div class="panelHeader flex items-start justify-between gap-3 pt-2.5 mb-4">
         <div>
           <div class="panelTitle text-lg font-bold tracking-tight text-white">System</div>
+          <div class="systemPanelIntro">Navigation, account access, and operator utilities.</div>
         </div>
       </div>
-      <div class="panelBody flex flex-col gap-2">
-        <button id="btnSystemNewGame" class="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-amber-500 border-0 text-white font-bold cursor-pointer hover:bg-amber-400 active:scale-[.98] transition-all duration-150" type="button">
-          <span class="text-2xl">🎮</span>
-          <span>New Game</span>
-        </button>
-        <button id="systemProfileLink" type="button" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#111827] border border-[#1e3a5f] text-slate-300 font-semibold cursor-pointer hover:bg-[#1a2744] active:scale-[.98] transition-all duration-150 text-sm">
-          <span class="text-xl">👤</span>
-          <span id="systemProfileLabel">Profile / Sign in</span>
-        </button>
-        <button id="btnSystemSignOut" class="hidden w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-transparent border border-[#1e3a5f] text-slate-500 font-semibold cursor-pointer hover:bg-[#1a2744] hover:text-slate-300 active:scale-[.98] transition-all duration-150 text-sm" type="button">
-          <span class="text-xl">⎋</span>
-          <span>Sign out</span>
-        </button>
-        <button id="btnSystemHowToPlay" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-transparent border border-[#1e3a5f] text-slate-500 font-semibold cursor-pointer hover:bg-[#1a2744] hover:text-slate-300 active:scale-[.98] transition-all duration-150 text-sm" type="button">
-          <span class="text-xl">❓</span>
-          <span>How to Play</span>
-        </button>
-        <button id="btnSystemDevTools" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-transparent border border-[#1e3a5f] text-slate-500 font-semibold cursor-pointer hover:bg-[#1a2744] hover:text-slate-300 active:scale-[.98] transition-all duration-150 text-sm" type="button">
-          <span class="text-xl">⚙︎</span>
-          <span>Dev Tools</span>
-        </button>
+      <div class="panelBody flex flex-col gap-4">
+        <div class="systemSection">
+          <div class="systemSectionLabel">Operations</div>
+          <button id="btnSystemNewGame" class="systemCard systemCard--primary" type="button">
+            <span class="systemCardIcon">🎮</span>
+            <span class="systemCardBody">
+              <span class="systemCardTitle">New Operation</span>
+              <span class="systemCardMeta">Configure mission profile, radius, and start conditions.</span>
+            </span>
+            <span class="systemCardChip">Setup</span>
+          </button>
+        </div>
+        <div class="systemSection">
+          <div class="systemSectionLabel">Identity</div>
+          <button id="systemProfileLink" type="button" class="systemCard">
+            <span class="systemCardIcon">👤</span>
+            <span class="systemCardBody">
+              <span id="systemProfileLabel" class="systemCardTitle">Profile / Sign in</span>
+              <span class="systemCardMeta">View progress, history, and account access.</span>
+            </span>
+            <span class="systemCardChip">Open</span>
+          </button>
+          <button id="btnSystemSignOut" class="systemCard systemCard--quiet hidden" type="button">
+            <span class="systemCardIcon">⎋</span>
+            <span class="systemCardBody">
+              <span class="systemCardTitle">Sign out</span>
+              <span class="systemCardMeta">Disconnect the active operator profile on this device.</span>
+            </span>
+            <span class="systemCardChip">Exit</span>
+          </button>
+        </div>
+        <div class="systemSection">
+          <div class="systemSectionLabel">Reference</div>
+          <button id="btnSystemHowToPlay" class="systemCard systemCard--quiet" type="button">
+            <span class="systemCardIcon">❓</span>
+            <span class="systemCardBody">
+              <span class="systemCardTitle">How to Play</span>
+              <span class="systemCardMeta">Review the mission loop, tools, heat, and scoring model.</span>
+            </span>
+            <span class="systemCardChip">Guide</span>
+          </button>
+          <button id="btnSystemDevTools" class="systemCard systemCard--quiet" type="button">
+            <span class="systemCardIcon">⚙︎</span>
+            <span class="systemCardBody">
+              <span class="systemCardTitle">Dev Tools</span>
+              <span class="systemCardMeta">Open diagnostics, debug actions, and internal test controls.</span>
+            </span>
+            <span class="systemCardChip">Debug</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -935,7 +969,7 @@
           <span class="text-2xl shrink-0">📍</span>
           <div>
             <div class="font-semibold text-white mb-0.5">Lock in your guess</div>
-            <div class="text-slate-300">When you believe you've found the target, tap <span class="text-cyan-400 font-semibold">Lock In Guess</span> in the gameplay menu. Your current GPS position is scored against the true target — the closer you are, the higher your grade.</div>
+            <div class="text-slate-300">When you believe you've found the target, tap <span class="text-cyan-400 font-semibold">Lock In Guess</span> at the bottom of the screen. Your current GPS position is scored against the true target — the closer you are, the higher your grade.</div>
           </div>
         </div>
 

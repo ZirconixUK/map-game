@@ -1762,6 +1762,61 @@ if (debugMode) {
   // Ensure modal handlers are wired (safe to call multiple times)
   try { if (typeof bindPhotoModal === 'function') bindPhotoModal(); } catch(e) {}
 
+  async function __confirmLockInGuess() {
+    const gm = document.getElementById('gameMenu');
+    if (!gm || gm.querySelector('.__lcConfirm')) return;
+
+    try {
+      ['panelHeat','panelSystem','panelDebug','panelCurseSelect','panelPhotoGallery','panelHowToPlay','panelProfile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('open');
+      });
+    } catch(e) {}
+
+    const savedHTML = gm.innerHTML;
+    const restore = () => {
+      gm.innerHTML = savedHTML;
+      try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
+      try { if (typeof updateGameplayPanelWidth === 'function') updateGameplayPanelWidth(); } catch(e) {}
+    };
+
+    try { showMenu('main'); } catch(e) {}
+    if (panelGameplay) panelGameplay.classList.add('open');
+
+    gm.innerHTML = `
+      <div class="lockConfirmShell">
+        <button class="lockConfirmBack __lcBack" type="button">Back to Field Tools</button>
+        <div class="lockConfirmCard">
+          <div class="sectionLabel lockConfirmLabel">🎯 Lock In Guess</div>
+          <div class="lockConfirmBody">
+            <div class="lockConfirmTitle">Commit current position</div>
+            <div class="lockConfirmText">Lock in your current location as the final guess for this round. This action ends investigation and starts scoring.</div>
+          </div>
+          <div class="lockConfirmActions">
+            <button class="missionAction missionAction--primary __lcConfirm" type="button">
+              <span class="missionActionIcon">🎯</span>
+              <span class="missionActionCopy">
+                <span class="missionActionTitle">Confirm Lock In</span>
+                <span class="missionActionMeta">Use your live position and score the run</span>
+              </span>
+            </button>
+            <button class="lockConfirmCancel __lcCancel" type="button">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+
+    try { if (typeof updateGameplayPanelWidth === 'function') updateGameplayPanelWidth(); } catch(e) {}
+
+    gm.querySelector('.__lcBack')?.addEventListener('click', restore);
+    gm.querySelector('.__lcCancel')?.addEventListener('click', restore);
+    gm.querySelector('.__lcConfirm')?.addEventListener('click', async () => {
+      restore();
+      if (panelGameplay) panelGameplay.classList.remove('open');
+      showMenu('main');
+      try { if (typeof window.lockInGuess === 'function') await window.lockInGuess(); } catch(e) { console.error(e); }
+    });
+  }
+
   // Phase 2: Panel navigation + Lock In + Start New Round
   // All navigation uses delegation on panelGameplay so listeners survive innerHTML swaps
   // on gameMenu (lock-in confirm) and sub-menus (__toolConfirmShow restores).
@@ -1823,35 +1878,14 @@ if (debugMode) {
           panelGameplay.classList.remove('open'); showMenu('main'); return;
         }
 
-        // ── Lock-in confirmation ─────────────────────────────────────────────
         if (id !== 'btnLockGuess') return;
-        const gm = document.getElementById('gameMenu');
-        if (!gm) return;
-        const savedHTML = gm.innerHTML;
-        const restore = () => {
-          gm.innerHTML = savedHTML;
-          try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
-        };
-        gm.innerHTML = `
-          <div class="flex justify-between mb-3">
-            <button class="__lcBack px-3 py-2 rounded-xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">← Back</button>
-          </div>
-          <div class="sectionLabel text-[11px] uppercase tracking-widest text-amber-400 mb-3">🎯 Lock In Guess</div>
-          <div class="flex flex-col gap-3 py-1">
-            <div class="text-slate-400 text-sm">Lock in your current position as your final guess for this round.</div>
-            <div class="flex gap-2 mt-1">
-              <button class="__lcConfirm flex-1 px-4 py-3 rounded-2xl bg-amber-500 text-white font-bold text-sm cursor-pointer hover:bg-amber-400 active:scale-[.98]">🎯 Lock In</button>
-              <button class="__lcCancel px-4 py-3 rounded-2xl bg-[#1e2d44] border border-[#2a3f60] text-sm text-gray-300 cursor-pointer hover:bg-[#253550]">Cancel</button>
-            </div>
-          </div>`;
-        gm.querySelector('.__lcBack')?.addEventListener('click', restore);
-        gm.querySelector('.__lcCancel')?.addEventListener('click', restore);
-        gm.querySelector('.__lcConfirm')?.addEventListener('click', async () => {
-          restore();
-          panelGameplay.classList.remove('open');
-          showMenu('main');
-          try { if (typeof window.lockInGuess === 'function') await window.lockInGuess(); } catch(e) { console.error(e); }
-        });
+        __confirmLockInGuess();
+      });
+    }
+    const btnLock = document.getElementById('btnLockGuess');
+    if (btnLock) {
+      btnLock.addEventListener('click', () => {
+        __confirmLockInGuess();
       });
     }
     const btnNR = document.getElementById('btnNewRound');
