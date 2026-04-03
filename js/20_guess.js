@@ -212,6 +212,21 @@
     if (!r || !r.hasGuessed) return null;
     const usedOpts = (typeof window.getUsedToolOptionsThisRound === 'function')
       ? window.getUsedToolOptionsThisRound() : {};
+    const mode = (function() {
+      try { const s = window.getGameSetupSelection ? window.getGameSetupSelection() : null; return (s && s.mode) || 'normal'; } catch(e) { return 'normal'; }
+    })();
+    const gauntletState = (mode === 'gauntlet' && typeof window.getGauntletStateForPersistence === 'function')
+      ? window.getGauntletStateForPersistence()
+      : null;
+    const gauntletResults = gauntletState && Array.isArray(gauntletState.results) ? gauntletState.results.slice() : [];
+    if (mode === 'gauntlet' && typeof r.distanceToTargetM === 'number') {
+      const currentCount = typeof gauntletState.currentIndex === 'number' ? gauntletState.currentIndex : 0;
+      if (gauntletResults.length < currentCount + 1) gauntletResults.push({ distanceM: r.distanceToTargetM });
+    }
+    const gauntletValidDists = gauntletResults.filter(entry => entry && typeof entry.distanceM === 'number');
+    const gauntletAverageDistance = gauntletValidDists.length
+      ? (gauntletValidDists.reduce((sum, entry) => sum + entry.distanceM, 0) / gauntletValidDists.length)
+      : null;
     return {
       grade: r.gradeLabel || 'Copper',
       rawD: r.distanceToTargetM,
@@ -225,12 +240,13 @@
       gameLength: (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short',
       difficulty: (typeof window.getSelectedGameDifficulty === 'function') ? window.getSelectedGameDifficulty() : 'normal',
       useAdj: (typeof USE_ACCURACY_ADJUSTED_DISTANCE !== 'undefined') ? !!USE_ACCURACY_ADJUSTED_DISTANCE : true,
-      mode: (function() {
-        try { const s = window.getGameSetupSelection ? window.getGameSetupSelection() : null; return (s && s.mode) || 'normal'; } catch(e) { return 'normal'; }
-      })(),
+      mode,
       movesLeft: (function() {
         try { return (typeof window.getMovesRemaining === 'function') ? window.getMovesRemaining() : null; } catch(e) { return null; }
       })(),
+      gauntletAverageDistance,
+      gauntletCurrentIndex: gauntletState && typeof gauntletState.currentIndex === 'number' ? gauntletState.currentIndex + 1 : null,
+      gauntletTotalTargets: gauntletState && typeof gauntletState.totalTargets === 'number' ? gauntletState.totalTargets : null,
       outcome: 'located',
     };
   }
@@ -336,8 +352,19 @@
     }).join('');
 
     const timeRemStr = formatMMSS(Math.max(0, payload.guessRemainingMs || 0));
+    const gauntletAvg = (typeof payload.gauntletAverageDistance === 'number' && isFinite(payload.gauntletAverageDistance))
+      ? payload.gauntletAverageDistance
+      : rawD;
+    const gauntletProgress = (payload.gauntletCurrentIndex && payload.gauntletTotalTargets)
+      ? `${payload.gauntletCurrentIndex}/${payload.gauntletTotalTargets}`
+      : '—';
     let statHtml;
-    if (mode === 'remote') {
+    if (mode === 'gauntlet') {
+      statHtml = `
+        <div class="resultStat"><div class="resultStatVal">${fmtMeters(gauntletAvg)}</div><div class="resultStatLabel">Avg Distance</div></div>
+        <div class="resultStat"><div class="resultStatVal">${gauntletProgress}</div><div class="resultStatLabel">Targets</div></div>
+        <div class="resultStat"><div class="resultStatVal">${_toolsUsed}</div><div class="resultStatLabel">Tools Used</div></div>`;
+    } else if (mode === 'remote') {
       statHtml = `
         <div class="resultStat"><div class="resultStatVal">${fmtMeters(rawD)}</div>${adjLine}<div class="resultStatLabel">Distance</div></div>
         <div class="resultStat"><div class="resultStatVal" style="color:${movesLeft != null && movesLeft <= 3 ? '#f87171' : '#a78bfa'}">${movesLeft != null ? movesLeft : '—'}</div><div class="resultStatLabel">Moves Left</div></div>
@@ -355,7 +382,9 @@
       const sign = val > 0 ? '+' : '';
       return `<div class="resultBreakdownRow${cls}"><span>${escapeHtml(label)}</span><span>${sign}${val} pts</span></div>`;
     }
-    const _timeRowLabel = mode === 'remote' ? 'Moves remaining' : `Time (${timeRemStr} remaining)`;
+    const _timeRowLabel = mode === 'remote'
+      ? 'Moves remaining'
+      : (mode === 'gauntlet' ? `Targets cleared (${gauntletProgress})` : `Time (${timeRemStr} remaining)`);
 
     return `
       <div>
@@ -375,7 +404,7 @@
         <div class="resultBreakdown">
           ${_bdRow(`${grade} base`, _bd.base)}
           ${_bdRow(_timeRowLabel, _bd.timeBonus)}
-          ${_bdRow(`Radius bonus`, _bd.lengthBonus)}
+          ${_bdRow(mode === 'gauntlet' ? 'Targets cleared' : 'Radius bonus', _bd.lengthBonus)}
           ${_bdRow(`Difficulty`, _bd.diffBonus)}
           ${_bdRow(`Tool efficiency (${_toolsUsed} used)`, _bd.toolBonus)}
           <div class="resultBreakdownRow resultBreakdownTotal">
@@ -612,10 +641,13 @@
         const el = document.getElementById(id); if (el) el.classList.remove('open');
       });
     } catch(e) {}
-    // Open the New Game setup panel so the player can choose length and difficulty.
     try {
-      const p = document.getElementById('panelNewGame');
-      if (p) p.classList.add('open');
+      if (typeof window.__showBriefingModal === 'function') {
+        window.__showBriefingModal('return');
+      } else {
+        const p = document.getElementById('panelNewGame');
+        if (p) p.classList.add('open');
+      }
     } catch(e) {}
   }
 

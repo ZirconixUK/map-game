@@ -141,6 +141,13 @@
     } catch(e) {}
   }
 
+  function setPhotoCounter(index, total){
+    try {
+      const counter = document.getElementById('photoModalCounter');
+      if (counter) counter.textContent = `Photo ${index || 1} of ${total || 1}`;
+    } catch(e) {}
+  }
+
   function toNum(x){
     const n = (typeof x === 'string') ? parseFloat(x) : x;
     return (typeof n === 'number' && isFinite(n)) ? n : null;
@@ -152,6 +159,23 @@
     if (!tgt) { try { if (typeof target !== 'undefined') tgt = target; } catch(e) {} }
     if (!tgt) { try { tgt = window.target; } catch(e) {} }
     return tgt;
+  }
+
+  function getPhotoCounterForContext(context, kindHint){
+    try {
+      const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+      const photos = r && Array.isArray(r.photos) ? r.photos : [];
+      if (!photos.length) return { index: 1, total: 1 };
+      const targetKind = String(kindHint || (context === 'snapshot' ? 'starter' : '')).toLowerCase();
+      const idx = photos.findIndex(photo => {
+        const photoKind = String((photo && photo.kind) || '').toLowerCase();
+        const photoContext = String((photo && photo.context) || '').toLowerCase();
+        return (targetKind && photoKind === targetKind) || (context && photoContext === context);
+      });
+      return { index: idx >= 0 ? idx + 1 : 1, total: photos.length };
+    } catch(e) {
+      return { index: 1, total: 1 };
+    }
   }
 
   function __getOwnedRoundPhoto(kind){
@@ -443,6 +467,8 @@
       // image URL so the uncorrupted class + overlay suppression applies.
       const __unc = (typeof window.__arePhotosUncorrupted === 'function') ? !!window.__arePhotosUncorrupted() : false;
       setTitle(context === 'snapshot' ? 'Circle Snapshot' : 'Photo Glimpse');
+      const counter = getPhotoCounterForContext(context, context === 'snapshot' ? 'starter' : '');
+      setPhotoCounter(counter.index, counter.total);
       openModal();
       const tip = (context === 'snapshot')
         ? "This is the Circle's snapshot. Your job is to find the street location where it was taken."
@@ -465,6 +491,8 @@
     }
 
     setTitle(context === 'snapshot' ? 'Circle Snapshot' : 'Photo Glimpse');
+    const counter = getPhotoCounterForContext(context, context === 'snapshot' ? 'starter' : '');
+    setPhotoCounter(counter.index, counter.total);
     openModal();
     setLoading();
 
@@ -927,7 +955,7 @@ async function showStreetViewHorizonPhotoForTarget() {
     } catch(e) { return null; }
   };
 
-  window.showPhotoInModal = async function(url, title, sourceUrl) {
+  window.showPhotoInModal = async function(url, title, sourceUrl, contextArg, index, total) {
     try {
       const kindLabel = {
         starter: 'Circle Snapshot',
@@ -936,12 +964,13 @@ async function showStreetViewHorizonPhotoForTarget() {
         horizon: 'Horizon photo',
       };
       const displayTitle = kindLabel[title] || title || 'Photo';
-      const context = (title === 'starter') ? 'snapshot' : 'glimpse';
+      const context = contextArg || ((title === 'starter') ? 'snapshot' : 'glimpse');
       const tipText = (context === 'snapshot')
         ? 'Your circle snapshot from this round.'
         : 'Tip: treat this like a quick glance — look for obvious anchors, not the exact address.';
       openModal();
       setTitle(displayTitle);
+      setPhotoCounter(index, total);
       await setPhoto(url, tipText, context);
     } catch(e) {}
   };

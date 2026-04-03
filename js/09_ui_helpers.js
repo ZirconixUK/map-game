@@ -546,7 +546,7 @@ function __updateToolCards() {
 
       if (remoteDisable && isRemote) {
         state = 'disabled';
-        metaTag = 'UNAVAILABLE IN REMOTE';
+        metaTag = 'REMOTE: N/A';
       } else if (over) {
         state = 'used';
       } else if (menuId) {
@@ -671,22 +671,77 @@ function updateCursesPanel(){
   }
 
   empty.classList.add('hidden');
+  const isRemote = typeof window.isRemoteActive === 'function' && window.isRemoteActive();
+  function getCursePresentation(curse) {
+    const id = String((curse && curse.id) || '').toLowerCase();
+    const baseDescription = String((curse && curse.description) || '');
+    const systemsMap = {
+      heat1: 'Heat · Tool Costs',
+      heat2: 'Heat · Tool Costs',
+      heat3: 'Compass',
+      heat4: 'Radar',
+      heat5: 'Photo Intel',
+      overcharged: 'Timer · Tool Costs',
+      veil: 'Map Intel',
+      blackout: 'Imagery · Map Intel',
+      ghost: 'Position Tracking',
+      timepen_minor: 'Timer',
+      timepen_moderate: 'Timer',
+      timepen_major: 'Timer',
+      remote_doublestep: 'Moves',
+      remote_shakyhands: 'Undo',
+      remote_anchored: 'Moves',
+      remote_tunnelvision: 'Movement Radius',
+    };
+    const iconMap = {
+      heat1: '△',
+      heat2: '△',
+      heat3: '🧭',
+      heat4: '📡',
+      heat5: '📸',
+      overcharged: '⚡',
+      veil: '◌',
+      blackout: '◈',
+      ghost: '⬚',
+      timepen_minor: '⏱',
+      timepen_moderate: '⏱',
+      timepen_major: '⏱',
+      remote_doublestep: '⇄',
+      remote_shakyhands: '↩',
+      remote_anchored: '⌖',
+      remote_tunnelvision: '◎',
+    };
+    const remoteDescriptions = {
+      remote_doublestep: 'Each tap costs 2 moves while active.',
+      remote_shakyhands: 'Undo is unavailable while this curse holds.',
+      remote_anchored: 'Movement budget is reduced while active.',
+      remote_tunnelvision: 'Movement range is constricted while active.',
+    };
+    return {
+      icon: iconMap[id] || '◈',
+      description: (isRemote && remoteDescriptions[id]) ? remoteDescriptions[id] : baseDescription,
+      systems: systemsMap[id] || 'Field Systems',
+    };
+  }
   listEl.innerHTML = list.map(c => {
     let name = (c && c.name) ? String(c.name) : String((c && c.id) || 'Curse');
     if (c && c.stacks > 1) name += ` ×${c.stacks}`;
-    const desc = (c && c.description) ? String(c.description) : '';
+    const presentation = getCursePresentation(c);
+    const desc = presentation.description;
     let left = 0;
     try { left = (typeof window.__msLeftOnCurse === 'function') ? window.__msLeftOnCurse(c) : 0; } catch (e) { left = 0; }
     const t = __fmtRemaining(left);
     const descHtml = desc
       ? `<div class="curseCardDesc">${String(desc).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
       : '';
+    const systemsHtml = `<div class="curseCardSystems">Affects: ${String(presentation.systems).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
     return `<div class="curseCard">
       <div class="curseCardTop">
-        <span class="curseCardName">◈ ${String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>
-        <span class="curseCardTimer">${t} remaining</span>
+        <span class="curseCardName">${presentation.icon} ${String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>
+        <span class="curseCardTimer">◈ ${t} remaining</span>
       </div>
       ${descHtml}
+      ${systemsHtml}
     </div>`;
   }).join('');
 }
@@ -703,18 +758,36 @@ function updateGameplayPanelSummary() {
     const hasGuessed = !!(r && r.hasGuessed);
     const isRemote = typeof window.isRemoteActive === 'function' && window.isRemoteActive();
     const moves = isRemote && typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null;
+    const longestCurseMs = curseCount > 0
+      ? curses.reduce((max, curse) => {
+          try {
+            const left = (typeof window.__msLeftOnCurse === 'function') ? window.__msLeftOnCurse(curse) : 0;
+            return Math.max(max, left || 0);
+          } catch(e) {
+            return max;
+          }
+        }, 0)
+      : 0;
+    const usedOpts = (typeof window.getUsedToolOptionsThisRound === 'function')
+      ? window.getUsedToolOptionsThisRound()
+      : {};
+    let toolsUsed = 0;
+    Object.entries(usedOpts || {}).forEach(([toolId, opts]) => {
+      Object.entries(opts || {}).forEach(([optionId, used]) => {
+        if (used && !(toolId === 'photo' && optionId === 'starter')) toolsUsed++;
+      });
+    });
 
     const chips = [];
     chips.push(`<span class="panelSummaryChip chip-heat">${heatLabels[lvl]}</span>`);
     if (curseCount > 0) {
-      chips.push(`<span class="panelSummaryChip chip-curse">◈ ${curseCount}</span>`);
+      chips.push(`<span class="panelSummaryChip chip-curse">◈ ${curseCount} ${__fmtRemaining(longestCurseMs)}</span>`);
     }
+    chips.push(`<span class="panelSummaryChip chip-used">${toolsUsed} Used</span>`);
     if (moves !== null) {
       chips.push(`<span class="panelSummaryChip chip-moves">${moves} MOV</span>`);
     }
-    if (hasGuessed) {
-      chips.push(`<span class="panelSummaryChip chip-guessed">Locked In</span>`);
-    }
+    chips.push(`<span class="panelSummaryChip chip-guessed">${hasGuessed ? 'Locked In' : 'Guess Ready'}</span>`);
 
     el.innerHTML = chips.join('');
   } catch (e) {}

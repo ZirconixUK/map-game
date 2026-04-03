@@ -207,6 +207,7 @@ window.__refreshPhotoGalleryStrip = __refreshPhotoGalleryStrip;
 function __buildPhotoGalleryGrid() {
   const grid  = document.getElementById('photoGalleryGrid');
   const empty = document.getElementById('photoGalleryEmpty');
+  const summary = document.getElementById('photoGallerySummary');
   if (!grid) return;
   const photos = (() => {
     try {
@@ -217,6 +218,7 @@ function __buildPhotoGalleryGrid() {
   grid.innerHTML = '';
   if (!photos.length) {
     if (empty) empty.classList.remove('hidden');
+    if (summary) summary.textContent = '0 acquired · 0 corrupted';
     return;
   }
   if (empty) empty.classList.add('hidden');
@@ -224,7 +226,8 @@ function __buildPhotoGalleryGrid() {
   // Recover them via the SV module's own cache lookup (same targetKey() logic as when saved).
   const _svTgt = (() => { try { return (typeof target !== 'undefined') ? target : null; } catch(e) { return null; } })();
   const isCorrupted = !(typeof window.__arePhotosUncorrupted === 'function' && window.__arePhotosUncorrupted());
-  for (const photo of photos) {
+  if (summary) summary.textContent = `${photos.length} acquired · ${isCorrupted ? photos.length : 0} corrupted`;
+  photos.forEach((photo, index) => {
     // Only accept stored data: URLs — HTTP API URLs from old saves are stale/expired.
     let url = (photo.url && photo.url.startsWith('data:image/')) ? photo.url : null;
     if (!url && _svTgt && typeof window.__getStreetViewCachedDataUrl === 'function') {
@@ -240,6 +243,8 @@ function __buildPhotoGalleryGrid() {
     item.dataset.photoKind    = photo.kind || 'Photo';
     item.dataset.photoSource  = photo.sourceUrl || '';
     item.dataset.photoContext = photo.context || 'snapshot';
+    item.dataset.photoIndex   = String(index + 1);
+    item.dataset.photoTotal   = String(photos.length);
     const img = document.createElement('img');
     img.alt = photo.kind || 'Photo';
     img.loading = 'lazy';
@@ -302,9 +307,13 @@ function __buildPhotoGalleryGrid() {
     item.appendChild(img);
     syncGalleryBadge(!!url);
     item.appendChild(badge);
+    const numberBadge = document.createElement('div');
+    numberBadge.className = 'photoGalleryNumber';
+    numberBadge.textContent = String(index + 1);
+    item.appendChild(numberBadge);
 
     grid.appendChild(item);
-  }
+  });
 }
 window.__buildPhotoGalleryGrid = __buildPhotoGalleryGrid;
 
@@ -573,7 +582,9 @@ function bindUI() {
     }
   }
 
-  function __startLocationPickMode() {
+  function __startLocationPickMode(options) {
+    const opts = options || {};
+    const launchOnConfirm = !!opts.launchOnConfirm;
     // Clear any stale pick-mode click handler from a previous invocation
     if (window.leafletMap && __pickModeClickHandler) {
       try { window.leafletMap.off('click', __pickModeClickHandler); } catch(e) {}
@@ -636,8 +647,7 @@ function bindUI() {
       cancelBtn.onclick = () => {
         _cleanup();
         try {
-          const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
-          __newGameLocationMode = (setup && setup.mode === 'remote') ? 'pick' : 'current';
+          __newGameLocationMode = (__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon)) ? 'pick' : 'current';
           if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
         } catch(e) {}
         const p = document.getElementById('panelNewGame');
@@ -660,10 +670,17 @@ function bindUI() {
           const ll = __pickModeMarker.getLatLng();
           __pickedAreaSeed = { lat: ll.lat, lon: ll.lng };
         } catch(e) { return; }
+        __newGameLocationMode = 'pick';
         _cleanup();
-        const _seed = __pickedAreaSeed;
-        __pickedAreaSeed = null;
-        startNewGameFromMenuOrDebug(_seed);
+        if (launchOnConfirm) {
+          const _seed = __pickedAreaSeed;
+          __pickedAreaSeed = null;
+          startNewGameFromMenuOrDebug(_seed);
+          return;
+        }
+        try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
+        const p = document.getElementById('panelNewGame');
+        if (p) p.classList.add('open');
       };
     }
     window.__cancelPickModeIfActive = _cleanup;
@@ -681,35 +698,47 @@ function bindUI() {
   function __syncSetupLocationStatus(mode) {
     try {
       const isRemote = mode === 'remote';
-      if (isRemote) __newGameLocationMode = 'pick';
-      else if (__newGameLocationMode !== 'pick') __newGameLocationMode = 'current';
+      if (__newGameLocationMode !== 'pick') __newGameLocationMode = 'current';
 
       const dot = document.getElementById('setupLocationDot');
       const name = document.getElementById('setupLocationName');
       const meta = document.getElementById('setupLocationMeta');
       const changeBtn = document.getElementById('setupLocationChange');
+      const hasCustomPin = __newGameLocationMode === 'pick' && !!(__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon));
+      let gpsDistanceText = '';
+      try {
+        const pl = (typeof player !== 'undefined') ? player : window.player;
+        if (hasCustomPin && pl && isFinite(pl.lat) && isFinite(pl.lon) && typeof haversineMeters === 'function') {
+          const meters = haversineMeters(pl.lat, pl.lon, __pickedAreaSeed.lat, __pickedAreaSeed.lon);
+          gpsDistanceText = meters >= 1000
+            ? `${(meters / 1000).toFixed(1)}km from GPS`
+            : `${Math.round(meters)}m from GPS`;
+        }
+      } catch(e) {}
 
       if (dot) {
         dot.classList.remove('gps', 'custom');
-        dot.classList.add(__newGameLocationMode === 'pick' ? 'custom' : 'gps');
+        dot.classList.add(hasCustomPin ? 'custom' : 'gps');
       }
       if (name) {
-        if (isRemote) name.textContent = 'Custom search region';
-        else if (__newGameLocationMode === 'pick') name.textContent = 'Map-picked starting area';
+        if (isRemote) name.textContent = hasCustomPin ? 'Custom search region' : 'GPS-detected search region';
+        else if (hasCustomPin) name.textContent = 'Map-picked starting area';
         else name.textContent = 'Current GPS position';
       }
       if (meta) {
-        meta.textContent = isRemote
-          ? 'Tap Begin Operation to place the remote search anchor.'
-          : (__newGameLocationMode === 'pick'
-              ? 'Tap Begin Operation to place a start-area pin, or switch back to GPS.'
-              : 'Uses your live location when the round begins.');
+        if (isRemote) {
+          meta.textContent = hasCustomPin
+            ? (gpsDistanceText || 'Custom anchor set from the map.')
+            : 'Uses your live GPS area as the search anchor.';
+        } else {
+          meta.textContent = hasCustomPin
+            ? (gpsDistanceText || 'Custom start area selected from the map.')
+            : 'Uses your live location when the round begins.';
+        }
         meta.style.display = '';
       }
       if (changeBtn) {
-        changeBtn.textContent = isRemote
-          ? 'Change'
-          : (__newGameLocationMode === 'pick' ? 'Use GPS' : 'Change');
+        changeBtn.textContent = hasCustomPin ? 'Use GPS' : 'Change';
       }
     } catch(e) {}
   }
@@ -765,7 +794,7 @@ function bindUI() {
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.remove("open");
     if (__newGameLocationMode === 'pick') {
-      __startLocationPickMode();
+      __startLocationPickMode({ launchOnConfirm: true });
     } else {
       startNewGameFromMenuOrDebug();
     }
@@ -791,7 +820,7 @@ function bindUI() {
         }
         __newGameLocationMode = 'pick';
         if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
-        __startLocationPickMode();
+        __startLocationPickMode({ launchOnConfirm: false });
       } catch(e) {}
     });
   }
@@ -949,6 +978,14 @@ if (debugMode) {
   let __pickModeClickHandler = null;     // active Leaflet click handler for pick mode
 
   function __syncBriefingModeUI(mode) {
+    const step2 = document.getElementById('briefingStep2Body');
+    if (step2) {
+      step2.textContent = mode === 'remote'
+        ? 'Tap the map to move and use tools to narrow down the target.'
+        : (mode === 'gauntlet'
+            ? 'Clear five targets under one timer using the same tool deck.'
+            : 'Walk the area and use tools to narrow down the target.');
+    }
     const _remoteNotes = document.querySelectorAll('#remoteNoteFirst, #remoteNoteReturn');
     _remoteNotes.forEach(el => {
       if (el) el.classList.toggle('hidden', mode !== 'remote');
@@ -1061,19 +1098,45 @@ if (debugMode) {
     try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
   };
 
-  window.__showBriefingModalFromSetup = function () {
+  function __showBriefingModal(variant) {
     try {
       const modal = document.getElementById('welcomeModal');
       const first = document.getElementById('welcomeContentFirst');
       const ret = document.getElementById('welcomeContentReturn');
       if (!modal || !first || !ret) return;
-      const variant = window.__activeBriefingContent === 'first' ? 'first' : 'return';
-      first.classList.toggle('hidden', variant !== 'first');
-      ret.classList.toggle('hidden', variant !== 'return');
+      const activeVariant = variant === 'first' ? 'first' : 'return';
+      window.__activeBriefingContent = activeVariant;
+      first.classList.toggle('hidden', activeVariant !== 'first');
+      ret.classList.toggle('hidden', activeVariant !== 'return');
       modal.classList.remove('hidden');
       __syncBriefingModeUI(selectedGameMode);
     } catch(e) {}
+  }
+  window.__showBriefingModal = __showBriefingModal;
+  window.__showBriefingModalFromSetup = function () {
+    const variant = window.__activeBriefingContent === 'first' ? 'first' : 'return';
+    __showBriefingModal(variant);
   };
+
+  window.__beginSetupFromBriefing = function () {
+    try {
+      const modal = document.getElementById('welcomeModal');
+      const first = document.getElementById('welcomeContentFirst');
+      const ret = document.getElementById('welcomeContentReturn');
+      window.__activeBriefingContent = (first && !first.classList.contains('hidden')) ? 'first' : 'return';
+      if (modal) modal.classList.add('hidden');
+      if (first) first.classList.add('hidden');
+      if (ret) ret.classList.add('hidden');
+      openNewGamePanel();
+    } catch(e) {}
+  };
+
+  ['btnWelcomeStart', 'btnWelcomeStartReturn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.onclick = () => {
+      try { if (typeof window.__beginSetupFromBriefing === 'function') window.__beginSetupFromBriefing(); } catch(e) {}
+    };
+  });
 
   document.querySelectorAll('[data-game-length]').forEach(btn => {
     btn.addEventListener('click', () => {

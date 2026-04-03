@@ -299,6 +299,8 @@
       const kind   = item.dataset.photoKind   || 'Photo';
       const source = item.dataset.photoSource || null;
       const ctx    = item.dataset.photoContext || 'snapshot';
+      const index  = Number(item.dataset.photoIndex || '1');
+      const total  = Number(item.dataset.photoTotal || '1');
       // Snapshot photos: always use the same code path as the gameplay menu button.
       // This guarantees it works whether or not the SV cache is warm.
       if (ctx === 'snapshot') {
@@ -306,7 +308,7 @@
         return;
       }
       if (!url) return;
-      try { if (typeof window.showPhotoInModal === 'function') window.showPhotoInModal(url, kind, source); } catch(e) {}
+      try { if (typeof window.showPhotoInModal === 'function') window.showPhotoInModal(url, kind, source, ctx, index, total); } catch(e) {}
     });
   }
 
@@ -690,6 +692,10 @@ window.__showWelcomeModal = function() {
   window.__timedOutPreviousGame = false;
 
   function openNewGamePanel() {
+    if (typeof window.__beginSetupFromBriefing === 'function') {
+      window.__beginSetupFromBriefing();
+      return;
+    }
     welcomeModal.classList.add('hidden');
     if (c) c.classList.add('hidden');
     if (note) note.classList.add('hidden');
@@ -698,7 +704,7 @@ window.__showWelcomeModal = function() {
     if (panelNewGame) panelNewGame.classList.add('open');
   }
   const btn = document.getElementById('btnWelcomeStartReturn');
-  if (btn) btn.addEventListener('click', openNewGamePanel, { once: true });
+  if (btn) btn.onclick = openNewGamePanel;
 
   welcomeModal.classList.remove('hidden');
 };
