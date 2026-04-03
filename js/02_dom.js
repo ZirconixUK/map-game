@@ -31,11 +31,15 @@ const elDbgTimerPlus5 = document.getElementById("dbgTimerPlus5");
 // HUD
 const elTimerMain            = document.getElementById("timerMain");
 const elTimerPenalty         = document.getElementById("timerPenalty");
-const elHeatWidget           = document.getElementById("heatWidget");
-const elTimerCurseIndicator  = document.getElementById("timerCurseIndicator");
+const elHeatWidget           = null; // removed — heat is now in the command band
+const elTimerCurseIndicator  = null; // removed — curse slot is now #cmdCurseSlot
 const elThermoProgress       = document.getElementById("thermoProgress");
 const elThermoProgressFill   = document.getElementById("thermoProgressFill");
 const elThermoProgressText   = document.getElementById("thermoProgressText");
+// Command band elements
+const elModeChip             = document.getElementById("modeChip");
+const elCmdHeatSegs          = Array.from(document.querySelectorAll('.heatSeg'));
+const elCmdCurseSlot         = document.getElementById("cmdCurseSlot");
 
 
 

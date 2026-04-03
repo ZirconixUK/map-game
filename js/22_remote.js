@@ -177,9 +177,19 @@
   }
 
   function __showUndoButton() {
-    const btn = document.getElementById('remoteUndoBtn');
-    if (!btn) return;
-    btn.classList.remove('hidden');
+    const capsule = document.getElementById('undoCapsule');
+    if (!capsule) return;
+    capsule.classList.remove('hidden');
+    // Animate decay bar: reset to 100% (no transition), then transition to 0%
+    const bar = document.getElementById('undoDecayBar');
+    if (bar) {
+      bar.style.transition = 'none';
+      bar.style.width = '100%';
+      // Force reflow so transition restarts
+      bar.offsetWidth; // eslint-disable-line no-unused-expressions
+      bar.style.transition = 'width 3s linear';
+      bar.style.width = '0%';
+    }
     if (remoteState.undoTimer) clearTimeout(remoteState.undoTimer);
     remoteState.undoTimer = setTimeout(() => {
       __hideUndoButton();
@@ -188,8 +198,8 @@
   }
 
   function __hideUndoButton() {
-    const btn = document.getElementById('remoteUndoBtn');
-    if (btn) btn.classList.add('hidden');
+    const capsule = document.getElementById('undoCapsule');
+    if (capsule) capsule.classList.add('hidden');
     if (remoteState.undoTimer) { clearTimeout(remoteState.undoTimer); remoteState.undoTimer = null; }
   }
 

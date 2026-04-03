@@ -307,40 +307,51 @@ function updateHUD() {
     elTimerPenalty.textContent = p > 0 ? `+${formatMMSS(p)}` : '';
     elTimerPenalty.style.display = p > 0 ? '' : 'none';
   }
-  const elTimerCurse = (typeof elTimerCurseIndicator !== 'undefined') ? elTimerCurseIndicator : document.getElementById('timerCurseIndicator');
-  if (elTimerCurse) {
+  // ── Command band: curse slot ─────────────────────────────────
+  if (elCmdCurseSlot) {
     const _curses = (typeof window.getActiveCurses === 'function') ? window.getActiveCurses() : [];
     const _active = Array.isArray(_curses) ? _curses : [];
-    if (_active.length <= 0) {
-      elTimerCurse.classList.add('hidden');
+    if (_active.length === 0) {
+      elCmdCurseSlot.textContent = '◈ 0 —';
+      elCmdCurseSlot.classList.remove('has-curses');
     } else {
       const _maxExpiry = Math.max(..._active.map(c => (typeof c.expiresAt === 'number' ? c.expiresAt : 0)));
       const _msLeft = Math.max(0, _maxExpiry - Date.now());
       const _sec = Math.ceil(_msLeft / 1000);
       const _mm = String(Math.floor(_sec / 60)).padStart(2, '0');
       const _ss = String(_sec % 60).padStart(2, '0');
-      const _countdown = document.getElementById('timerCurseCountdown');
-      if (_countdown) _countdown.textContent = `${_mm}:${_ss}`;
-      elTimerCurse.classList.remove('hidden');
+      elCmdCurseSlot.textContent = `◈ ${_active.length} ${_mm}:${_ss}`;
+      elCmdCurseSlot.classList.add('has-curses');
     }
   }
 
-  // Remote move counter
-  const elMoveCounter = document.getElementById('remoteMoveCounter');
-  if (elMoveCounter) {
-    if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
-      elMoveCounter.classList.remove('hidden');
-      const moves = typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : 0;
-      elMoveCounter.textContent = `${moves}`;
-      if (moves === 0) {
-        elMoveCounter.style.color = '#f87171';
-      } else if (moves <= 3) {
-        elMoveCounter.style.color = '#fbbf24';
-      } else {
-        elMoveCounter.style.color = '#a78bfa';
+  // ── Command band: mode chip ──────────────────────────────────
+  if (elModeChip) {
+    const _isGauntlet = typeof window.isGauntletActive === 'function' && window.isGauntletActive();
+    const _isRemote   = typeof window.isRemoteActive   === 'function' && window.isRemoteActive();
+    elModeChip.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote', 'moves-critical');
+
+    if (_isGauntlet) {
+      elModeChip.classList.add('mode-gauntlet');
+      try {
+        const gs = typeof window.getGauntletStateForPersistence === 'function'
+          ? window.getGauntletStateForPersistence() : null;
+        const total   = (gs && gs.totalTargets)  ? gs.totalTargets  : 5;
+        const done    = (gs && typeof gs.currentIndex === 'number') ? gs.currentIndex : 0;
+        const filled  = Math.min(done, total);
+        const pips    = '●'.repeat(filled) + '○'.repeat(Math.max(0, total - filled));
+        elModeChip.textContent = `GAUNTLET · ${pips} ${done}/${total}`;
+      } catch (e) {
+        elModeChip.textContent = 'GAUNTLET';
       }
+    } else if (_isRemote) {
+      const moves = typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : 0;
+      if (moves <= 3) elModeChip.classList.add('moves-critical');
+      elModeChip.classList.add('mode-remote');
+      elModeChip.textContent = `REMOTE · ${moves} MOV`;
     } else {
-      elMoveCounter.classList.add('hidden');
+      elModeChip.classList.add('mode-normal');
+      elModeChip.textContent = 'NORMAL';
     }
   }
 
@@ -352,6 +363,12 @@ function updateHUD() {
   if (heatEl) {
     heatEl.classList.remove('heat-1','heat-2','heat-3','heat-4','heat-5');
     if (lvl >= 1) heatEl.classList.add(`heat-${lvl}`);
+  }
+  // ── Command band: heat gauge segments ───────────────────────
+  if (elCmdHeatSegs && elCmdHeatSegs.length === 5) {
+    elCmdHeatSegs.forEach((seg, i) => {
+      seg.classList.toggle('active', lvl >= i + 1);
+    });
   }
   // Keep heat panel row in sync (same heat-N classes drive the colour via CSS)
   const heatPanelRow = document.getElementById('heatPanelRow');

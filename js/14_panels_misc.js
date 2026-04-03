@@ -12,7 +12,6 @@
   const btnPhotoGallery      = document.getElementById("btnPhotoGallery");
   const btnPhotoGalleryClose = document.getElementById("btnPhotoGalleryClose");
   const btnGameplay = document.getElementById("btnGameplay");
-  const heatWidget = document.getElementById("heatWidget");
   const btnSystem = document.getElementById("btnSystem");
   const btnDbgSimCurse = document.getElementById("btnDbgSimCurse");
   const backdrop = document.getElementById("panelBackdrop");
@@ -149,10 +148,11 @@
     });
   }
 
-  // Heat panel toggle (also shows active curses)
-  if (heatWidget && panelHeat) {
-    heatWidget.addEventListener("click", () => {
-      const willOpen = !panelHeat.classList.contains("open");
+  // Command band row 2 tap → Heat panel
+  const cmdRow2 = document.getElementById('cmdRow2');
+  if (cmdRow2 && panelHeat) {
+    const openHeatPanel = () => {
+      const willOpen = !panelHeat.classList.contains('open');
       setOpen(panelHeat, willOpen);
       if (willOpen) {
         setOpen(panelGameplay, false);
@@ -164,7 +164,9 @@
         setOpen(panelProfile, false);
         try { if (typeof updateCursesPanel === 'function') updateCursesPanel(); } catch (e) {}
       }
-    });
+    };
+    cmdRow2.addEventListener('click', openHeatPanel);
+    cmdRow2.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openHeatPanel(); } });
   }
 
   // System panel toggle
