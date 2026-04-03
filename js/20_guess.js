@@ -383,8 +383,9 @@
       return `<div class="resultBreakdownRow${cls}"><span>${escapeHtml(label)}</span><span>${sign}${val} pts</span></div>`;
     }
     const _timeRowLabel = mode === 'remote'
-      ? 'Moves remaining'
-      : (mode === 'gauntlet' ? `Targets cleared (${gauntletProgress})` : `Time (${timeRemStr} remaining)`);
+      ? 'Moves bonus'
+      : 'Time bonus';
+    const _opsAdjustment = (_bd.lengthBonus || 0) + (_bd.diffBonus || 0);
 
     return `
       <div>
@@ -402,11 +403,11 @@
         <div class="resultStats">${statHtml}</div>
         <div class="debriefSectionLabel">Score Breakdown</div>
         <div class="resultBreakdown">
-          ${_bdRow(`${grade} base`, _bd.base)}
+          ${_bdRow('Base score', _bd.base)}
+          ${_bdRow('Distance penalty', 0)}
           ${_bdRow(_timeRowLabel, _bd.timeBonus)}
-          ${_bdRow(mode === 'gauntlet' ? 'Targets cleared' : 'Radius bonus', _bd.lengthBonus)}
-          ${_bdRow(`Difficulty`, _bd.diffBonus)}
-          ${_bdRow(`Tool efficiency (${_toolsUsed} used)`, _bd.toolBonus)}
+          ${_bdRow('Tool cost', _bd.toolBonus)}
+          ${_bdRow(mode === 'gauntlet' ? 'Operational modifiers' : 'Operational modifiers', _opsAdjustment)}
           <div class="resultBreakdownRow resultBreakdownTotal">
             <span>Total</span>
             <span>${score.toLocaleString()} pts</span>

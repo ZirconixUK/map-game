@@ -594,6 +594,41 @@ body{
   text-transform:uppercase;
   color:#94a3b8;
 }
+.photoModalShell{
+  width:min(100vw, 960px);
+  max-width:960px;
+  max-height:calc(100vh - 20px);
+  background:#04070f;
+  border-color:rgba(30,58,95,.55);
+  border-radius:18px;
+}
+.photoModalShell #photoModalBody{
+  padding:0.75rem;
+  max-height:none;
+}
+.photoModalShell #photoModalFooter{
+  display:none;
+}
+.resultModalShell{
+  position:relative;
+  overflow:hidden;
+}
+.resultModalHeader{
+  position:absolute;
+  top:10px;
+  right:10px;
+  left:auto;
+  z-index:4;
+  padding:0;
+  border-bottom:none;
+  background:transparent;
+}
+.resultModalHeader .overlayModalTitle{
+  display:none;
+}
+.resultModalShell #resultModalBody{
+  padding-top:0;
+}
 .overlayModalTitle{
   font-family:var(--font-display);
   font-size:18px;
@@ -848,9 +883,7 @@ body{
   margin-bottom: 2px;
 }
 .toolCardDesc{
-  font-size:10px;
-  color:#64748b;
-  line-height:1.3;
+  display:none;
 }
 .toolCardMetaRow{
   margin-top:6px;
@@ -2016,6 +2049,9 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   line-height:1.45;
   max-width:28rem;
 }
+.setupMovesLabel{
+  text-transform:lowercase;
+}
 .briefingStepBlock {
   display: flex;
   align-items: flex-start;
@@ -2651,6 +2687,10 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   background:rgba(4,10,22,.78);
   border:1px solid rgba(148,163,184,.22);
   z-index:2;
+}
+
+#thermoProgress{
+  display:none !important;
 }
 .photoGalleryItem.is-corrupted { border-color: rgba(167,139,250,.45); }
 

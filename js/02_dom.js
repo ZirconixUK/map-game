@@ -721,9 +721,9 @@ function bindUI() {
         dot.classList.add(hasCustomPin ? 'custom' : 'gps');
       }
       if (name) {
-        if (isRemote) name.textContent = hasCustomPin ? 'Custom search region' : 'GPS-detected search region';
-        else if (hasCustomPin) name.textContent = 'Map-picked starting area';
-        else name.textContent = 'Current GPS position';
+        if (isRemote) name.textContent = hasCustomPin ? 'Map-selected search region' : 'GPS anchor detected';
+        else if (hasCustomPin) name.textContent = 'Map-selected starting area';
+        else name.textContent = 'Live GPS start point';
       }
       if (meta) {
         if (isRemote) {
