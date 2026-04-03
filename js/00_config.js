@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-04-03.panels-overhaul';
+const BUILD_ID = '2026-04-03.briefing-modal-setup-screen';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----

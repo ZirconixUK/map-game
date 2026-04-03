@@ -646,7 +646,43 @@ function bindUI() {
     ids.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("open"); });
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.add("open");
+    try { if (typeof __syncSetupScreenMode === 'function') __syncSetupScreenMode(); } catch(e) {}
   }
+
+  function __syncSetupScreenMode() {
+    try {
+      const mode = (typeof window.getGameSetupSelection === 'function') ? (window.getGameSetupSelection().mode || 'normal') : 'normal';
+      // Mode chip
+      const chip = document.getElementById('setupModeChipEl');
+      if (chip) {
+        chip.className = `setupModeChip mode-${mode}`;
+        chip.textContent = mode.toUpperCase();
+      }
+      // CTA button colour
+      const cta = document.getElementById('btnNewGameStartReal');
+      if (cta) {
+        cta.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
+        cta.classList.add(`mode-${mode}`);
+      }
+      // Remote: show move budgets on radius cards + anchor note + section label
+      const isRemote = mode === 'remote';
+      ['remoteMovesShort','remoteMovesMiddle','remoteMovesFar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !isRemote);
+      });
+      const anchorNote = document.getElementById('remoteAnchorNote');
+      if (anchorNote) anchorNote.classList.toggle('hidden', !isRemote);
+      const locLabel = document.getElementById('setupLocationLabel');
+      if (locLabel) locLabel.textContent = isRemote ? 'Search Region' : 'Starting Location';
+      // Difficulty pills: tint for mode
+      const pillsEl = document.getElementById('setupDifficultyPills');
+      if (pillsEl) {
+        pillsEl.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
+        pillsEl.classList.add(`mode-${mode}`);
+      }
+    } catch(e) {}
+  }
+  window.__syncSetupScreenMode = __syncSetupScreenMode;
 
   on("btnNewTarget","click", startNewGameFromMenuOrDebug);
   on("btnSystemNewGame","click", openNewGamePanel);
@@ -672,6 +708,17 @@ function bindUI() {
     const panelNewGame = document.getElementById("panelNewGame");
     if (panelNewGame) panelNewGame.classList.remove("open");
   });
+
+  const setupLocationChangeBtn = document.getElementById('setupLocationChange');
+  if (setupLocationChangeBtn) {
+    setupLocationChangeBtn.addEventListener('click', () => {
+      try {
+        __newGameLocationMode = 'pick';
+        __startLocationPickMode();
+      } catch(e) {}
+    });
+  }
+
   on("btnRadar","click",askRadar);
   on("btnNorth","click", () => askDirection("N"));
   on("btnSouth","click", () => askDirection("S"));
@@ -907,6 +954,21 @@ if (debugMode) {
       if (_prevMode === 'remote' && selectedGameMode !== 'remote') {
         try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
       }
+      // Show/hide remote note blocks in briefing modal
+      const _remoteNotes = document.querySelectorAll('#remoteNoteFirst, #remoteNoteReturn');
+      _remoteNotes.forEach(el => {
+        if (el) el.classList.toggle('hidden', selectedGameMode !== 'remote');
+      });
+      // Update CTA button colours in briefing modal
+      const _beginBtns = document.querySelectorAll('#btnWelcomeStart, #btnWelcomeStartReturn');
+      const _btnClassMap = { normal: 'bg-cyan-700 hover:bg-cyan-600', gauntlet: 'bg-amber-700 hover:bg-amber-600', remote: 'bg-violet-700 hover:bg-violet-600' };
+      _beginBtns.forEach(btn => {
+        if (!btn) return;
+        btn.classList.remove('bg-cyan-700','hover:bg-cyan-600','bg-amber-700','hover:bg-amber-600','bg-violet-700','hover:bg-violet-600');
+        const cls = (_btnClassMap[selectedGameMode] || '').split(' ');
+        cls.forEach(c => btn.classList.add(c));
+      });
+      try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
     });
   });
 

@@ -1328,3 +1328,490 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 }
 .photoGallerySpinner { animation: photoGallerySpin 1s linear infinite; }
 @keyframes photoGallerySpin { to { transform: rotate(360deg); } }
+
+/* ─── Briefing modal ─────────────────────────────────────────── */
+.briefingStepBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+}
+.briefingStepNum {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(34,211,238,.15);
+  border: 1.5px solid rgba(34,211,238,.35);
+  color: #22d3ee;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.briefingStepTitle {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.briefingStepBody {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+/* Mode selector cards (briefing) */
+.modeCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px 11px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border-inner);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background .12s;
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+}
+.modeCard::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background .15s;
+}
+.modeCard.is-selected::before { background: var(--mode-card-accent, #22d3ee); }
+.modeCard[data-game-mode="normal"].is-selected::before  { background: #22d3ee; }
+.modeCard[data-game-mode="gauntlet"].is-selected::before { background: #f59e0b; }
+.modeCard[data-game-mode="remote"].is-selected::before  { background: #a78bfa; }
+.modeCard.is-selected { background: rgba(255,255,255,.03); }
+.modeCardIcon { font-size: 20px; flex-shrink: 0; }
+.modeCardBody { flex: 1; }
+.modeCardName {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: #e2e8f0;
+}
+.modeCardRule {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.modeCardDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid #475569;
+  flex-shrink: 0;
+  transition: background .15s, border-color .15s;
+}
+.modeCard.is-selected .modeCardDot { background: #22d3ee; border-color: #22d3ee; }
+.modeCard[data-game-mode="gauntlet"].is-selected .modeCardDot { background: #f59e0b; border-color: #f59e0b; }
+.modeCard[data-game-mode="remote"].is-selected .modeCardDot   { background: #a78bfa; border-color: #a78bfa; }
+
+/* Remote note block in briefing */
+.remoteNoteBlock {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(167,139,250,.08);
+  border: 1px solid rgba(167,139,250,.20);
+  font-size: 11px;
+  color: #c4b5fd;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+/* Returning player last score in briefing */
+.lastScoreBlock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 4px;
+}
+.lastScoreGrade {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+.lastScoreLabel { font-size: 11px; color: #64748b; margin-top: 1px; }
+
+/* ─── Setup screen ───────────────────────────────────────────── */
+.setupModeChip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  padding: 3px 8px;
+  border-radius: 5px;
+  display: inline-block;
+  margin-top: 2px;
+}
+.setupModeChip.mode-normal   { color: #22d3ee; background: rgba(34,211,238,.10);  border: 1px solid rgba(34,211,238,.22); }
+.setupModeChip.mode-gauntlet { color: #f59e0b; background: rgba(245,158,11,.10);  border: 1px solid rgba(245,158,11,.22); }
+.setupModeChip.mode-remote   { color: #a78bfa; background: rgba(167,139,250,.10); border: 1px solid rgba(167,139,250,.22); }
+
+/* Difficulty pill row */
+.difficultyPills {
+  display: flex;
+  gap: 6px;
+}
+.difficultyPill {
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-inner);
+  background: var(--surface);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: #64748b;
+  cursor: pointer;
+  text-align: center;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.difficultyPill.is-selected {
+  color: #22d3ee;
+  background: rgba(34,211,238,.10);
+  border-color: rgba(34,211,238,.30);
+}
+/* Mode-tinted pill when gauntlet/remote */
+.mode-gauntlet .difficultyPill.is-selected {
+  color: #f59e0b;
+  background: rgba(245,158,11,.10);
+  border-color: rgba(245,158,11,.30);
+}
+.mode-remote .difficultyPill.is-selected {
+  color: #a78bfa;
+  background: rgba(167,139,250,.10);
+  border-color: rgba(167,139,250,.30);
+}
+
+/* Location status block */
+.locationStatusBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-inner);
+}
+.locationDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.locationDot.gps     { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,.4); }
+.locationDot.custom  { background: #22d3ee; box-shadow: 0 0 6px rgba(34,211,238,.4); }
+.locationName {
+  flex: 1;
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+.locationMeta { font-size: 11px; color: #64748b; margin-top: 1px; }
+.locationChange {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #22d3ee;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+}
+
+/* Begin Operation CTA */
+.beginOpBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #fff;
+  cursor: pointer;
+  transition: filter .15s;
+  background: #0891b2;
+}
+.beginOpBtn.mode-normal   { background: #0e7490; }
+.beginOpBtn.mode-gauntlet { background: #b45309; }
+.beginOpBtn.mode-remote   { background: #6d28d9; }
+.beginOpBtn:active { filter: brightness(1.15); }
+
+/* ─── Debrief modal ──────────────────────────────────────────── */
+.debriefEyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.debriefModeChip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.debriefModeChip.mode-normal   { color: #22d3ee; background: rgba(34,211,238,.10); border: 1px solid rgba(34,211,238,.22); }
+.debriefModeChip.mode-gauntlet { color: #f59e0b; background: rgba(245,158,11,.10); border: 1px solid rgba(245,158,11,.22); }
+.debriefModeChip.mode-remote   { color: #a78bfa; background: rgba(167,139,250,.10); border: 1px solid rgba(167,139,250,.22); }
+
+.debriefHeadline {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  color: #fff;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.debriefDistance {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.debriefDistance.green   { color: #10b981; }
+.debriefDistance.amber   { color: #f59e0b; }
+.debriefDistance.red     { color: #ef4444; }
+
+/* Full 7-tier medal strip */
+.medalStrip {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 0 16px;
+}
+.medalItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: .20;
+  flex-shrink: 0;
+}
+.medalItem.is-earned {
+  opacity: 1;
+}
+.medalItem svg, .medalItem .medalSvgWrap svg {
+  display: block;
+}
+.medalItem:not(.is-earned) svg {
+  width: 22px;
+  height: 22px;
+}
+.medalItem.is-earned .medalSvgWrap {
+  animation: tierGlowLow 1.8s ease-in-out 0.2s 2 forwards;
+}
+.medalItem.is-earned.high-tier .medalSvgWrap {
+  animation: tierGlowHigh 1.8s ease-in-out 0.2s 2 forwards;
+}
+.medalItemLabel {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: .85;
+}
+
+/* Debrief CTA section */
+.debriefActions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 14px;
+}
+.debriefRedeployBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #fff;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.debriefRedeployBtn.mode-normal   { background: #0e7490; }
+.debriefRedeployBtn.mode-gauntlet { background: #b45309; }
+.debriefRedeployBtn.mode-remote   { background: #6d28d9; }
+.debriefRedeployBtn:active { filter: brightness(1.15); }
+.debriefSecondaryActions {
+  display: flex;
+  gap: 7px;
+}
+.debriefSecondaryBtn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-inner);
+  background: var(--surface);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: #64748b;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.debriefSecondaryBtn:active { background: rgba(255,255,255,.04); color: #94a3b8; }
+
+/* ─── Photo viewer ───────────────────────────────────────────── */
+/* Corner brackets on photo container */
+.photoViewerFrame {
+  position: relative;
+  background: #04070f;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.photoViewerFrame::before {
+  content: '';
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 14px; height: 14px;
+  border-top: 2px solid rgba(34,211,238,.65);
+  border-left: 2px solid rgba(34,211,238,.65);
+  z-index: 5;
+  pointer-events: none;
+}
+.photoViewerFrame::after {
+  content: '';
+  position: absolute;
+  bottom: 8px; right: 8px;
+  width: 14px; height: 14px;
+  border-bottom: 2px solid rgba(34,211,238,.65);
+  border-right: 2px solid rgba(34,211,238,.65);
+  z-index: 5;
+  pointer-events: none;
+}
+/* Edge-only scanlines (mask keeps centre clean) */
+.photoEdgeScanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px, transparent 3px,
+    rgba(255,255,255,.018) 3px, rgba(255,255,255,.018) 4px
+  );
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 25%, transparent 75%, black 100%);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 25%, transparent 75%, black 100%);
+  pointer-events: none;
+  z-index: 4;
+}
+/* Corruption overlay on photos (violet vertical scanlines) */
+.photoCorruptionOverlay {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 8px,
+    rgba(167,139,250,.07) 8px, rgba(167,139,250,.07) 9px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+/* Metadata chips bar overlaid at photo bottom */
+.photoMetaBar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  gap: 5px;
+  padding: 8px 10px;
+  background: linear-gradient(to top, rgba(4,7,15,.85) 0%, transparent 100%);
+  z-index: 6;
+}
+.photoMetaChip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.photoMetaChip.starter   { color: #22d3ee; background: rgba(34,211,238,.12); border: 1px solid rgba(34,211,238,.25); }
+.photoMetaChip.intel     { color: #10b981; background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.25); }
+.photoMetaChip.clean     { color: #10b981; background: rgba(16,185,129,.10); border: 1px solid rgba(16,185,129,.20); }
+.photoMetaChip.corrupted { color: #c4b5fd; background: rgba(167,139,250,.10); border: 1px solid rgba(167,139,250,.22); }
+.photoMetaChip.unlock    { color: #94a3b8; background: rgba(148,163,184,.08); border: 1px solid rgba(148,163,184,.15); }
+/* Caption panel below photo */
+.photoCaption {
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-inner);
+  border-radius: 10px;
+  margin-top: 8px;
+}
+.photoCaptionTitle {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: #e2e8f0;
+  margin-bottom: 3px;
+}
+.photoCaptionBody { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+/* Photo gallery: 2-column grid */
+#photoGalleryGrid.gallery-2col {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+/* Gallery thumbnail badges */
+.photoGalleryBadge {
+  position: absolute;
+  top: 6px; left: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  z-index: 2;
+}
+.photoGalleryBadge.starter   { color: #22d3ee; background: rgba(4,10,22,.75); border: 1px solid rgba(34,211,238,.35); }
+.photoGalleryBadge.intel     { color: #10b981; background: rgba(4,10,22,.75); border: 1px solid rgba(16,185,129,.35); }
+.photoGalleryBadge.corrupted { color: #c4b5fd; background: rgba(4,10,22,.75); border: 1px solid rgba(167,139,250,.40); }
+.photoGalleryBadge.locked    { color: #64748b; background: rgba(4,10,22,.75); border: 1px solid rgba(100,116,139,.25); }
+.photoGalleryItem.is-corrupted { border-color: rgba(167,139,250,.45); }

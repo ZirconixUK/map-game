@@ -634,6 +634,20 @@ window.__showWelcomeModal = function() {
   // For the timed-out case, the player is a known returning player.
   const c = document.getElementById('welcomeContentReturn');
   if (c) c.classList.remove('hidden');
+  // Populate last run score block in briefing modal
+  try {
+    const _payload = (function() {
+      try { const r = localStorage.getItem('mapgame_result_payload_v1'); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+    })();
+    const _lsBlock = document.getElementById('lastScoreBlockEl');
+    const _lsGrade = document.getElementById('lastScoreGradeEl');
+    if (_payload && _lsBlock && _lsGrade) {
+      const _gc = { Diamond:'#a5f3fc', Emerald:'#34d399', Platinum:'#e2e8f0', Gold:'#fbbf24', Silver:'#94a3b8', Bronze:'#f97316', Copper:'#ef4444' }[_payload.grade] || '#94a3b8';
+      _lsGrade.textContent = _payload.grade || '—';
+      _lsGrade.style.color = _gc;
+      _lsBlock.classList.remove('hidden');
+    }
+  } catch(e) {}
   const note = window.__timedOutPreviousGame ? document.getElementById('welcomeTimedOutNote') : null;
   if (note) note.classList.remove('hidden');
   window.__timedOutPreviousGame = false;
