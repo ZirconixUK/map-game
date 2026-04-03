@@ -1,5 +1,5 @@
 # UI Overhaul Design Spec
-_Date: 2026-04-02 — Brainstorming session in progress, photo viewer not yet designed_
+_Date: 2026-04-02/03 — Design complete_
 
 ## Status
 - [x] HUD — adaptive command band
@@ -8,16 +8,20 @@ _Date: 2026-04-02 — Brainstorming session in progress, photo viewer not yet de
 - [x] Briefing modal
 - [x] Setup screen
 - [x] Debrief modal
-- [ ] Photo viewer — not yet designed
+- [x] Photo viewer
 
-Mockups live in `.superpowers/brainstorm/86037-1775164359/content/`:
+Mockups — session 1 (`.superpowers/brainstorm/86037-1775164359/content/`):
 - `hud-v3.html` — HUD, all three modes
 - `tool-deck-v3.html` — tool deck (main panel)
 - `tool-deck-v5.html` — sub-options with heat chip + state
 - `threat-panel.html` — heat panel
 - `briefing-modal.html` — briefing + mode select
 - `setup-v2.html` — setup screen
-- `debrief.html` — debrief modal
+- `debrief.html` — debrief (superseded)
+
+Mockups — session 2 (`.superpowers/brainstorm/42342-1775207816/content/`):
+- `photo-viewer.html` — photo modal + gallery
+- `debrief-v3.html` — debrief with 7-tier medal strip (final)
 
 ---
 
@@ -168,9 +172,24 @@ Flow: **Briefing → Begin Setup → Setup Screen → Begin Operation → round 
 ## 6. Debrief Modal
 
 ### Hero
-- Left: medal glyph + rank label (Gold/Silver/Bronze)
-- Right: "Operation Debrief" eyebrow + mode chip, outcome headline, distance off target (colour: green/amber/red)
+- Centred outcome text block: "Operation Debrief" eyebrow + mode chip, outcome headline, distance off target (colour: green/amber/red)
+- Below that: full 7-tier medal strip, left→right: **Copper → Bronze → Silver → Gold → Platinum → Emerald → Diamond**
+- Earned medal: 48px, full opacity, colour glow, tier label below
+- Flanking medals: 22px, 20% opacity, no label
+- Strip always centred as a whole — copper sits at left edge, diamond at right edge
+- Placeholder letter circles for now (C/B/S/G/P/E/D); swap real icons when ready
 - Outcome headlines by result state: *Target Located*, *Moves Exhausted*, *Time Expired*, *All Targets Clear*
+
+### Medal tier colours (placeholder)
+| Tier | Colour |
+|------|--------|
+| Copper | `#b87333` warm brown |
+| Bronze | `#cd7f32` bronze |
+| Silver | `#94a3b8` grey |
+| Gold | `#f59e0b` amber |
+| Platinum | `#b0c4d8` ice blue |
+| Emerald | `#10b981` green |
+| Diamond | `#67e8f9` cyan |
 
 ### Field Stats (mode-aware trio)
 | Mode | Stat 1 | Stat 2 | Stat 3 |
@@ -188,14 +207,30 @@ Clean audit table: mono values, restrained separators. Rows: base score, distanc
 
 ---
 
-## 7. Photo Viewer — Not Yet Designed
+## 7. Photo Viewer
 
-Plan notes:
-- Should feel like a forensic image viewer
-- Thin metadata bar: source type, corruption level, unlock method
-- Subtle scanline/glitch treatment around frame only
-- Gallery thumbnails carry acquisition badges and corruption status overlays
-- Remote mode: language should not imply physical movement to a vantage point
+### Single photo modal
+- Full-screen dark background (`#04070f`)
+- Top bar (over photo): close button + photo counter (`Photo 2 of 4`)
+- Thin cyan corner brackets framing the photo (targeting reticle aesthetic)
+- Scanline treatment: horizontal lines at **edges only** via mask gradient — centre stays clean
+- Corruption overlay: violet vertical scanlines at low opacity across full image (only on corrupted photos)
+- Metadata chips overlaid at bottom edge of photo (dark frosted bg):
+  - Source type: `Starter Photo` / `Intel Photo`
+  - Corruption state: `Clean` (emerald) / `◈ Corrupted` (violet)
+  - Unlock method: `Mission Start` / `Unlocked via Tool`
+- Caption panel below photo: title + 1–2 lines of context text
+
+### Gallery grid
+- 2×2 grid of thumbnails
+- Header: "Photo Intel" + `N acquired · N corrupted` summary
+- Thumbnail badges (top-left): `Starter` (cyan) / `Intel` (emerald) / `◈ Corrupted` (violet) / `Locked` (slate)
+- Corrupted thumbnails: violet border + scanline noise overlay
+- Locked thumbnails: dark overlay + lock glyph, non-tappable
+- Photo number badge (bottom-right)
+
+### Remote mode note
+Language in captions must not imply physical movement to a vantage point.
 
 ---
 
