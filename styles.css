@@ -202,8 +202,10 @@ body{
   line-height:1.35;
 }
 .missionAction--primary{
-  background:linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
-  box-shadow:0 18px 40px rgba(0,0,0,.46), 0 0 0 1px rgba(245,158,11,.26);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(135deg, #155e75 0%, #0891b2 52%, #22d3ee 100%);
+  box-shadow:0 18px 40px rgba(0,0,0,.46), 0 0 0 1px rgba(34,211,238,.20);
 }
 .missionAction--primary:hover{ filter:brightness(1.06); }
 .missionAction--secondary{
@@ -1849,6 +1851,11 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 }
 
 /* Mode selector cards (briefing) */
+.setupModeSelector{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
 .modeCard {
   position: relative;
   display: flex;

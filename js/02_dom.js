@@ -1048,6 +1048,17 @@ if (debugMode) {
     __applyGauntletLengthConstraints('normal');
     try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: 'normal' }); } catch(e) {}
     try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
+    const _remoteNotes = document.querySelectorAll('#remoteNoteFirst, #remoteNoteReturn');
+    _remoteNotes.forEach(el => {
+      if (el) el.classList.add('hidden');
+    });
+    const _beginBtns = document.querySelectorAll('#btnWelcomeStart, #btnWelcomeStartReturn');
+    _beginBtns.forEach(btn => {
+      if (!btn) return;
+      btn.classList.remove('mode-normal', 'mode-gauntlet', 'mode-remote');
+      btn.classList.add('mode-normal');
+    });
+    try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
   };
 
   document.querySelectorAll('[data-game-length]').forEach(btn => {
