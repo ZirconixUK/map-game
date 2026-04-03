@@ -504,28 +504,20 @@ function updateGameplayPanelWidth() {
 
 // Called by state when heatLevel changes (either by tool use or decay).
 // Adds a quick pulse/glow so the player notices the new tier.
-function onHeatLevelChanged(prevLevel, newLevel, reason) {
+function __isCurseActiveForTool(...ids) {
   try {
-    const heatEl = document.getElementById("heatWidget");
-    if (!heatEl) return;
-
-    const dir = (newLevel > prevLevel) ? "up" : "down";
-
-    // Pulse the whole widget
-    heatEl.classList.remove("heatPulseUp", "heatPulseDown");
-    // Force reflow so animation restarts
-    // eslint-disable-next-line no-unused-expressions
-    heatEl.offsetWidth;
-    heatEl.classList.add(dir === "up" ? "heatPulseUp" : "heatPulseDown");
-
-    const clearPulse = () => {
-      heatEl.classList.remove("heatPulseUp", "heatPulseDown");
-      heatEl.removeEventListener("animationend", clearPulse);
-    };
-    heatEl.addEventListener("animationend", clearPulse);
+    return ids.some(id => typeof window.isCurseActive === 'function' && window.isCurseActive(id));
   } catch (e) {
-    // ignore
+    return false;
   }
+}
+
+function __getToolCardCurseLabel(card) {
+  const genericCurse = __isCurseActiveForTool('heat1', 'heat2', 'overcharged');
+  if (card === 'radar' && __isCurseActiveForTool('heat4')) return 'Signal Clamp';
+  if (card === 'nsew' && __isCurseActiveForTool('heat3')) return 'Compass Rot';
+  if (card === 'photo' && __isCurseActiveForTool('heat5')) return 'Burned Lens';
+  return genericCurse ? 'Cursed' : null;
 }
 
 function __updateToolCards() {
@@ -534,15 +526,15 @@ function __updateToolCards() {
     const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
 
     const toolDefs = [
-      { card: 'radar',     menuId: 'radarMenu',    isCursedFn: null },
-      { card: 'thermo',    menuId: 'thermoMenu',   isCursedFn: null },
-      { card: 'nsew',      menuId: 'dirMenu',      isCursedFn: null },
-      { card: 'landmark',  menuId: 'landmarkMenu', isCursedFn: null },
-      { card: 'photo',     menuId: 'photoMenu',    isCursedFn: null },
-      { card: 'signalLock', menuId: null,          isCursedFn: null, remoteDisable: true },
+      { card: 'radar',      menuId: 'radarMenu',    isCursedFn: () => __getToolCardCurseLabel('radar') },
+      { card: 'thermo',     menuId: 'thermoMenu',   isCursedFn: () => __getToolCardCurseLabel('thermo') },
+      { card: 'nsew',       menuId: 'dirMenu',      isCursedFn: () => __getToolCardCurseLabel('nsew') },
+      { card: 'landmark',   menuId: 'landmarkMenu', isCursedFn: () => __getToolCardCurseLabel('landmark') },
+      { card: 'photo',      menuId: 'photoMenu',    isCursedFn: () => __getToolCardCurseLabel('photo') },
+      { card: 'signalLock', menuId: null,           isCursedFn: () => __getToolCardCurseLabel('signalLock'), remoteDisable: true },
     ];
 
-    toolDefs.forEach(({ card, menuId, isCursedFn, curseName, remoteDisable }) => {
+    toolDefs.forEach(({ card, menuId, isCursedFn, remoteDisable }) => {
       const cardEl = document.querySelector(`.toolCard[data-tool-card="${card}"]`);
       if (!cardEl) return;
 
@@ -561,26 +553,34 @@ function __updateToolCards() {
           : [];
 
         const allDone = anyOptBtns.length > 0 && anyOptBtns.every(b =>
-          b.classList.contains('used') || b.classList.contains('disabled') || b.classList.contains('curse-locked')
+          b.classList.contains('used') || b.classList.contains('disabled')
         );
         const anyReady = anyOptBtns.some(b =>
           !b.classList.contains('used') && !b.classList.contains('locked') &&
           !b.classList.contains('disabled') && !b.classList.contains('curse-locked')
         );
         const anyLocked = anyOptBtns.some(b => b.classList.contains('locked'));
-        const cursed = isCursedFn ? isCursedFn() : false;
+        const anyCurseLocked = anyOptBtns.some(b => b.classList.contains('curse-locked'));
+        const curseLabel = isCursedFn ? isCursedFn() : null;
+        const cursed = !!curseLabel;
 
         if (allDone && !anyReady) {
           state = 'used';
-        } else if (cursed && anyReady) {
+        } else if (cursed && (anyReady || anyCurseLocked)) {
           state = 'cursed';
-          subtitle = curseName || null;
+          subtitle = curseLabel;
         } else if (!anyReady && anyLocked) {
           state = 'locked';
           const badge = menu ? menu.querySelector('.lockCountdown') : null;
           subtitle = badge ? `UNLOCKS ${badge.textContent}` : 'LOCKED';
         } else {
           state = 'ready';
+        }
+      } else {
+        const curseLabel = isCursedFn ? isCursedFn() : null;
+        if (curseLabel) {
+          state = 'cursed';
+          subtitle = curseLabel;
         }
       }
 
@@ -640,10 +640,7 @@ function __getActiveCursesForUI() {
 }
 
 function updateHeatCurseButton(){
-  const btn = document.getElementById('heatWidget');
-  if (!btn) return;
-  const list = __getActiveCursesForUI();
-  btn.classList.toggle('curse-active', Array.isArray(list) && list.length > 0);
+  // Heat widget was removed in the UI overhaul; panel state is handled by updateCursesPanel().
 }
 
 function __fmtRemaining(ms) {

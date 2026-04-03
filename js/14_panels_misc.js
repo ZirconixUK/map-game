@@ -150,8 +150,7 @@
 
   // Tool deck card taps → open corresponding submenu (or fire legacy button for signalLock)
   if (panelGameplay) {
-    panelGameplay.addEventListener('click', (e) => {
-      const card = e.target.closest('.toolCard');
+    const activateToolCard = (card) => {
       if (!card) return;
       const tool = card.dataset.toolCard;
       if (!tool) return;
@@ -170,6 +169,17 @@
       };
       const menuKey = menuMap[tool];
       if (menuKey && typeof window.__showMenu === 'function') window.__showMenu(menuKey);
+    };
+
+    panelGameplay.addEventListener('click', (e) => {
+      activateToolCard(e.target.closest('.toolCard'));
+    });
+    panelGameplay.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.toolCard');
+      if (!card) return;
+      e.preventDefault();
+      activateToolCard(card);
     });
   }
 
@@ -634,6 +644,29 @@ window.__showWelcomeModal = function() {
   // For the timed-out case, the player is a known returning player.
   const c = document.getElementById('welcomeContentReturn');
   if (c) c.classList.remove('hidden');
+  function renderLastScoreMedal(grade) {
+    const gradeColors = {
+      Diamond: '#67e8f9',
+      Emerald: '#10b981',
+      Platinum: '#b0c4d8',
+      Gold: '#f59e0b',
+      Silver: '#94a3b8',
+      Bronze: '#cd7f32',
+      Copper: '#b87333',
+    };
+    const color = gradeColors[grade] || '#94a3b8';
+    const shapes = {
+      Copper:   { vb:'0 0 64 64', paths:`<polygon points="32,56 6,12 58,12" fill="${color}" opacity="0.9"/><polygon points="32,48 14,18 50,18" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` },
+      Bronze:   { vb:'0 0 64 64', paths:`<circle cx="32" cy="32" r="28" fill="${color}" opacity="0.9"/><circle cx="32" cy="32" r="20" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/><circle cx="32" cy="32" r="11" fill="none" stroke="white" stroke-width="1" stroke-opacity="0.15"/>` },
+      Silver:   { vb:'0 0 64 64', paths:`<path d="M32 6 L56 14 L56 32 Q56 50 32 60 Q8 50 8 32 L8 14 Z" fill="${color}" opacity="0.9"/><path d="M32 13 L49 19 L49 32 Q49 46 32 54 Q15 46 15 32 L15 19 Z" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` },
+      Gold:     { vb:'0 0 64 64', paths:`<polygon points="32,4 38,24 58,24 42,36 48,56 32,44 16,56 22,36 6,24 26,24" fill="${color}" opacity="0.9"/><polygon points="32,12 36,26 50,26 39,34 43,48 32,40 21,48 25,34 14,26 28,26" fill="none" stroke="white" stroke-width="1.2" stroke-opacity="0.2"/>` },
+      Platinum: { vb:'0 0 64 64', paths:`<polygon points="32,4 54,17 54,47 32,60 10,47 10,17" fill="${color}" opacity="0.9"/><polygon points="32,12 46,20 46,44 32,52 18,44 18,20" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.25"/><line x1="32" y1="4" x2="32" y2="60" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/><line x1="10" y1="17" x2="54" y2="47" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/><line x1="54" y1="17" x2="10" y2="47" stroke="white" stroke-width="0.8" stroke-opacity="0.12"/>` },
+      Emerald:  { vb:'0 0 64 72', paths:`<polygon points="16,6 48,6 60,18 60,54 48,66 16,66 4,54 4,18" fill="${color}" opacity="0.9"/><polygon points="20,12 44,12 54,22 54,50 44,60 20,60 10,50 10,22" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.2"/>` },
+      Diamond:  { vb:'0 0 64 70', paths:`<polygon points="8,26 20,6 44,6 56,26" fill="${color}" opacity="0.95"/><polygon points="8,26 56,26 32,66" fill="#7dd3fc" opacity="0.9"/><line x1="8" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/><line x1="56" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/><line x1="8" y1="26" x2="56" y2="26" stroke="white" stroke-width="1" stroke-opacity="0.35"/>` },
+    };
+    const shape = shapes[grade] || shapes.Silver;
+    return `<svg width="40" height="40" viewBox="${shape.vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${shape.paths}</svg>`;
+  }
   // Populate last run score block in briefing modal
   try {
     const _payload = (function() {
@@ -641,10 +674,12 @@ window.__showWelcomeModal = function() {
     })();
     const _lsBlock = document.getElementById('lastScoreBlockEl');
     const _lsGrade = document.getElementById('lastScoreGradeEl');
+    const _lsMedal = document.getElementById('lastScoreMedalEl');
     if (_payload && _lsBlock && _lsGrade) {
       const _gc = { Diamond:'#a5f3fc', Emerald:'#34d399', Platinum:'#e2e8f0', Gold:'#fbbf24', Silver:'#94a3b8', Bronze:'#f97316', Copper:'#ef4444' }[_payload.grade] || '#94a3b8';
       _lsGrade.textContent = _payload.grade || '—';
       _lsGrade.style.color = _gc;
+      if (_lsMedal) _lsMedal.innerHTML = renderLastScoreMedal(_payload.grade);
       _lsBlock.classList.remove('hidden');
     }
   } catch(e) {}

@@ -157,23 +157,7 @@
   }
 
   function __updateMoveCounterUI() {
-    const el = document.getElementById('remoteMoveCounter');
-    if (!el) return;
-    if (!window.isRemoteActive()) {
-      el.classList.add('hidden');
-      return;
-    }
-    el.classList.remove('hidden');
-    const n = remoteState.movesRemaining;
-    el.textContent = `${n}`;
-    // Colour: amber at ≤3, red at 0
-    if (n === 0) {
-      el.style.color = '#f87171';
-    } else if (n <= 3) {
-      el.style.color = '#fbbf24';
-    } else {
-      el.style.color = '#a78bfa';
-    }
+    // Remote move count now renders through the HUD mode chip.
   }
 
   function __showUndoButton() {
@@ -269,10 +253,10 @@
       try {
         window.enqueueToast('No moves left — locking in your position…', false, { autoDismissMs: 1200 })
           .then(() => {
-            try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {}
+            try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true, autoLockReason: 'moves_exhausted' }); } catch(e) {}
           });
       } catch(e) {
-        try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e2) {}
+        try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true, autoLockReason: 'moves_exhausted' }); } catch(e2) {}
       }
     }
 
@@ -335,9 +319,9 @@
         if (remoteState.movesRemaining <= 0) {
           try {
             window.enqueueToast('No moves left — locking in your position…', false, { autoDismissMs: 1200 })
-              .then(() => { try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e) {} });
+              .then(() => { try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true, autoLockReason: 'moves_exhausted' }); } catch(e) {} });
           } catch(e) {
-            try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true }); } catch(e2) {}
+            try { if (typeof window.lockInGuess === 'function') window.lockInGuess({ autoLock: true, autoLockReason: 'moves_exhausted' }); } catch(e2) {}
           }
         }
         try { if (typeof saveRoundStateDebounced === 'function') saveRoundStateDebounced(); } catch(e) {}

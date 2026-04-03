@@ -445,47 +445,6 @@ body{
   width:190px;
 }
 
-/* ─── Flame FAB heat-level colours ──────────────────────────────── */
-#heatWidget           { color: #4a627a; }
-#heatWidget.heat-1    { color: #fbbf24; }
-#heatWidget.heat-2    { color: #f97316; }
-#heatWidget.heat-3    { color: #ef4444; }
-#heatWidget.heat-4    { color: #dc2626; }
-#heatWidget.heat-5    {
-  color: #ff2222;
-  box-shadow:
-    0 0 0 1px rgba(255,34,34,.30),
-    0 0 18px rgba(255,34,34,.50),
-    0 0 36px rgba(255,34,34,.25);
-}
-
-/* ─── Heat FAB curse-active miasma ──────────────────────────────── */
-#heatWidget.curse-active{
-  border-color:rgba(168,85,247,.55) !important;
-  box-shadow:
-    0 0 0 1px rgba(168,85,247,.25),
-    0 0 18px rgba(168,85,247,.35),
-    0 2px 8px rgba(0,0,0,.4);
-}
-#heatWidget.curse-active::after{
-  content:'';
-  position:absolute;
-  bottom:0; left:0; right:0;
-  height:55%;
-  background:linear-gradient(to top,
-    rgba(88,28,135,.75) 0%,
-    rgba(168,85,247,.45) 60%,
-    transparent 100%);
-  border-radius:0 0 inherit inherit;
-  animation:heatMiasmaPulse 2s ease-in-out infinite alternate;
-  pointer-events:none;
-  z-index:0;
-}
-@keyframes heatMiasmaPulse{
-  from{ opacity:.65; height:52%; }
-  to{   opacity:1.0; height:66%; }
-}
-
 /* ─── Heat panel row heat-level colours (mirrors FAB) ───────────── */
 #heatPanelRow           { color: #4a627a; }
 #heatPanelRow.heat-1    { color: #fbbf24; }
@@ -973,24 +932,6 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   0%  { transform:translateY(4px); opacity:.50; }
   100%{ transform:translateY(-4px); opacity:.90; }
 }
-@keyframes heatWidgetPulseUp{
-  0%   { transform:scale(1); filter:brightness(1); }
-  18%  { transform:scale(1.12); filter:brightness(1.45); }
-  100% { transform:scale(1); filter:brightness(1); }
-}
-@keyframes heatWidgetPulseDown{
-  0%   { transform:scale(1); filter:brightness(1); opacity:1; }
-  18%  { transform:scale(0.955); filter:brightness(1.18); opacity:.95; }
-  100% { transform:scale(1); filter:brightness(1); opacity:1; }
-}
-#heatWidget.heatPulseUp{
-  animation:heatWidgetPulseUp 1.7s cubic-bezier(.12,.9,.18,1);
-  box-shadow:0 0 0 1px rgba(250,204,21,.28), 0 14px 38px rgba(0,0,0,.32);
-}
-#heatWidget.heatPulseDown{
-  animation:heatWidgetPulseDown 1.7s cubic-bezier(.12,.9,.18,1);
-}
-
 /* ─── Photo glitch system ────────────────────────────────────────── */
 .photo-glimpse-frame{
   width:100%; aspect-ratio:1/1; overflow:hidden; border-radius:12px;
@@ -1107,7 +1048,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 
 /* ─── prefers-reduced-motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
-  #heatWidget.heatPulseUp, #heatWidget.heatPulseDown, .timerPulse{ animation:none !important; }
+  .timerPulse{ animation:none !important; }
   .menuBtn.cursed .iconBox::after{ animation:none; }
 }
 

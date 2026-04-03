@@ -192,22 +192,11 @@
   }
 
   function __updateProgressBadge() {
-    try {
-      const badge = document.getElementById('gauntletProgress');
-      const text = document.getElementById('gauntletProgressText');
-      if (!badge) return;
-      const idx = gauntletState.currentIndex + 1;
-      const total = gauntletState.totalTargets;
-      if (text) text.textContent = idx + ' / ' + total;
-      badge.classList.remove('hidden');
-    } catch (e) {}
+    // Progress now renders through the HUD mode chip.
   }
 
   function __hideProgressBadge() {
-    try {
-      const badge = document.getElementById('gauntletProgress');
-      if (badge) badge.classList.add('hidden');
-    } catch (e) {}
+    // Progress now renders through the HUD mode chip.
   }
 
   // ---- guesslocked handler ----

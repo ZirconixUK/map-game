@@ -389,7 +389,7 @@
     `;
   }
 
-  async function lockInGuess({ autoLock = false } = {}){
+  async function lockInGuess({ autoLock = false, autoLockReason = null } = {}){
     const r = getRound();
     if (!r) { try { if (typeof showToast === 'function') showToast('No active round.', false); } catch(e) {} return; }
     if (r.hasGuessed) { try { if (typeof showToast === 'function') showToast('Guess already locked.', false); } catch(e) {} return; }
@@ -416,7 +416,11 @@
     if (_usePlayerPos) {
       guess = { lat: +pl.lat, lon: +pl.lon, accuracy: 0, ts: Date.now() };
     } else {
-      const lockMsg = autoLock ? "Time's up — sampling your position…" : 'Locking in guess…';
+      const lockMsg = autoLock
+        ? (autoLockReason === 'moves_exhausted'
+            ? 'No moves left — sampling your position…'
+            : "Time's up — sampling your position…")
+        : 'Locking in guess…';
       try { if (typeof showToast === 'function') showToast(lockMsg, !autoLock); } catch(e) {}
       guess = await sampleGpsBriefly();
     }
@@ -533,8 +537,11 @@
     } catch(e) {}
 
     const payload = buildResultPayload();
+    const resolvedOutcome = autoLock
+      ? (autoLockReason === 'moves_exhausted' ? 'moves_exhausted' : 'time_expired')
+      : 'located';
     if (payload) {
-      payload.outcome = autoLock ? 'time_expired' : 'located';
+      payload.outcome = resolvedOutcome;
       payload.mode = (function(){ try { const s = window.getGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
       payload.movesLeft = (function(){ try { return typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null; } catch(e){ return null; } })();
     }
@@ -542,7 +549,7 @@
     try {
       const _pl = buildResultPayload();
       if (_pl) {
-        _pl.outcome = autoLock ? 'time_expired' : 'located';
+        _pl.outcome = resolvedOutcome;
         _pl.mode = (function(){ try { const s = window.getGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
         _pl.movesLeft = (function(){ try { return typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null; } catch(e){ return null; } })();
         persistResultPayload(_pl);
