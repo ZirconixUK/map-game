@@ -199,6 +199,9 @@ function updateUI() {
       qDir.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
     }
   } catch(e) {}
+
+  // Update tool deck card states
+  try { __updateToolCards(); } catch (e) {}
 }
 
 
@@ -417,6 +420,35 @@ function updateHUD() {
     dbgHeatCurrent.textContent = `${Math.max(0, Math.min(5, v)).toFixed(2)}/5  (Level ${Math.max(0, Math.min(5, L))})`;
   }
 
+  // ── Heat panel hero block ────────────────────────────────────
+  try {
+    const ph = document.getElementById('panelHeat');
+    if (ph && ph.classList.contains('open')) {
+      // Rank chip
+      const rankEl = document.getElementById('heatRankChip');
+      if (rankEl) {
+        const rankLabels = ['COLD','WARM','WARM','HOT','HOT','CRITICAL'];
+        const rankClasses = ['rank-cold','rank-warm','rank-warm','rank-hot','rank-hot','rank-critical'];
+        rankEl.textContent = rankLabels[lvl] || 'COLD';
+        rankEl.className = rankClasses[lvl] || 'rank-cold';
+      }
+      // Panel gauge segments
+      document.querySelectorAll('.heatPanelSeg').forEach((seg, i) => {
+        seg.classList.toggle('active', lvl >= i + 1);
+      });
+      // Hero block border
+      const heroBlock = document.getElementById('heatHeroBlock');
+      if (heroBlock) {
+        heroBlock.classList.remove('heat-hot', 'heat-critical');
+        if (lvl >= 5) heroBlock.classList.add('heat-critical');
+        else if (lvl >= 3) heroBlock.classList.add('heat-hot');
+      }
+      // Consequence text
+      const consEl = document.getElementById('heatConsequenceText');
+      if (consEl) consEl.textContent = heatConsequencesText(lvl);
+    }
+  } catch (e) {}
+
   // Refresh curse countdown timers in panelHeat while it's open
   try {
     const ph = document.getElementById('panelHeat');
@@ -496,12 +528,92 @@ function onHeatLevelChanged(prevLevel, newLevel, reason) {
   }
 }
 
+function __updateToolCards() {
+  try {
+    const isRemote = typeof window.isRemoteActive === 'function' && window.isRemoteActive();
+    const over = (typeof window.isRoundOver === 'function') ? window.isRoundOver() : false;
+
+    const toolDefs = [
+      { card: 'radar',     menuId: 'radarMenu',    isCursedFn: null },
+      { card: 'thermo',    menuId: 'thermoMenu',   isCursedFn: null },
+      { card: 'nsew',      menuId: 'dirMenu',      isCursedFn: null },
+      { card: 'landmark',  menuId: 'landmarkMenu', isCursedFn: null },
+      { card: 'photo',     menuId: 'photoMenu',    isCursedFn: null },
+      { card: 'signalLock', menuId: null,          isCursedFn: null, remoteDisable: true },
+    ];
+
+    toolDefs.forEach(({ card, menuId, isCursedFn, curseName, remoteDisable }) => {
+      const cardEl = document.querySelector(`.toolCard[data-tool-card="${card}"]`);
+      if (!cardEl) return;
+
+      let state = 'ready';
+      let subtitle = null;
+
+      if (remoteDisable && isRemote) {
+        state = 'disabled';
+        subtitle = 'REMOTE: N/A';
+      } else if (over) {
+        state = 'used';
+      } else if (menuId) {
+        const menu = document.getElementById(menuId);
+        const anyOptBtns = menu
+          ? Array.from(menu.querySelectorAll('[data-radar],[data-thermo],[data-dir],[data-landmark],[data-photo],[data-signal-lock]'))
+          : [];
+
+        const allDone = anyOptBtns.length > 0 && anyOptBtns.every(b =>
+          b.classList.contains('used') || b.classList.contains('disabled') || b.classList.contains('curse-locked')
+        );
+        const anyReady = anyOptBtns.some(b =>
+          !b.classList.contains('used') && !b.classList.contains('locked') &&
+          !b.classList.contains('disabled') && !b.classList.contains('curse-locked')
+        );
+        const anyLocked = anyOptBtns.some(b => b.classList.contains('locked'));
+        const cursed = isCursedFn ? isCursedFn() : false;
+
+        if (allDone && !anyReady) {
+          state = 'used';
+        } else if (cursed && anyReady) {
+          state = 'cursed';
+          subtitle = curseName || null;
+        } else if (!anyReady && anyLocked) {
+          state = 'locked';
+          const badge = menu ? menu.querySelector('.lockCountdown') : null;
+          subtitle = badge ? `UNLOCKS ${badge.textContent}` : 'LOCKED';
+        } else {
+          state = 'ready';
+        }
+      }
+
+      cardEl.classList.remove('state-ready', 'state-locked', 'state-used', 'state-cursed', 'state-disabled');
+      cardEl.classList.add(`state-${state}`);
+
+      const chipEl = cardEl.querySelector('.toolCardChip');
+      const subtitleEl = cardEl.querySelector('.toolCardSubtitle');
+      const chipLabels = { ready: 'Ready ›', locked: 'Locked', used: 'Used', cursed: 'Cursed ›', disabled: 'Unavailable' };
+      if (chipEl) chipEl.textContent = chipLabels[state] || '';
+      if (subtitleEl) {
+        if (subtitle) {
+          subtitleEl.textContent = subtitle;
+          subtitleEl.style.display = '';
+        } else {
+          subtitleEl.style.display = 'none';
+        }
+      }
+    });
+  } catch (e) {}
+}
+window.__updateToolCards = __updateToolCards;
+
 let __hudTicker = null;
 function startHUDTicker() {
   if (__hudTicker) return;
   __hudTicker = setInterval(() => {
     try { __tickGameState(); } catch (e) {}
     try { updateHUD(); }       catch (e) {}
+    try {
+      const pg = document.getElementById('panelGameplay');
+      if (pg && pg.classList.contains('open')) updateGameplayPanelSummary();
+    } catch (e) {}
   }, 250);
   document.addEventListener("visibilitychange", () => {
     try { __tickGameState(); } catch (e) {}
@@ -543,36 +655,74 @@ function __fmtRemaining(ms) {
 
 function updateCursesPanel(){
   const empty = document.getElementById('cursesEmpty');
-  const ul = document.getElementById('cursesList');
-  if (!empty || !ul) return;
+  const listEl = document.getElementById('cursesList');
+  const sectionLabel = document.getElementById('curseSectionLabel');
+  if (!empty || !listEl) return;
 
   const list = __getActiveCursesForUI();
   const panel = document.getElementById('panelHeat');
   if (panel) panel.classList.toggle('curse-active', Array.isArray(list) && list.length > 0);
 
+  if (sectionLabel) {
+    sectionLabel.textContent = `ACTIVE CURSES — ${Array.isArray(list) ? list.length : 0}`;
+  }
+
   if (!Array.isArray(list) || list.length === 0) {
     empty.classList.remove('hidden');
-    ul.classList.add('hidden');
-    ul.innerHTML = '';
+    listEl.innerHTML = '';
     return;
   }
 
   empty.classList.add('hidden');
-  ul.classList.remove('hidden');
-
-  ul.innerHTML = list.map(c => {
+  listEl.innerHTML = list.map(c => {
     let name = (c && c.name) ? String(c.name) : String((c && c.id) || 'Curse');
     if (c && c.stacks > 1) name += ` ×${c.stacks}`;
     const desc = (c && c.description) ? String(c.description) : '';
     let left = 0;
     try { left = (typeof window.__msLeftOnCurse === 'function') ? window.__msLeftOnCurse(c) : 0; } catch (e) { left = 0; }
     const t = __fmtRemaining(left);
-    const d = desc ? `<div class="muted" style="margin-top:2px;">${desc}</div>` : '';
-    return `<li><div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;">
-      <span>${name}</span><span class="muted">${t}</span>
-    </div>${d}</li>`;
+    const descHtml = desc
+      ? `<div class="curseCardDesc">${String(desc).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
+      : '';
+    return `<div class="curseCard">
+      <div class="curseCardTop">
+        <span class="curseCardName">◈ ${String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>
+        <span class="curseCardTimer">${t} remaining</span>
+      </div>
+      ${descHtml}
+    </div>`;
   }).join('');
 }
+
+function updateGameplayPanelSummary() {
+  const el = document.getElementById('gameplayPanelSummary');
+  if (!el) return;
+  try {
+    const lvl = (typeof heatLevel === 'number' && isFinite(heatLevel)) ? Math.max(0, Math.min(5, heatLevel | 0)) : 0;
+    const heatLabels = ['COLD','WARM','WARM','HOT','HOT','CRITICAL'];
+    const curses = (typeof window.getActiveCurses === 'function') ? window.getActiveCurses() : [];
+    const curseCount = Array.isArray(curses) ? curses.length : 0;
+    const r = (typeof window.getRoundStateV1 === 'function') ? window.getRoundStateV1() : null;
+    const hasGuessed = !!(r && r.hasGuessed);
+    const isRemote = typeof window.isRemoteActive === 'function' && window.isRemoteActive();
+    const moves = isRemote && typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null;
+
+    const chips = [];
+    chips.push(`<span class="panelSummaryChip chip-heat">${heatLabels[lvl]}</span>`);
+    if (curseCount > 0) {
+      chips.push(`<span class="panelSummaryChip chip-curse">◈ ${curseCount}</span>`);
+    }
+    if (moves !== null) {
+      chips.push(`<span class="panelSummaryChip chip-moves">${moves} MOV</span>`);
+    }
+    if (hasGuessed) {
+      chips.push(`<span class="panelSummaryChip chip-guessed">Locked In</span>`);
+    }
+
+    el.innerHTML = chips.join('');
+  } catch (e) {}
+}
+window.updateGameplayPanelSummary = updateGameplayPanelSummary;
 
 // Expose for curses system.
 window.updateHeatCurseButton = updateHeatCurseButton;

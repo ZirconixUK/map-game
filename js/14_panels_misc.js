@@ -148,6 +148,31 @@
     });
   }
 
+  // Tool deck card taps → open corresponding submenu (or fire legacy button for signalLock)
+  if (panelGameplay) {
+    panelGameplay.addEventListener('click', (e) => {
+      const card = e.target.closest('.toolCard');
+      if (!card) return;
+      const tool = card.dataset.toolCard;
+      if (!tool) return;
+      // Don't navigate if the card is non-interactive
+      if (card.classList.contains('state-used') || card.classList.contains('state-disabled')) return;
+      // signalLock has no submenu — delegate to the hidden legacy button so the
+      // existing confirm-in-place flow in 02_dom.js handles it.
+      if (tool === 'signalLock') {
+        const btn = document.getElementById('qSignalLock');
+        if (btn) btn.click();
+        return;
+      }
+      const menuMap = {
+        radar: 'radar', thermo: 'thermo', nsew: 'dir',
+        landmark: 'landmark', photo: 'photo',
+      };
+      const menuKey = menuMap[tool];
+      if (menuKey && typeof window.__showMenu === 'function') window.__showMenu(menuKey);
+    });
+  }
+
   // Command band row 2 tap → Heat panel
   const cmdRow2 = document.getElementById('cmdRow2');
   if (cmdRow2 && panelHeat) {

@@ -1022,6 +1022,9 @@ if (debugMode) {
     try { if (typeof updateGameplayPanelWidth === "function") updateGameplayPanelWidth(); } catch (e) {}
   }
 
+  // Expose globally so other modules (e.g. 14_panels_misc.js tool card handler) can navigate menus.
+  window.__showMenu = (which) => showMenu(which);
+
   // Menu navigation is handled via panelGameplay delegation below (survives innerHTML restores).
 
 
