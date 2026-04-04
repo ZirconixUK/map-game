@@ -1176,6 +1176,17 @@ if (debugMode) {
     __showBriefingModal(variant);
   };
 
+  window.__closeBriefingModal = function () {
+    try {
+      const modal = document.getElementById('welcomeModal');
+      const first = document.getElementById('welcomeContentFirst');
+      const ret = document.getElementById('welcomeContentReturn');
+      if (modal) modal.classList.add('hidden');
+      if (first) first.classList.add('hidden');
+      if (ret) ret.classList.add('hidden');
+    } catch(e) {}
+  };
+
   window.__beginSetupFromBriefing = function () {
     try {
       const modal = document.getElementById('welcomeModal');
@@ -1193,6 +1204,12 @@ if (debugMode) {
     const btn = document.getElementById(id);
     if (btn) btn.onclick = () => {
       try { if (typeof window.__beginSetupFromBriefing === 'function') window.__beginSetupFromBriefing(); } catch(e) {}
+    };
+  });
+  ['btnWelcomeCancel', 'btnWelcomeCancelReturn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.onclick = () => {
+      try { if (typeof window.__closeBriefingModal === 'function') window.__closeBriefingModal(); } catch(e) {}
     };
   });
 

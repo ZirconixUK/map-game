@@ -2281,6 +2281,11 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   letter-spacing: .02em;
 }
 .lastScoreLabel { font-size: 11px; color: #64748b; margin-top: 1px; }
+.briefingActions{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
 
 /* ─── Setup screen ───────────────────────────────────────────── */
 .setupBackLink{
