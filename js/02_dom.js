@@ -545,6 +545,11 @@ function bindUI() {
     }
   }
 
+  function __closeNewGamePanel() {
+    const panelNewGame = document.getElementById('panelNewGame');
+    if (panelNewGame) panelNewGame.classList.remove('open');
+  }
+
   function __startLocationPickMode() {
     // Clear any stale pick-mode click handler from a previous invocation
     if (window.leafletMap && __pickModeClickHandler) {
@@ -558,6 +563,8 @@ function bindUI() {
     const cancelBtn   = document.getElementById('locationPickCancel');
     const repickBtn   = document.getElementById('locationPickRepick');
     const confirmBtn  = document.getElementById('locationPickConfirm');
+
+    __closeNewGamePanel();
 
     // Entering map-pick mode should present a clean map, not the previous round's overlays.
     try { if (typeof clearFog === 'function') clearFog(); } catch(e) {}
@@ -656,11 +663,10 @@ function bindUI() {
         });
       }
     } catch (e) {}
-    const panelNewGame = document.getElementById("panelNewGame");
-    if (panelNewGame) panelNewGame.classList.remove("open");
     if (__newGameLocationMode === 'pick') {
       __startLocationPickMode();
     } else {
+      __closeNewGamePanel();
       startNewGameFromMenuOrDebug();
     }
   });
@@ -828,10 +834,15 @@ if (debugMode) {
     });
   }
 
+  function __setNewGameLocationMode(mode) {
+    __newGameLocationMode = (mode === 'pick') ? 'pick' : 'current';
+    selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+  }
+
   selectChoice('[data-game-length]', 'data-game-length', selectedGameLength);
   selectChoice('[data-game-difficulty]', 'data-game-difficulty', selectedGameDifficulty);
   selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
-  selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+  __setNewGameLocationMode(__newGameLocationMode);
 
   function __applyGauntletLengthConstraints(mode) {
     const lengthBtns = document.querySelectorAll('[data-game-length]');
@@ -855,8 +866,7 @@ if (debugMode) {
         btnCurrent.classList.add('opacity-40', 'pointer-events-none');
         btnCurrent.setAttribute('aria-disabled', 'true');
       }
-      selectChoice('[data-start-location]', 'data-start-location', 'pick');
-      __newGameLocationMode = 'pick';
+      __setNewGameLocationMode('pick');
       return;
     }
 
@@ -865,8 +875,7 @@ if (debugMode) {
       btnCurrent.classList.remove('opacity-40', 'pointer-events-none');
       btnCurrent.removeAttribute('aria-disabled');
     }
-    selectChoice('[data-start-location]', 'data-start-location', 'current');
-    __newGameLocationMode = 'current';
+    __setNewGameLocationMode('current');
 
     if (mode === 'gauntlet') {
       lengthBtns.forEach(btn => {
@@ -932,8 +941,7 @@ if (debugMode) {
 
   document.querySelectorAll('[data-start-location]').forEach(btn => {
     btn.addEventListener('click', () => {
-      __newGameLocationMode = (btn.getAttribute('data-start-location') || 'current').toLowerCase();
-      selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+      __setNewGameLocationMode((btn.getAttribute('data-start-location') || 'current').toLowerCase());
     });
   });
 
