@@ -582,6 +582,11 @@ function bindUI() {
     }
   }
 
+  function __closeNewGamePanel() {
+    const panelNewGame = document.getElementById('panelNewGame');
+    if (panelNewGame) panelNewGame.classList.remove('open');
+  }
+
   function __startLocationPickMode(options) {
     const opts = options || {};
     const launchOnConfirm = !!opts.launchOnConfirm;
@@ -597,6 +602,8 @@ function bindUI() {
     const cancelBtn   = document.getElementById('locationPickCancel');
     const repickBtn   = document.getElementById('locationPickRepick');
     const confirmBtn  = document.getElementById('locationPickConfirm');
+
+    __closeNewGamePanel();
 
     // Entering map-pick mode should present a clean map, not the previous round's overlays.
     try { if (typeof clearFog === 'function') clearFog(); } catch(e) {}
@@ -647,7 +654,6 @@ function bindUI() {
       cancelBtn.onclick = () => {
         _cleanup();
         try {
-          __newGameLocationMode = (__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon)) ? 'pick' : 'current';
           if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
         } catch(e) {}
         const p = document.getElementById('panelNewGame');
@@ -725,7 +731,8 @@ function bindUI() {
       const name = document.getElementById('setupLocationName');
       const meta = document.getElementById('setupLocationMeta');
       const changeBtn = document.getElementById('setupLocationChange');
-      const hasCustomPin = __newGameLocationMode === 'pick' && !!(__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon));
+      const wantsMapPick = __newGameLocationMode === 'pick';
+      const hasCustomPin = wantsMapPick && !!(__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon));
       let gpsDistanceText = '';
       try {
         const pl = (typeof player !== 'undefined') ? player : window.player;
@@ -739,27 +746,39 @@ function bindUI() {
 
       if (dot) {
         dot.classList.remove('gps', 'custom');
-        dot.classList.add(hasCustomPin ? 'custom' : 'gps');
+        dot.classList.add(wantsMapPick ? 'custom' : 'gps');
       }
       if (name) {
-        if (isRemote) name.textContent = hasCustomPin ? 'Map-selected search region' : 'GPS anchor detected';
-        else if (hasCustomPin) name.textContent = 'Map-selected starting area';
-        else name.textContent = 'Live GPS start point';
+        if (isRemote) {
+          if (hasCustomPin) name.textContent = 'Map-selected search region';
+          else if (wantsMapPick) name.textContent = 'Pick search region on map';
+          else name.textContent = 'GPS anchor detected';
+        } else if (hasCustomPin) {
+          name.textContent = 'Map-selected starting area';
+        } else if (wantsMapPick) {
+          name.textContent = 'Pick start area on map';
+        } else {
+          name.textContent = 'Live GPS start point';
+        }
       }
       if (meta) {
         if (isRemote) {
           meta.textContent = hasCustomPin
             ? (gpsDistanceText || 'Custom anchor set from the map.')
-            : 'Uses your live GPS area as the search anchor.';
+            : (wantsMapPick
+                ? 'Map selection will open when you begin the operation.'
+                : 'Uses your live GPS area as the search anchor.');
         } else {
           meta.textContent = hasCustomPin
             ? (gpsDistanceText || 'Custom start area selected from the map.')
-            : 'Uses your live location when the round begins.';
+            : (wantsMapPick
+                ? 'Map selection will open when you begin the operation.'
+                : 'Uses your live location when the round begins.');
         }
         meta.style.display = '';
       }
       if (changeBtn) {
-        changeBtn.textContent = hasCustomPin ? 'Use GPS' : 'Change';
+        changeBtn.textContent = wantsMapPick ? 'Use GPS' : 'Pick on Map';
       }
     } catch(e) {}
   }
@@ -812,17 +831,17 @@ function bindUI() {
         });
       }
     } catch (e) {}
-    const panelNewGame = document.getElementById("panelNewGame");
-    if (panelNewGame) panelNewGame.classList.remove("open");
     if (__newGameLocationMode === 'pick') {
       if (__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon)) {
         const seed = __pickedAreaSeed;
         __pickedAreaSeed = null;
+        __closeNewGamePanel();
         startNewGameFromMenuOrDebug(seed);
       } else {
         __startLocationPickMode({ launchOnConfirm: true });
       }
     } else {
+      __closeNewGamePanel();
       startNewGameFromMenuOrDebug();
     }
   });
@@ -841,14 +860,13 @@ function bindUI() {
     setupLocationChangeBtn.addEventListener('click', () => {
       try {
         if (__newGameLocationMode === 'pick') {
-          __newGameLocationMode = 'current';
+          __setNewGameLocationMode('current');
           __pickedAreaSeed = null;
           if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
           return;
         }
-        __newGameLocationMode = 'pick';
+        __setNewGameLocationMode('pick');
         if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
-        __startLocationPickMode({ launchOnConfirm: false });
       } catch(e) {}
     });
   }
@@ -1035,10 +1053,15 @@ if (debugMode) {
     });
   }
 
+  function __setNewGameLocationMode(mode) {
+    __newGameLocationMode = (mode === 'pick') ? 'pick' : 'current';
+    selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+  }
+
   selectChoice('[data-game-length]', 'data-game-length', selectedGameLength);
   selectChoice('[data-game-difficulty]', 'data-game-difficulty', selectedGameDifficulty);
   selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
-  selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+  __setNewGameLocationMode(__newGameLocationMode);
   __syncBriefingModeUI(selectedGameMode);
 
   function __applyGauntletLengthConstraints(mode) {
@@ -1075,8 +1098,7 @@ if (debugMode) {
       btnCurrent.classList.remove('opacity-40', 'pointer-events-none');
       btnCurrent.removeAttribute('aria-disabled');
     }
-    selectChoice('[data-start-location]', 'data-start-location', 'current');
-    __newGameLocationMode = 'current';
+    __setNewGameLocationMode('current');
 
     if (mode === 'gauntlet') {
       lengthBtns.forEach(btn => {
@@ -1186,8 +1208,7 @@ if (debugMode) {
 
   document.querySelectorAll('[data-start-location]').forEach(btn => {
     btn.addEventListener('click', () => {
-      __newGameLocationMode = (btn.getAttribute('data-start-location') || 'current').toLowerCase();
-      selectChoice('[data-start-location]', 'data-start-location', __newGameLocationMode);
+      __setNewGameLocationMode((btn.getAttribute('data-start-location') || 'current').toLowerCase());
     });
   });
 
