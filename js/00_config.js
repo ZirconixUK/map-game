@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-04-04.ui-overhaul-results-breakdown-toggle';
+const BUILD_ID = '2026-04-04.ui-overhaul-results-breakdown-affordance';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----

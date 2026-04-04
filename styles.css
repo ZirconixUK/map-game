@@ -1992,7 +1992,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   content: '▾';
   font-family: var(--font-mono);
   font-size: 12px;
-  color: #64748b;
+  color: #22d3ee;
   margin-left: 8px;
 }
 .resultScoreCard[open] .resultScoreSummary::after {
@@ -2008,7 +2008,9 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 }
 .resultScoreSummaryHint {
   font-size: 11px;
-  color: #475569;
+  color: #22d3ee;
+  font-weight: 700;
+  letter-spacing: .02em;
 }
 .resultScoreSummaryValue {
   font-family: var(--font-mono);
