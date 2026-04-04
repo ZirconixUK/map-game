@@ -317,8 +317,11 @@ function updateHUD() {
   if (elCmdCurseSlot) {
     const _curses = (typeof window.getActiveCurses === 'function') ? window.getActiveCurses() : [];
     const _active = Array.isArray(_curses) ? _curses : [];
+    const _countEl = document.getElementById('cmdCurseCount');
+    const _timerEl = document.getElementById('cmdCurseTimer');
     if (_active.length === 0) {
-      elCmdCurseSlot.textContent = '◈ 0 —';
+      if (_countEl) _countEl.textContent = '0';
+      if (_timerEl) _timerEl.textContent = '—';
       elCmdCurseSlot.classList.remove('has-curses');
     } else {
       const _maxExpiry = Math.max(..._active.map(c => (typeof c.expiresAt === 'number' ? c.expiresAt : 0)));
@@ -326,7 +329,8 @@ function updateHUD() {
       const _sec = Math.ceil(_msLeft / 1000);
       const _mm = String(Math.floor(_sec / 60)).padStart(2, '0');
       const _ss = String(_sec % 60).padStart(2, '0');
-      elCmdCurseSlot.textContent = `◈ ${_active.length} ${_mm}:${_ss}`;
+      if (_countEl) _countEl.textContent = String(_active.length);
+      if (_timerEl) _timerEl.textContent = `${_mm}:${_ss}`;
       elCmdCurseSlot.classList.add('has-curses');
     }
   }

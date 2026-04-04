@@ -344,11 +344,19 @@
       return `<svg ${sizeAttrs} viewBox="${s.vb}" fill="none" xmlns="http://www.w3.org/2000/svg">${s.paths}</svg>`;
     }
 
+    // Inline the tier color directly into @keyframes — CSS custom properties in @keyframes
+    // don't resolve in Safari < 16.4, so we generate a unique keyframe name per round.
+    const _glowKfName = `tierGlowEarned_${grade}`;
+    const _r0 = gradeInfo.glow ? 4 : 3;
+    const _r50 = gradeInfo.glow ? 22 : 12;
+    const _r100 = gradeInfo.glow ? 7 : 5;
+    const _glowKf = `@keyframes ${_glowKfName}{0%{filter:drop-shadow(0 0 ${_r0}px ${gc})}50%{filter:drop-shadow(0 0 ${_r50}px ${gc})}100%{filter:drop-shadow(0 0 ${_r100}px ${gc})}}`;
+
     const _stripHtml = _gradeOrder.map(g => {
       const isEarned = g.label === grade;
       if (isEarned) {
-        return `<div class="medalItem is-earned${gradeInfo.glow ? ' high-tier' : ''}">
-          <div class="medalSvgWrap" style="--glow-color:${gc};">
+        return `<style>${_glowKf}</style><div class="medalItem is-earned">
+          <div class="medalSvgWrap" style="animation:${_glowKfName} 1.8s ease-in-out 0.2s 2 forwards;">
             ${_tierShape(g.label, gc, 48, 48)}
           </div>
           <div class="medalItemLabel" style="color:${gc};">${g.label.toUpperCase()}</div>

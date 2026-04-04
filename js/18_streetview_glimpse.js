@@ -321,6 +321,8 @@
           <div class="photo-corrupt-blocks" id="photoCorruptBlocks" aria-hidden="true"></div>
         </div>
         <div class="photoEdgeScanlines" aria-hidden="true"></div>
+        <div class="photoCornerTR" aria-hidden="true"></div>
+        <div class="photoCornerBL" aria-hidden="true"></div>
         ${corruptionOverlayHtml}
         <div class="photoMetaBar">
           <span class="photoMetaChip ${typeChipClass}">${typeChipText}</span>

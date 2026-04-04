@@ -109,7 +109,7 @@
                       Diamond:  { vb:'0 0 64 70', paths:'<polygon points="8,26 20,6 44,6 56,26" fill="' + (_medalColorMap[_rpObj.grade] || '#94a3b8') + '" opacity="0.95"/><polygon points="8,26 56,26 32,66" fill="#7dd3fc" opacity="0.9"/><line x1="8" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/><line x1="56" y1="26" x2="32" y2="66" stroke="white" stroke-width="1" stroke-opacity="0.3"/><line x1="8" y1="26" x2="56" y2="26" stroke="white" stroke-width="1" stroke-opacity="0.35"/>' }
                     };
                     _lsGrade.textContent = _rpObj.grade || '—';
-                    _lsGrade.style.color = _gcMap[_rpObj.grade] || '#94a3b8';
+                    _lsGrade.style.color = _medalColorMap[_rpObj.grade] || '#94a3b8';
                     if (_lsMedal) {
                       var _shape = _medalShapes[_rpObj.grade] || _medalShapes.Silver;
                       _lsMedal.innerHTML = '<svg width="40" height="40" viewBox="' + _shape.vb + '" fill="none" xmlns="http://www.w3.org/2000/svg">' + _shape.paths + '</svg>';
@@ -237,7 +237,7 @@
           </div>
         </div>
         <div class="cmdSep" aria-hidden="true"></div>
-        <div id="cmdCurseSlot" aria-label="Active curses">◈ 0 —</div>
+        <div id="cmdCurseSlot" aria-label="Active curses"><span class="curseGlyph" aria-hidden="true">◈</span> <span id="cmdCurseCount" class="curseCount">0</span> <span id="cmdCurseTimer" class="curseTimer">—</span></div>
       </div>
     </div>
     <!-- Remote undo capsule (transient — shown for 3 s after each remote move) -->

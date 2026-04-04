@@ -444,16 +444,21 @@ body{
 #cmdCurseSlot {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #1e3a5f;
   letter-spacing: .04em;
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
-#cmdCurseSlot.has-curses {
-  color: #a78bfa;
-}
+.curseGlyph { color: #1e3a5f; }
+.curseCount { color: #1e3a5f; font-weight: 700; }
+.curseTimer { color: #1e3a5f; }
+#cmdCurseSlot.has-curses .curseGlyph { color: #a78bfa; }
+#cmdCurseSlot.has-curses .curseCount { color: #a78bfa; }
+#cmdCurseSlot.has-curses .curseTimer { color: #7c3aed; }
 
 /* Remote undo capsule (transient, below band) */
 #undoCapsule {
@@ -1927,18 +1932,8 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 .resultFlankMedal { position:absolute; bottom:0; }
 .resultFlankMedal svg { display:block; width:100%; height:100%; }
 
-@keyframes tierGlowLow {
-  0%   { filter: drop-shadow(0 0 3px var(--glow-color)); }
-  50%  { filter: drop-shadow(0 0 12px var(--glow-color)); }
-  100% { filter: drop-shadow(0 0 5px var(--glow-color)); }
-}
-@keyframes tierGlowHigh {
-  0%   { filter: drop-shadow(0 0 4px var(--glow-color)); }
-  50%  { filter: drop-shadow(0 0 22px var(--glow-color)); }
-  100% { filter: drop-shadow(0 0 7px var(--glow-color)); }
-}
 @media (prefers-reduced-motion:reduce) {
-  .resultMedalGlowWrap { animation:none !important; }
+  .medalSvgWrap { animation:none !important; }
 }
 .resultFlankMedal.left.rank-1  { width:58px; height:67px; right:55px; z-index:2; opacity:0.35; }
 .resultFlankMedal.left.rank-2  { width:44px; height:51px; right:85px; z-index:1; opacity:0.18; }
@@ -2476,12 +2471,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   width: 22px;
   height: 22px;
 }
-.medalItem.is-earned .medalSvgWrap {
-  animation: tierGlowLow 1.8s ease-in-out 0.2s 2 forwards;
-}
-.medalItem.is-earned.high-tier .medalSvgWrap {
-  animation: tierGlowHigh 1.8s ease-in-out 0.2s 2 forwards;
-}
+/* Glow animation is applied inline via JS (per-tier @keyframes with inlined hex color) */
 .medalItemLabel {
   font-family: var(--font-mono);
   font-size: 8px;
@@ -2583,6 +2573,23 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   border-right: 2px solid rgba(34,211,238,.65);
   z-index: 5;
   pointer-events: none;
+}
+/* Remaining two corner brackets (::before = top-left, ::after = bottom-right handled above) */
+.photoCornerTR, .photoCornerBL {
+  position: absolute;
+  width: 14px; height: 14px;
+  z-index: 5;
+  pointer-events: none;
+}
+.photoCornerTR {
+  top: 8px; right: 8px;
+  border-top: 2px solid rgba(34,211,238,.65);
+  border-right: 2px solid rgba(34,211,238,.65);
+}
+.photoCornerBL {
+  bottom: 8px; left: 8px;
+  border-bottom: 2px solid rgba(34,211,238,.65);
+  border-left: 2px solid rgba(34,211,238,.65);
 }
 /* Edge-only scanlines (mask keeps centre clean) */
 .photoEdgeScanlines {
