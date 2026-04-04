@@ -60,9 +60,18 @@
           var box = document.getElementById('startupIssue');
           var msg = document.getElementById('startupIssueMessage');
           var meta = document.getElementById('startupIssueMeta');
+          var debug = document.getElementById('startupIssueDebug');
           if (!box || !msg || !meta) return;
           msg.textContent = message || 'Startup failed.';
           meta.textContent = detail || 'Try reloading the page. If this continues, clear site data for this origin and retry.';
+          if (debug) {
+            var loaded = [];
+            var loading = '';
+            try { loaded = (window.__startupState && window.__startupState.loadedScripts) || []; } catch (e) {}
+            try { loading = (window.__startupState && window.__startupState.loadingScript) || ''; } catch (e) {}
+            var lastLoaded = loaded.length ? loaded[loaded.length - 1] : 'none';
+            debug.textContent = 'Last loaded: ' + lastLoaded + (loading ? ' | Waiting on: ' + loading : '');
+          }
           box.classList.remove('hidden');
           try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
         } catch(e) {}
@@ -113,11 +122,13 @@
 
       function load(src) {
         return new Promise(function (resolve, reject) {
+          try { window.__startupState.loadingScript = src; } catch (e) {}
           var s = document.createElement('script');
           s.src = src;
           s.async = false;
           s.onload = function() {
             try { window.__startupState.loadedScripts.push(src); } catch (e) {}
+            try { window.__startupState.loadingScript = null; } catch (e) {}
             resolve();
           };
           s.onerror = function() {
@@ -225,6 +236,14 @@
         await load('./js/15_tools_config.js?cb=' + cb);
         await load('./js/18_streetview_glimpse.js?cb=' + cb);
         await load('./js/02_dom.js?cb=' + cb);
+        try {
+          if (typeof window.bindUI === 'function' && !window.__uiBound) {
+            window.bindUI();
+          }
+        } catch (e) {
+          console.error('Early bindUI failed', e);
+        }
+        await load('./js/14_panels_misc.js?cb=' + cb);
         await load('./js/03_map_image.js?cb=' + cb);
         await load('./js/04_state.js?cb=' + cb);
         await load('./js/19_curses.js?cb=' + cb);
@@ -242,7 +261,6 @@
         await load('./js/12_geo_helpers.js?cb=' + cb);
         await load('./js/22_signal_lock.js?cb=' + cb);
         await load('./js/13_boot.js?cb=' + cb);
-        await load('./js/14_panels_misc.js?cb=' + cb);
         try { window.__closeStartupIssue(); } catch (e) {}
         })().catch(function (e) {
           try { window.__startupState.failed = true; } catch (err) {}
@@ -297,6 +315,7 @@
       <div class="startupIssueTitle">Startup Problem</div>
       <div id="startupIssueMessage" class="startupIssueMessage">The game did not finish loading correctly.</div>
       <div id="startupIssueMeta" class="startupIssueMeta">Reload to retry. If this keeps happening, clear site data for this origin and try again.</div>
+      <div id="startupIssueDebug" class="startupIssueDebug"></div>
       <div class="startupIssueActions">
         <button id="startupIssueReload" class="startupIssueBtn" type="button" onclick="window.location.reload()">Reload</button>
       </div>
