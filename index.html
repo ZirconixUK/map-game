@@ -201,7 +201,7 @@
   <div id="mapShell">
     <div id="panelBackdrop" aria-hidden="true"></div>
     <div id="leafletMap" aria-label="Leaflet map"></div>
-    <div id="buildBadge" style="position:fixed;bottom:22px;right:4px;z-index:500;font-size:9px;font-family:monospace;color:rgba(255,255,255,0.45);pointer-events:none;line-height:1;"></div>
+    <div id="buildBadge" style="position:fixed;bottom:22px;right:4px;z-index:30;font-size:9px;font-family:monospace;color:rgba(255,255,255,0.45);pointer-events:none;line-height:1;"></div>
     <canvas id="view"></canvas>
 
     <!-- Toast -->
@@ -275,11 +275,11 @@
     </div>
 
     <div id="bottomActionDock" class="bottomActionDock" aria-label="Round actions">
-      <button id="btnLockGuess" class="missionAction missionAction--primary" type="button" aria-label="Lock In Guess" title="Lock In Guess">
-        <span class="missionActionIcon">🎯</span>
+      <button id="btnLockGuess" class="missionAction missionAction--lock" type="button" aria-label="Mark Position" title="Mark Position">
+        <span class="missionActionIcon">◎</span>
         <span class="missionActionCopy">
-          <span class="missionActionTitle">Lock In Guess</span>
-          <span class="missionActionMeta">Commit your current position for scoring</span>
+          <span class="missionActionTitle">Mark Position</span>
+          <span class="missionActionMeta">Use this location for scoring</span>
         </span>
       </button>
       <button id="btnNewRound" class="missionAction missionAction--secondary hidden" type="button">Start New Round</button>
