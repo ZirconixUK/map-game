@@ -135,7 +135,7 @@ body{
 .bottomActionDock{
   position:absolute;
   right:14px;
-  bottom:calc(14px + env(safe-area-inset-bottom));
+  bottom:calc(56px + env(safe-area-inset-bottom));
   left:auto;
   transform:none;
   z-index:32;
@@ -2810,7 +2810,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   .bottomActionDock{
     right:10px;
     width:min(228px, calc(100vw - 88px));
-    bottom:calc(10px + env(safe-area-inset-bottom));
+    bottom:calc(52px + env(safe-area-inset-bottom));
   }
   .missionAction{
     min-height:68px;
