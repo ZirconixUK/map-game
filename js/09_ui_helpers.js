@@ -380,6 +380,8 @@ function updateHUD() {
       seg.classList.toggle('active', lvl >= i + 1);
     });
   }
+  const cmdHeatValue = document.getElementById('cmdHeatValue');
+  if (cmdHeatValue) cmdHeatValue.textContent = `${Math.max(0, Math.min(5, hv)).toFixed(1)}/5`;
   // Keep heat panel row in sync (same heat-N classes drive the colour via CSS)
   const heatPanelRow = document.getElementById('heatPanelRow');
   if (heatPanelRow) {
@@ -395,6 +397,8 @@ function updateHUD() {
   }
   const heatPanelDesc = document.getElementById('heatPanelDesc');
   if (heatPanelDesc) heatPanelDesc.textContent = heatConsequencesText(lvl);
+  const heatExactValue = document.getElementById('heatExactValue');
+  if (heatExactValue) heatExactValue.textContent = `${Math.max(0, Math.min(5, hv)).toFixed(1)} / 5 heat`;
 
   // Thermometer progress
   const tp     = elThermoProgress;

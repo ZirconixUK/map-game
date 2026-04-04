@@ -266,7 +266,7 @@ body{
   background: rgba(4,10,22,.94);
   border: 1px solid rgba(0,212,255,.18);
   box-shadow: 0 4px 20px rgba(0,0,0,.7), 0 0 0 1px rgba(0,212,255,.07);
-  border-radius: 16px;
+  border-radius: 0;
   padding: 10px 14px 8px;
   width: min(280px, calc(100vw - 144px));
   pointer-events: auto;
@@ -395,6 +395,15 @@ body{
   align-items:center;
   gap:4px;
   flex-shrink:0;
+}
+.cmdHeatValue{
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.04em;
+  color:#94a3b8;
+  min-width:42px;
+  text-align:right;
 }
 .cmdHeatGlyph{
   font-size:11px;
@@ -1523,7 +1532,7 @@ body{
 #heatPanelGauge {
   display: flex;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .heatPanelSeg {
   flex: 1;
@@ -1538,6 +1547,15 @@ body{
 .heatPanelSeg.active[data-seg="3"] { background: #f59e0b; border-color: rgba(245,158,11,.45); }
 .heatPanelSeg.active[data-seg="4"] { background: #f97316; border-color: rgba(249,115,22,.45); }
 .heatPanelSeg.active[data-seg="5"] { background: #ef4444; border-color: rgba(239,68,68,.45);  }
+
+#heatExactValue {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+}
 
 #heatConsequenceText {
   font-size: 12px;
@@ -2551,7 +2569,7 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
 .photoViewerFrame {
   position: relative;
   background: #04070f;
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 .photoViewerFrame::before {

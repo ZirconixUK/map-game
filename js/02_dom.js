@@ -1392,7 +1392,17 @@ if (debugMode) {
   function __toolConfirmShow({ menu, title, accentClass, descHtml, cost, onConfirm }) {
     if (!menu) return;
     const savedHTML = menu.innerHTML;
-    const heatDisplay = (cost && typeof cost.heat_cost === 'number') ? Number(cost.heat_cost).toFixed(1) : null;
+    let heatDisplay = null;
+    let curseHeatSurcharge = 0;
+    try {
+      if (typeof window.isCurseActive === 'function') {
+        if (window.isCurseActive('heat1')) curseHeatSurcharge += 0.25;
+        if (window.isCurseActive('heat2')) curseHeatSurcharge += 0.5;
+      }
+    } catch(e) {}
+    if (cost && typeof cost.heat_cost === 'number' && isFinite(cost.heat_cost)) {
+      heatDisplay = Number(cost.heat_cost + curseHeatSurcharge).toFixed(1);
+    }
     // Time cost is curse-gated — only show when overcharged curse is active
     const _tcMs = (typeof getToolTimeCostMs === 'function') ? getToolTimeCostMs() : 0;
     const timeDisplay = _tcMs > 0 ? __formatTimeCost(_tcMs) : null;
@@ -1400,10 +1410,13 @@ if (debugMode) {
     const heatRow = heatDisplay
       ? `<div class="text-slate-400 text-xs">Costs <span class="text-amber-400 font-semibold">🔥 ${heatDisplay}</span> heat.</div>`
       : '';
+    const heatCurseRow = curseHeatSurcharge > 0
+      ? `<div class="text-purple-400 text-xs mt-1">Curse surcharge applied: <span class="font-semibold">+${curseHeatSurcharge.toFixed(2)}</span> heat.</div>`
+      : '';
     const timeRow = timeDisplay
       ? `<div class="text-red-400 text-xs mt-1">⚠ Time cursed — costs <span class="font-semibold">⏱ ${timeDisplay}</span> from your timer${stacks > 1 ? ` (${stacks}× stacked)` : ''}.</div>`
       : '';
-    const costRow = heatRow + timeRow;
+    const costRow = heatRow + heatCurseRow + timeRow;
     const restore = () => {
       menu.innerHTML = savedHTML;
       try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
