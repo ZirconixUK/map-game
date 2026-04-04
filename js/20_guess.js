@@ -48,7 +48,7 @@
 
   function computeGrade(distM){
     const d = Math.max(0, num(distM) ?? Infinity);
-    const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
+    const setup = (typeof window.getActiveGameSetupSelection === 'function') ? window.getActiveGameSetupSelection() : null;
     const modeKey = (setup && typeof setup.length === 'string') ? setup.length.toLowerCase() : 'short';
     const key = (modeKey === 'medium' || modeKey === 'long') ? modeKey : 'short';
     const bands = (typeof GRADE_THRESHOLDS !== 'undefined' && Array.isArray(GRADE_THRESHOLDS))
@@ -221,7 +221,7 @@
     const usedOpts = (typeof window.getUsedToolOptionsThisRound === 'function')
       ? window.getUsedToolOptionsThisRound() : {};
     const mode = (function() {
-      try { const s = window.getGameSetupSelection ? window.getGameSetupSelection() : null; return (s && s.mode) || 'normal'; } catch(e) { return 'normal'; }
+      try { const s = window.getActiveGameSetupSelection ? window.getActiveGameSetupSelection() : null; return (s && s.mode) || 'normal'; } catch(e) { return 'normal'; }
     })();
     const gauntletState = (mode === 'gauntlet' && typeof window.getGauntletStateForPersistence === 'function')
       ? window.getGauntletStateForPersistence()
@@ -511,13 +511,13 @@
 
     const grade = computeGrade(useAdj ? adjD : rawD);
     const scoreResult = computeScore(grade, {
-      mode: (typeof window.getGameSetupSelection === 'function' && window.getGameSetupSelection())
-        ? window.getGameSetupSelection().mode
+      mode: (typeof window.getActiveGameSetupSelection === 'function' && window.getActiveGameSetupSelection())
+        ? window.getActiveGameSetupSelection().mode
         : 'normal',
       timeLimitMs: _tLimit,
       remainingMs: guessRemainingMs,
-      moveBudget: (typeof window.isRemoteActive === 'function' && window.isRemoteActive() && typeof window.getGameSetupSelection === 'function')
-        ? (((typeof REMOTE_MOVE_BUDGETS !== 'undefined' && REMOTE_MOVE_BUDGETS) || { short: 15, medium: 20, long: 25 })[(window.getGameSetupSelection() || {}).length || 'short'] || 15)
+      moveBudget: (typeof window.isRemoteActive === 'function' && window.isRemoteActive() && typeof window.getActiveGameSetupSelection === 'function')
+        ? (((typeof REMOTE_MOVE_BUDGETS !== 'undefined' && REMOTE_MOVE_BUDGETS) || { short: 15, medium: 20, long: 25 })[(window.getActiveGameSetupSelection() || {}).length || 'short'] || 15)
         : null,
       movesRemaining: (typeof window.getMovesRemaining === 'function') ? window.getMovesRemaining() : null,
       gameLength:  (typeof window.getSelectedGameLength === 'function') ? window.getSelectedGameLength() : 'short',
@@ -608,15 +608,15 @@
       : 'located';
     if (payload) {
       payload.outcome = resolvedOutcome;
-      payload.mode = (function(){ try { const s = window.getGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
+      payload.mode = (function(){ try { const s = window.getActiveGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
       payload.movesLeft = (function(){ try { return typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null; } catch(e){ return null; } })();
     }
     const html = renderResultHtml(payload);
     try {
-      const _pl = buildResultPayload();
-      if (_pl) {
-        _pl.outcome = resolvedOutcome;
-        _pl.mode = (function(){ try { const s = window.getGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
+        const _pl = buildResultPayload();
+        if (_pl) {
+          _pl.outcome = resolvedOutcome;
+        _pl.mode = (function(){ try { const s = window.getActiveGameSetupSelection(); return (s && s.mode) || 'normal'; } catch(e){ return 'normal'; } })();
         _pl.movesLeft = (function(){ try { return typeof window.getMovesRemaining === 'function' ? window.getMovesRemaining() : null; } catch(e){ return null; } })();
         persistResultPayload(_pl);
       }

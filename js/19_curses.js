@@ -138,7 +138,7 @@
     // Instant time penalty: subtract time immediately, don't persist in active list
     if (def && def.kind === 'instant_time_penalty') {
       try {
-        const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+        const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
         const length = (setup && setup.length) || 'short';
         const penMs = (def.timePenaltyMs && typeof def.timePenaltyMs[length] === 'number') ? def.timePenaltyMs[length] : 0;
         if (penMs > 0 && typeof addPenaltyMs === 'function') addPenaltyMs(penMs);

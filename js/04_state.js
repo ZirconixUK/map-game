@@ -66,7 +66,7 @@ window.getRoundElapsedMs = () => {
 
 window.getModeTargetRadiusM = () => {
   try {
-    const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
+    const setup = (typeof window.getActiveGameSetupSelection === 'function') ? window.getActiveGameSetupSelection() : null;
     const length = setup && typeof setup.length === 'string' ? setup.length.toLowerCase() : 'short';
     if (length === 'medium') return 1000;
     if (length === 'long') return 1500;
@@ -78,7 +78,7 @@ window.getModeTargetRadiusM = () => {
 
 window.getRoundTimeLimitMs = () => {
   try {
-    const setup = (typeof window.getGameSetupSelection === 'function') ? window.getGameSetupSelection() : null;
+    const setup = (typeof window.getActiveGameSetupSelection === 'function') ? window.getActiveGameSetupSelection() : null;
     if (setup && setup.mode === 'gauntlet') {
       return (typeof GAUNTLET_TIME_LIMIT_MS === 'number' && isFinite(GAUNTLET_TIME_LIMIT_MS)) ? GAUNTLET_TIME_LIMIT_MS : (90 * 60 * 1000);
     }
@@ -159,6 +159,11 @@ let gameSetup = {
   difficulty: 'normal',
   mode: 'normal',
 };
+let activeGameSetup = {
+  length: 'short',
+  difficulty: 'normal',
+  mode: 'normal',
+};
 
 function __normalizeGameLength(v) {
   const x = String(v == null ? '' : v).trim().toLowerCase();
@@ -185,17 +190,27 @@ function __normalizeGameSetup(src) {
 }
 
 window.getGameSetupSelection = () => __normalizeGameSetup(gameSetup);
-window.getSelectedGameLength = () => __normalizeGameSetup(gameSetup).length;
-window.getSelectedGameDifficulty = () => __normalizeGameSetup(gameSetup).difficulty;
+window.getActiveGameSetupSelection = () => __normalizeGameSetup(activeGameSetup);
+window.getSelectedGameLength = () => __normalizeGameSetup(activeGameSetup).length;
+window.getSelectedGameDifficulty = () => __normalizeGameSetup(activeGameSetup).difficulty;
 window.setGameSetupSelection = (patch) => {
   const next = __normalizeGameSetup({ ...gameSetup, ...(patch || {}) });
   gameSetup = next;
   try { saveRoundStateDebounced(); } catch (e) {}
   return next;
 };
+window.__activateGameSetupSelection = (src) => {
+  activeGameSetup = __normalizeGameSetup(src || gameSetup);
+  try { saveRoundStateDebounced(); } catch (e) {}
+  return activeGameSetup;
+};
 window.__restoreGameSetupSelection = (src) => {
   gameSetup = __normalizeGameSetup(src);
   return gameSetup;
+};
+window.__restoreActiveGameSetupSelection = (src) => {
+  activeGameSetup = __normalizeGameSetup(src || gameSetup);
+  return activeGameSetup;
 };
 
 
@@ -431,6 +446,7 @@ function saveRoundState() {
       fogActions: (typeof getFogActions === 'function') ? getFogActions() : null,
       signalLockCircles: (typeof window.getSignalLockCircles === 'function') ? window.getSignalLockCircles() : null,
       gameSetup: __normalizeGameSetup(gameSetup),
+      activeGameSetup: __normalizeGameSetup(activeGameSetup),
       gauntletState: (typeof window.getGauntletStateForPersistence === 'function') ? window.getGauntletStateForPersistence() : null,
       remoteState: (typeof window.getRemoteStateForPersistence === 'function') ? window.getRemoteStateForPersistence() : null,
     };
@@ -453,6 +469,7 @@ function loadRoundState() {
 function resetRound({ keepTarget = false } = {}) {
   if (__saveRoundStateTimer) { clearTimeout(__saveRoundStateTimer); __saveRoundStateTimer = null; }
   window.__roundExpiredOnLoad = false;
+  activeGameSetup = __normalizeGameSetup(gameSetup);
   roundStartMs = Date.now();
   penaltyMs = 0;
   heatValue = 0;

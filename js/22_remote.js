@@ -5,7 +5,7 @@
 
   // ---- Constants (fallbacks if config not loaded) ----
   function _moveBudget() {
-    const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+    const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
     const len = (setup && setup.length) || 'short';
     const budgets = (typeof REMOTE_MOVE_BUDGETS !== 'undefined') ? REMOTE_MOVE_BUDGETS : { short: 15, medium: 20, long: 25 };
     return budgets[len] || 15;
@@ -33,7 +33,7 @@
   // ---- Public API ----
 
   window.isRemoteActive = function () {
-    const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+    const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
     return !!(remoteState.active && setup && setup.mode === 'remote');
   };
 
@@ -69,7 +69,7 @@
   };
 
   window.__initRemoteIfNeeded = function () {
-    const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+    const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
     if (!setup || setup.mode !== 'remote') {
       __resetRemoteState();
       return;

@@ -112,6 +112,9 @@ function __restoreCommonRoundFields(saved, _savedExpiredOnLoad) {
     try {
       if (saved && Array.isArray(saved.recentPanoKeys)) recentPanoKeys = saved.recentPanoKeys;
       if (saved && typeof window.__restoreGameSetupSelection === 'function') window.__restoreGameSetupSelection(saved.gameSetup || null);
+      if (typeof window.__restoreActiveGameSetupSelection === 'function') {
+        window.__restoreActiveGameSetupSelection((saved && saved.activeGameSetup) || (saved && saved.gameSetup) || null);
+      }
       if (saved && saved.roundStateV1 && typeof saved.roundStateV1 === 'object') {
         // Backward-compatible merge: keep defaults for newly-added fields.
         const d = (typeof window.__defaultRoundStateV1 === 'function') ? window.__defaultRoundStateV1() : {};

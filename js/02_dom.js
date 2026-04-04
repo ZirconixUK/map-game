@@ -540,6 +540,7 @@ function bindUI() {
       __landmarkLiveCache = {};
       __landmarkPoiPoolCache = {};
       __landmarkCategoryHTML = null;
+      try { if (typeof window.__activateGameSetupSelection === 'function') window.__activateGameSetupSelection(); } catch(e) {}
       // Rebuild radar and thermometer menus for the newly-selected mode before the round starts.
       try { if (typeof window.updateRadarMenuForMode === 'function') window.updateRadarMenuForMode(); } catch(e) {}
       try { if (typeof window.updateThermoMenuForMode === 'function') window.updateThermoMenuForMode(); } catch(e) {}
@@ -1127,14 +1128,10 @@ if (debugMode) {
 
   document.querySelectorAll('[data-game-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const _prevMode = selectedGameMode;
       selectedGameMode = (btn.getAttribute('data-game-mode') || 'normal').toLowerCase();
       selectChoice('[data-game-mode]', 'data-game-mode', selectedGameMode);
       __applyGauntletLengthConstraints(selectedGameMode);
       try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: selectedGameMode }); } catch(e) {}
-      if (_prevMode === 'remote' && selectedGameMode !== 'remote') {
-        try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
-      }
       __syncBriefingModeUI(selectedGameMode);
       try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
     });
@@ -1145,7 +1142,6 @@ if (debugMode) {
     selectChoice('[data-game-mode]', 'data-game-mode', 'normal');
     __applyGauntletLengthConstraints('normal');
     try { if (typeof window.setGameSetupSelection === 'function') window.setGameSetupSelection({ mode: 'normal' }); } catch(e) {}
-    try { if (typeof window.__resetRemoteState === 'function') window.__resetRemoteState(); } catch(e) {}
     __syncBriefingModeUI('normal');
     try { if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode(); } catch(e) {}
   };

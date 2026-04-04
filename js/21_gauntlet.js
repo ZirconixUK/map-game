@@ -110,7 +110,7 @@
 
   // Called from js/02_dom.js before pickNewTarget
   window.__initGauntletIfNeeded = function () {
-    const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+    const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
     if (setup && setup.mode === 'gauntlet') {
       __initGauntlet();
     } else {
@@ -161,7 +161,7 @@
       : { Diamond: 800, Emerald: 650, Platinum: 500, Gold: 375, Silver: 250, Bronze: 125, Copper: 50 };
     const base = bases[grade] || 50;
 
-    const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+    const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
     const difficulty = (setup && setup.difficulty) || 'normal';
     const db = (typeof SCORE_DIFFICULTY_BONUS !== 'undefined') ? SCORE_DIFFICULTY_BONUS : { easy: 0, normal: 50, hard: 100 };
     const diffBonus = db[difficulty] || 0;
@@ -408,7 +408,7 @@
       // Persist to database (no-op for guests)
       try {
         if (typeof window.saveGauntletRun === 'function') {
-          const setup = typeof window.getGameSetupSelection === 'function' ? window.getGameSetupSelection() : null;
+          const setup = typeof window.getActiveGameSetupSelection === 'function' ? window.getActiveGameSetupSelection() : null;
           window.saveGauntletRun({
             difficulty:     (setup && setup.difficulty) || 'normal',
             overall_grade:  overallGrade,
