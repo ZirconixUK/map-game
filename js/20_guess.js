@@ -416,18 +416,27 @@
         </div>
         <div class="debriefSectionLabel">Field Stats</div>
         <div class="resultStats">${statHtml}</div>
-        <div class="debriefSectionLabel">Score Breakdown</div>
-        <div class="resultBreakdown">
-          ${_bdRow('Base score', _bd.base)}
-          ${_bdRow(_timeRowLabel, _bd.timeBonus)}
-          ${_bdRow(mode === 'gauntlet' ? 'Target progress' : 'Radius bonus', _bd.lengthBonus)}
-          ${_bdRow('Difficulty bonus', _bd.diffBonus)}
-          ${_bdRow('Tool efficiency', _bd.toolBonus)}
-          <div class="resultBreakdownRow resultBreakdownTotal">
-            <span>Total</span>
-            <span>${score.toLocaleString()} pts</span>
+        <div class="debriefSectionLabel">Score</div>
+        <details class="resultScoreCard">
+          <summary class="resultScoreSummary">
+            <div>
+              <div class="resultScoreSummaryLabel">Total Score</div>
+              <div class="resultScoreSummaryHint">Tap for breakdown</div>
+            </div>
+            <div class="resultScoreSummaryValue">${score.toLocaleString()} pts</div>
+          </summary>
+          <div class="resultBreakdown">
+            ${_bdRow('Base score', _bd.base)}
+            ${_bdRow(_timeRowLabel, _bd.timeBonus)}
+            ${_bdRow(mode === 'gauntlet' ? 'Target progress' : 'Radius bonus', _bd.lengthBonus)}
+            ${_bdRow('Difficulty bonus', _bd.diffBonus)}
+            ${_bdRow('Tool efficiency', _bd.toolBonus)}
+            <div class="resultBreakdownRow resultBreakdownTotal">
+              <span>Total</span>
+              <span>${score.toLocaleString()} pts</span>
+            </div>
           </div>
-        </div>
+        </details>
         <div class="debriefActions">
           <button id="btnResultRedeploy" class="debriefRedeployBtn mode-${escapeHtml(mode)}" type="button">Redeploy</button>
           <div class="debriefSecondaryActions">

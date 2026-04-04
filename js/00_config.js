@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-04-04.ui-overhaul-heat-and-widget-corners';
+const BUILD_ID = '2026-04-04.ui-overhaul-results-breakdown-toggle';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
