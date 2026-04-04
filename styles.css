@@ -2372,17 +2372,37 @@ button:disabled, .disabled{ opacity:.38; cursor:not-allowed; }
   font-weight: 500;
 }
 .locationMeta { font-size: 11px; color: #64748b; margin-top: 1px; }
-.locationChange {
+.locationModeToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(56, 189, 248, .24);
+  background: rgba(4, 10, 24, .82);
+}
+.locationModeBtn {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color: #38bdf8;
-  background: transparent;
-  border: none;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+  background: rgba(8, 15, 30, .72);
+  border: 1px solid rgba(71, 85, 105, .7);
+  min-height: 32px;
+  padding: 0 10px;
   cursor: pointer;
-  padding: 0;
+  transition: background .12s, color .12s, border-color .12s, box-shadow .12s;
+}
+.locationModeBtn:hover {
+  border-color: rgba(56, 189, 248, .45);
+  color: #bae6fd;
+}
+.locationModeBtn.is-selected {
+  color: #ecfeff;
+  background: linear-gradient(180deg, rgba(13, 148, 136, .28), rgba(8, 145, 178, .18));
+  border-color: rgba(45, 212, 191, .75);
+  box-shadow: inset 0 0 0 1px rgba(153, 246, 228, .18);
 }
 .curseCardSystems{
   margin-top:8px;

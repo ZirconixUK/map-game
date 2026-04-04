@@ -731,7 +731,8 @@ function bindUI() {
       const dot = document.getElementById('setupLocationDot');
       const name = document.getElementById('setupLocationName');
       const meta = document.getElementById('setupLocationMeta');
-      const changeBtn = document.getElementById('setupLocationChange');
+      const gpsBtn = document.getElementById('setupLocationUseGps');
+      const pickBtn = document.getElementById('setupLocationPickMap');
       const wantsMapPick = __newGameLocationMode === 'pick';
       const hasCustomPin = wantsMapPick && !!(__pickedAreaSeed && isFinite(__pickedAreaSeed.lat) && isFinite(__pickedAreaSeed.lon));
       let gpsDistanceText = '';
@@ -778,8 +779,13 @@ function bindUI() {
         }
         meta.style.display = '';
       }
-      if (changeBtn) {
-        changeBtn.textContent = wantsMapPick ? 'Use GPS' : 'Pick on Map';
+      if (gpsBtn) {
+        gpsBtn.classList.toggle('is-selected', !wantsMapPick);
+        gpsBtn.setAttribute('aria-pressed', wantsMapPick ? 'false' : 'true');
+      }
+      if (pickBtn) {
+        pickBtn.classList.toggle('is-selected', wantsMapPick);
+        pickBtn.setAttribute('aria-pressed', wantsMapPick ? 'true' : 'false');
       }
     } catch(e) {}
   }
@@ -856,16 +862,20 @@ function bindUI() {
     try { if (typeof window.__showBriefingModalFromSetup === 'function') window.__showBriefingModalFromSetup(); } catch(e) {}
   });
 
-  const setupLocationChangeBtn = document.getElementById('setupLocationChange');
-  if (setupLocationChangeBtn) {
-    setupLocationChangeBtn.addEventListener('click', () => {
+  const setupLocationUseGpsBtn = document.getElementById('setupLocationUseGps');
+  if (setupLocationUseGpsBtn) {
+    setupLocationUseGpsBtn.addEventListener('click', () => {
       try {
-        if (__newGameLocationMode === 'pick') {
-          __setNewGameLocationMode('current');
-          __pickedAreaSeed = null;
-          if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
-          return;
-        }
+        __setNewGameLocationMode('current');
+        __pickedAreaSeed = null;
+        if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
+      } catch(e) {}
+    });
+  }
+  const setupLocationPickMapBtn = document.getElementById('setupLocationPickMap');
+  if (setupLocationPickMapBtn) {
+    setupLocationPickMapBtn.addEventListener('click', () => {
+      try {
         __setNewGameLocationMode('pick');
         if (typeof window.__syncSetupScreenMode === 'function') window.__syncSetupScreenMode();
       } catch(e) {}

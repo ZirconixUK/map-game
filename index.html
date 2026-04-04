@@ -663,7 +663,10 @@
               <div id="setupLocationName" class="locationName">Detecting GPS…</div>
               <div id="setupLocationMeta" class="locationMeta" style="display:none;"></div>
             </div>
-            <button id="setupLocationChange" class="locationChange" type="button">Change</button>
+            <div class="locationModeToggle" role="group" aria-label="Starting location mode">
+              <button id="setupLocationUseGps" class="locationModeBtn is-selected" type="button" aria-pressed="true">Use GPS</button>
+              <button id="setupLocationPickMap" class="locationModeBtn" type="button" aria-pressed="false">Pick on Map</button>
+            </div>
           </div>
           <div id="remoteAnchorNote" class="remoteNoteBlock hidden" style="margin-top:6px;">GPS anchors your search region only — no physical movement needed.</div>
         </div>
