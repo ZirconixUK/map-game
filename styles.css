@@ -775,6 +775,61 @@ body{
 /* ─── JS-toggled state classes ───────────────────────────────────── */
 .hidden{ display:none !important; }
 
+.startupIssue{
+  position:fixed;
+  left:50%;
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  z-index:140;
+  width:min(420px, calc(100vw - 24px));
+  padding:14px 15px;
+  border:1px solid rgba(248,113,113,.35);
+  background:rgba(15,23,41,.96);
+  box-shadow:0 18px 40px rgba(0,0,0,.55);
+  color:#e2e8f0;
+}
+.startupIssueTitle{
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:#fca5a5;
+}
+.startupIssueMessage{
+  margin-top:6px;
+  font-size:14px;
+  font-weight:600;
+  color:#f8fafc;
+}
+.startupIssueMeta{
+  margin-top:5px;
+  font-size:12px;
+  line-height:1.45;
+  color:#94a3b8;
+}
+.startupIssueActions{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:10px;
+}
+.startupIssueBtn{
+  border:1px solid rgba(248,113,113,.42);
+  background:rgba(127,29,29,.26);
+  color:#fee2e2;
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  min-height:36px;
+  padding:0 14px;
+  cursor:pointer;
+}
+.startupIssueBtn:hover{
+  background:rgba(127,29,29,.36);
+}
+
 
 /* ─── menuBtn state classes ──────────────────────────────────────── */
 .menuBtn.disabled{ pointer-events:none; }

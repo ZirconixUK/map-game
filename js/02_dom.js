@@ -318,6 +318,8 @@ function __buildPhotoGalleryGrid() {
 window.__buildPhotoGalleryGrid = __buildPhotoGalleryGrid;
 
 function bindUI() {
+  if (window.__uiBound) return;
+  window.__uiBound = true;
   on("btnRecenter","click", (ev) => {
     try { if (ev && ev.preventDefault) ev.preventDefault(); if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(e) {}
     if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {

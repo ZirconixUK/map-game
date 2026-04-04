@@ -8,7 +8,8 @@
   <meta http-equiv="Expires" content="0" />
 <title>Field Op — Real-World Walking Deduction Game</title>
   <script>
-    tailwind.config = {
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
       corePlugins: { preflight: false },
       theme: {
         extend: {
@@ -31,6 +32,7 @@
     (function () {
       var cb = Date.now();
       window.__cb = cb;
+      window.__startupState = { failed: false, loadedScripts: [] };
 
       // Init status indicator — shown during slow async phases (POI load, geolocation, Street View)
       window.__setInitStatus = function(msg) {
@@ -53,6 +55,57 @@
         } catch(e) {}
       };
 
+      window.__showStartupIssue = function(message, detail) {
+        try {
+          var box = document.getElementById('startupIssue');
+          var msg = document.getElementById('startupIssueMessage');
+          var meta = document.getElementById('startupIssueMeta');
+          if (!box || !msg || !meta) return;
+          msg.textContent = message || 'Startup failed.';
+          meta.textContent = detail || 'Try reloading the page. If this continues, clear site data for this origin and retry.';
+          box.classList.remove('hidden');
+          try { if (typeof window.__setInitStatus === 'function') window.__setInitStatus(''); } catch(e) {}
+        } catch(e) {}
+      };
+
+      window.__closeStartupIssue = function() {
+        try {
+          var box = document.getElementById('startupIssue');
+          if (box) box.classList.add('hidden');
+        } catch(e) {}
+      };
+
+      window.__attemptStartupRecovery = function(reason) {
+        try { window.__startupState.failed = true; } catch (e) {}
+        try {
+          if (typeof window.bindUI === 'function' && !window.__uiBound) {
+            window.bindUI();
+          }
+        } catch (e) {
+          console.error('UI bind recovery failed', e);
+        }
+        try {
+          var hasSave = !!localStorage.getItem('mapgame_round_v1');
+          if (!hasSave) {
+            var modal = document.getElementById('welcomeModal');
+            var first = document.getElementById('welcomeContentFirst');
+            var ret = document.getElementById('welcomeContentReturn');
+            if (modal) modal.classList.remove('hidden');
+            if (window.__activeBriefingContent === 'return') {
+              if (ret) ret.classList.remove('hidden');
+            } else if (first) {
+              first.classList.remove('hidden');
+            }
+          }
+        } catch (e) {
+          console.error('Startup modal recovery failed', e);
+        }
+        window.__showStartupIssue(
+          'The game did not finish loading correctly.',
+          reason || 'A startup script failed before the controls finished wiring up. Reload to retry.'
+        );
+      };
+
       var css = document.createElement('link');
       css.rel = 'stylesheet';
       css.href = './styles.css?cb=' + cb;
@@ -63,8 +116,13 @@
           var s = document.createElement('script');
           s.src = src;
           s.async = false;
-          s.onload = resolve;
-          s.onerror = reject;
+          s.onload = function() {
+            try { window.__startupState.loadedScripts.push(src); } catch (e) {}
+            resolve();
+          };
+          s.onerror = function() {
+            reject(new Error('Failed to load ' + src));
+          };
           document.head.appendChild(s);
         });
       }
@@ -135,11 +193,28 @@
               }
               var b1 = document.getElementById('btnWelcomeStart');
               var b2 = document.getElementById('btnWelcomeStartReturn');
+              var c1 = document.getElementById('btnWelcomeCancel');
+              var c2 = document.getElementById('btnWelcomeCancelReturn');
               if (b1) b1.onclick = onWelcomeStart;
               if (b2) b2.onclick = onWelcomeStart;
+              if (c1) c1.onclick = function() { modal.classList.add('hidden'); };
+              if (c2) c2.onclick = function() { modal.classList.add('hidden'); };
             }
           } catch(e) {}
         })();
+
+        try {
+          window.addEventListener('error', function(evt) {
+            if (window.__startupState.failed || window.__uiBound) return;
+            var msg = evt && evt.message ? evt.message : 'Unknown startup error';
+            window.__attemptStartupRecovery(msg);
+          }, { once: true });
+          window.addEventListener('unhandledrejection', function(evt) {
+            if (window.__startupState.failed || window.__uiBound) return;
+            var reason = evt && evt.reason ? String(evt.reason.message || evt.reason) : 'Unhandled startup rejection';
+            window.__attemptStartupRecovery(reason);
+          }, { once: true });
+        } catch (e) {}
 
         (async function () {
         try { await load('./js/secrets.js?cb=' + cb); } catch(e) { /* no secrets.js — Street View disabled */ }
@@ -168,9 +243,21 @@
         await load('./js/22_signal_lock.js?cb=' + cb);
         await load('./js/13_boot.js?cb=' + cb);
         await load('./js/14_panels_misc.js?cb=' + cb);
+        try { window.__closeStartupIssue(); } catch (e) {}
         })().catch(function (e) {
+          try { window.__startupState.failed = true; } catch (err) {}
           console.error('Script load failed', e);
+          window.__attemptStartupRecovery(e && e.message ? e.message : 'Script loader failed');
         });
+
+        window.setTimeout(function() {
+          try {
+            if (window.__uiBound) return;
+            var mapEl = document.getElementById('leafletMap');
+            if (!mapEl) return;
+            window.__attemptStartupRecovery('The map loaded but the interface did not finish initialising.');
+          } catch (e) {}
+        }, 4500);
       }
 
       if (document.readyState === 'loading') {
@@ -206,6 +293,14 @@
 
     <!-- Toast -->
     <div id="toast" class="hidden fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] max-w-[min(520px,calc(100vw-32px))] px-4 py-3.5 rounded-2xl border border-cyan-500/30 bg-[#111827] text-gray-100 shadow-modal text-sm leading-snug text-center cursor-pointer [&.good]:border-emerald-500/70 [&.bad]:border-red-500/60 [&.curse]:border-purple-500/70 [&.curse]:shadow-[0_14px_38px_rgba(0,0,0,.7),0_0_0_2px_rgba(168,85,247,.18),0_0_28px_rgba(168,85,247,.22)]" role="status" aria-live="polite"></div>
+    <div id="startupIssue" class="startupIssue hidden" role="status" aria-live="polite">
+      <div class="startupIssueTitle">Startup Problem</div>
+      <div id="startupIssueMessage" class="startupIssueMessage">The game did not finish loading correctly.</div>
+      <div id="startupIssueMeta" class="startupIssueMeta">Reload to retry. If this keeps happening, clear site data for this origin and try again.</div>
+      <div class="startupIssueActions">
+        <button id="startupIssueReload" class="startupIssueBtn" type="button" onclick="window.location.reload()">Reload</button>
+      </div>
+    </div>
 
   <!-- HUD command band (centered) -->
   <div id="hudTopCenter" class="hudTopCenter flex flex-col items-center gap-2" aria-label="HUD">
