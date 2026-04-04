@@ -32,7 +32,7 @@
     (function () {
       var cb = Date.now();
       window.__cb = cb;
-      window.__startupState = { failed: false, loadedScripts: [] };
+      window.__startupState = { failed: false, loadedScripts: [], coreUiReady: false };
 
       // Init status indicator — shown during slow async phases (POI load, geolocation, Street View)
       window.__setInitStatus = function(msg) {
@@ -236,14 +236,8 @@
         await load('./js/15_tools_config.js?cb=' + cb);
         await load('./js/18_streetview_glimpse.js?cb=' + cb);
         await load('./js/02_dom.js?cb=' + cb);
-        try {
-          if (typeof window.bindUI === 'function' && !window.__uiBound) {
-            window.bindUI();
-          }
-        } catch (e) {
-          console.error('Early bindUI failed', e);
-        }
         await load('./js/14_panels_misc.js?cb=' + cb);
+        try { window.__startupState.coreUiReady = true; } catch (e) {}
         await load('./js/03_map_image.js?cb=' + cb);
         await load('./js/04_state.js?cb=' + cb);
         await load('./js/19_curses.js?cb=' + cb);
@@ -270,7 +264,7 @@
 
         window.setTimeout(function() {
           try {
-            if (window.__uiBound) return;
+            if (window.__uiBound || (window.__startupState && window.__startupState.coreUiReady)) return;
             var mapEl = document.getElementById('leafletMap');
             if (!mapEl) return;
             window.__attemptStartupRecovery('The map loaded but the interface did not finish initialising.');
