@@ -88,15 +88,16 @@ body{
 .hudInstrument:hover{ background:rgba(12,25,40,.96); }
 .hudInstrument--utility{ color:#22d3ee; }
 .hudInstrument--system{
-  color:#fbbf24;
-  border-color:rgba(245,158,11,.22);
-  box-shadow:0 10px 26px rgba(0,0,0,.48), 0 0 0 1px rgba(245,158,11,.08);
+  color:#22d3ee;
+  border-color:rgba(0,212,255,.18);
+  background:rgba(4,10,22,.94);
+  box-shadow:0 10px 26px rgba(0,0,0,.48), 0 0 0 1px rgba(0,212,255,.07);
 }
 .hudInstrument--primary{
-  color:#fff;
-  border-color:rgba(59,130,246,.30);
-  background:linear-gradient(135deg, rgba(37,99,235,.95) 0%, rgba(14,165,233,.88) 100%);
-  box-shadow:0 12px 30px rgba(0,0,0,.46), 0 0 0 1px rgba(59,130,246,.10);
+  color:#22d3ee;
+  border-color:rgba(0,212,255,.18);
+  background:rgba(4,10,22,.94);
+  box-shadow:0 10px 26px rgba(0,0,0,.48), 0 0 0 1px rgba(0,212,255,.07);
 }
 .hudStatusCard{
   background:rgba(4,10,22,.94);

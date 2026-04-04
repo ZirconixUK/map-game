@@ -6,7 +6,7 @@
  *   transformed along with the map.
  */
 
-const BUILD_ID = '2026-04-04.ui-overhaul-setup-location-toggle';
+const BUILD_ID = '2026-04-04.ui-overhaul-unify-fab-treatment';
 (function(){ var el = document.getElementById('buildBadge'); if (el) el.textContent = BUILD_ID; })();
 
 // ---- Config ----
