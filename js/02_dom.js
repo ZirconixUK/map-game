@@ -321,6 +321,11 @@ function bindUI() {
   if (window.__uiBound === true || window.__uiBound === 'binding') return;
   window.__uiBound = 'binding';
   try {
+  const clearCluesSafe = () => {
+    try {
+      if (typeof clearClues === 'function') clearClues();
+    } catch (e) {}
+  };
   on("btnRecenter","click", (ev) => {
     try { if (ev && ev.preventDefault) ev.preventDefault(); if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(e) {}
     if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
@@ -427,7 +432,7 @@ function bindUI() {
     );
   });
   on("btnCenter","click",(ev)=>{ try{ if(ev&&ev.preventDefault) ev.preventDefault(); }catch(e){} try{ log("🎯 Center clicked."); }catch(e){} if (typeof centerOnPlayer==="function") centerOnPlayer(); });
-  on("btnClear","click",clearClues);
+  on("btnClear","click", clearCluesSafe);
   async function positionPlayerForNewGame(opts = {}) {
     // In debug mode with a location already set, keep it — skip GPS override.
     if (debugMode && player && typeof player.lat === 'number' && typeof player.lon === 'number') {
@@ -563,7 +568,7 @@ function bindUI() {
       } else {
         await positionPlayerForNewGame();
       }
-      clearClues();
+      clearCluesSafe();
       // Refresh live POIs from Overpass based on player location + mode radius.
       try { if (typeof window.__refreshLivePoisForCurrentLocation === 'function') await window.__refreshLivePoisForCurrentLocation(); } catch(e) {}
       // By design: player location first, map centre second, then target pick based on that player location.
