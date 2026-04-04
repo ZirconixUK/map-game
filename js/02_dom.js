@@ -318,8 +318,9 @@ function __buildPhotoGalleryGrid() {
 window.__buildPhotoGalleryGrid = __buildPhotoGalleryGrid;
 
 function bindUI() {
-  if (window.__uiBound) return;
-  window.__uiBound = true;
+  if (window.__uiBound === true || window.__uiBound === 'binding') return;
+  window.__uiBound = 'binding';
+  try {
   on("btnRecenter","click", (ev) => {
     try { if (ev && ev.preventDefault) ev.preventDefault(); if (ev && ev.stopPropagation) ev.stopPropagation(); } catch(e) {}
     if (typeof window.isRemoteActive === 'function' && window.isRemoteActive()) {
@@ -2079,5 +2080,10 @@ if (debugMode) {
   // Cache tool button node lists for updateUI performance
   try { if (typeof window.__cacheToolButtonNodes === 'function') window.__cacheToolButtonNodes(); } catch(e) {}
 
+  window.__uiBound = true;
+  } catch (e) {
+    window.__uiBound = false;
+    throw e;
+  }
 }
 window.bindUI = bindUI;
