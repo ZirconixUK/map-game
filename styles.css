@@ -818,6 +818,7 @@ body{
 }
 .startupIssueActions{
   display:flex;
+  gap:8px;
   justify-content:flex-end;
   margin-top:10px;
 }
@@ -836,6 +837,18 @@ body{
 }
 .startupIssueBtn:hover{
   background:rgba(127,29,29,.36);
+}
+.startupIssueBtn:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+.startupIssueBtn--quiet{
+  border-color:rgba(71,85,105,.6);
+  background:rgba(15,23,41,.82);
+  color:#cbd5e1;
+}
+.startupIssueBtn--quiet:hover{
+  background:rgba(30,41,59,.94);
 }
 
 

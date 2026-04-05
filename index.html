@@ -84,6 +84,52 @@
         } catch(e) {}
       };
 
+      window.__clearAllLocalGameData = async function() {
+        var prefixes = ['mapgame_', 'mg_sv_img_', '__mg_test__'];
+        try {
+          var toDelete = [];
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (!k) continue;
+            for (var j = 0; j < prefixes.length; j++) {
+              if (k.indexOf(prefixes[j]) === 0) {
+                toDelete.push(k);
+                break;
+              }
+            }
+          }
+          for (var n = 0; n < toDelete.length; n++) {
+            try { localStorage.removeItem(toDelete[n]); } catch (e) {}
+          }
+        } catch (e) {}
+        try { sessionStorage.clear(); } catch (e) {}
+        try {
+          await new Promise(function(resolve) {
+            if (!window.indexedDB || typeof indexedDB.deleteDatabase !== 'function') { resolve(); return; }
+            var req = indexedDB.deleteDatabase('mapgame');
+            req.onsuccess = function() { resolve(); };
+            req.onerror = function() { resolve(); };
+            req.onblocked = function() { resolve(); };
+          });
+        } catch (e) {}
+      };
+
+      window.__resetLocalGameDataAndReload = async function() {
+        try {
+          var btn = document.getElementById('startupIssueReset');
+          var meta = document.getElementById('startupIssueMeta');
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Clearing…';
+          }
+          if (meta) meta.textContent = 'Clearing saved game data and cache for this browser…';
+          await window.__clearAllLocalGameData();
+        } catch (e) {
+          console.error('Local reset failed', e);
+        }
+        window.location.reload();
+      };
+
       window.__attemptStartupRecovery = function(reason) {
         try { window.__startupState.failed = true; } catch (e) {}
         try {
@@ -311,6 +357,7 @@
       <div id="startupIssueMeta" class="startupIssueMeta">Reload to retry. If this keeps happening, clear site data for this origin and try again.</div>
       <div id="startupIssueDebug" class="startupIssueDebug"></div>
       <div class="startupIssueActions">
+        <button id="startupIssueReset" class="startupIssueBtn startupIssueBtn--quiet" type="button" onclick="window.__resetLocalGameDataAndReload()">Reset Local Data</button>
         <button id="startupIssueReload" class="startupIssueBtn" type="button" onclick="window.location.reload()">Reload</button>
       </div>
     </div>
